@@ -1,3 +1,6 @@
 streamlit
 openai
 python-dotenv
+git add requirements.txt
+git commit -m "Add python-dotenv for .env support"
+git push
