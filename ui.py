@@ -7,40 +7,39 @@ from dotenv import load_dotenv
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Streamlit UI
-st.set_page_config(page_title="Email Assistant", layout="centered")
+# UI Setup
+st.set_page_config(page_title="SmartReplies AI", page_icon="📧", layout="centered")
 st.title("📧 AI Email Assistant")
 
-email_input = st.text_area("Paste the email message you want a reply to:")
+st.markdown("### Paste the email message you want a reply to:")
+email_input = st.text_area("Incoming Email", height=200)
 
-# Add tone selection dropdown
-tone = st.selectbox(
-    "Choose a reply tone:",
-    ("Casual", "Professional", "Friendly", "Assertive")
-)
+tone = st.selectbox("Choose a reply tone:", ["Professional", "Friendly", "Direct", "Casual"])
 
 if st.button("Generate Reply"):
-    if email_input.strip() == "":
+    if not email_input.strip():
         st.warning("Please enter an email message.")
     else:
         with st.spinner("Generating reply..."):
             try:
-                client = openai.OpenAI()
-                response = client.chat.completions.create(
+                prompt = f"Reply to the following email in a {tone} tone:\n\n{email_input}"
+
+                response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": f"You are a helpful assistant that writes *{tone.lower()}* replies to emails."
-                        },
-                        {
-                            "role": "user",
-                            "content": email_input
-                        }
-                    ]
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.7,
                 )
+
                 reply = response.choices[0].message.content
-                st.success("Here's your reply:")
-                st.text_area("Generated Reply", value=reply, height=200)
+
+                st.success("Here’s your reply:")
+                st.text_area("AI-Generated Reply", value=reply, height=200, key="reply_output")
+
+                # Download button
+                st.download_button("📥 Download Reply as .txt", reply, file_name="reply.txt")
+
+                # Copy workaround: shows value that can be copied manually
+                st.text_input("Copy manually:", value=reply, key="copy_text")
+
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"Something went wrong: {e}")
