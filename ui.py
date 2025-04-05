@@ -70,7 +70,7 @@ from datetime import datetime
     # Save input and reply to a local file for testing/training
 try:
     ...
-    reply = generate_reply(email_input, selected_tone)
+    reply = generate_reply(email_input, tone)
 
     st.text_area("AI-Generated Reply", value=reply, height=200, key="reply_output")
     
