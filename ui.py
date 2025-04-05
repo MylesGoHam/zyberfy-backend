@@ -11,6 +11,7 @@ posthog.capture(distinct_id="smartreplies_user", event="page_view")
 
 # UI setup
 st.set_page_config(page_title="SmartReplies", layout="centered")
+
 st.markdown("<h1 style='text-align: center;'>SmartReplies</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 18px;'>Automatically respond to customer emails like a pro.</p>", unsafe_allow_html=True)
 
@@ -18,7 +19,7 @@ st.markdown("### Paste the email you'd like a reply to:")
 email_input = st.text_area("Incoming Email:", height=200, label_visibility="collapsed", key="email_input_box")
 
 st.markdown("### Choose a reply tone:")
-tone = st.selectbox("", ["Professional", "Friendly", "Direct", "Casual"], key="tone_select")
+tone = st.selectbox("Reply Tone", ["Professional", "Friendly", "Direct", "Casual"], key="tone_select")
 
 sender_name = st.text_input("Recipient Name", placeholder="e.g. John")
 recipient_name = st.text_input("Your Name", placeholder="e.g. Myles")
@@ -37,6 +38,7 @@ if st.button("Generate Reply"):
                     "sender_name": sender_name,
                     "recipient_name": recipient_name
                 })
+
                 response.raise_for_status()
                 reply = response.json().get("reply", "")
                 st.success("✅ Here's your reply:")
