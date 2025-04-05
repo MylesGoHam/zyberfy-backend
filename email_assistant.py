@@ -1,5 +1,5 @@
 import os
-from openai import OpenAI
+import openai
 from dotenv import load_dotenv
 
 # Load your OpenAI API key from .env file
