@@ -2,9 +2,10 @@ import openai
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def generate_reply(email_input, tone, sender_name, recipient_name):
     prompt = f"""
@@ -14,7 +15,7 @@ You are an AI email assistant helping write a reply.
 - Address the recipient as: Dear {recipient_name},
 - Sign off with: {sender_name}
 
-Here’s the email you’re replying to:
+Here’s the email you're replying to:
 \"\"\"
 {email_input}
 \"\"\"
@@ -22,11 +23,14 @@ Here’s the email you’re replying to:
 Now write a clear and helpful reply:
 """
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=500
-    )
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=500
+        )
+        return response.choices[0].message["content"].strip()
 
-    return response.choices[0].message["content"].strip()
+    except Exception as e:
+        return f"Error generating reply: {str(e)}"
