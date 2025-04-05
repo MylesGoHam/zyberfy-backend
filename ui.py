@@ -20,10 +20,6 @@ st.markdown("""
 # Email input
 email_input = st.text_area("Incoming Email:", height=200, key="email_input_box")
 
-# Save input to log
-with open("test_emails.txt", "a") as f:
-    f.write(email_input.strip() + "\n" + "-" * 40 + "\n")
-
 # Tone selector
 tone = st.selectbox(
     "Choose a reply tone:",
@@ -31,33 +27,31 @@ tone = st.selectbox(
     key="tone_select"
 )
 
-# Recipient and sender name
+# Names
 recipient_name = st.text_input("Recipient Name", placeholder="e.g. John")
 sender_name = st.text_input("Your Name", placeholder="e.g. Myles")
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Generate Reply
+# Submit button
 if st.button("Generate Reply"):
     if not email_input.strip():
-        st.warning("Please enter an email message.")
+        st.warning("⚠️ Please enter an email message.")
     elif not tone:
-        st.warning("Please select a reply tone.")
-    elif not recipient_name or not sender_name:
-        st.warning("Please enter both recipient and sender names.")
+        st.warning("⚠️ Please select a reply tone.")
+    elif not recipient_name.strip() or not sender_name.strip():
+        st.warning("⚠️ Please enter both recipient and sender names.")
     else:
         with st.spinner("Generating reply..."):
             try:
                 reply = generate_reply(email_input, tone, sender_name, recipient_name)
 
-                # Display output
+                # Display Output
                 st.success("✅ Here's your reply:")
                 st.markdown("## 🤖 Generated Email Reply")
                 st.text_area("AI-Generated Reply:", value=reply, height=200, key="generated_reply_output")
 
-                # Export
+                # Export Options
                 st.markdown("<hr>", unsafe_allow_html=True)
-                st.markdown("### 📤 Export Options", unsafe_allow_html=True)
+                st.markdown("## 📤 Export Options", unsafe_allow_html=True)
                 st.download_button("📄 Download Reply as .txt", reply, file_name="reply.txt")
 
                 # Manual copy fallback
@@ -66,9 +60,9 @@ if st.button("Generate Reply"):
                 # Save to log
                 with open("test_emails.txt", "a") as f:
                     f.write(f"{datetime.now()}\n")
-                    f.write(f"Incoming Email:\n{email_input.strip()}\n\n")
-                    f.write(f"AI Reply:\n{reply.strip()}\n\n")
-                    f.write("-" * 40 + "\n\n")
+                    f.write(f"📩 Incoming Email:\n{email_input.strip()}\n\n")
+                    f.write(f"🤖 AI Reply:\n{reply.strip()}\n")
+                    f.write("-" * 48 + "\n\n")
 
             except Exception as e:
                 st.error(f"Something went wrong: {e}")
