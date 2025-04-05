@@ -1,5 +1,4 @@
-import from email_assistant
-import generate_reply
+from email_assistant import generate_reply
 import streamlit as st
 import openai
 import os
