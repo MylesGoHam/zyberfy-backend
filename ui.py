@@ -76,7 +76,7 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True
-)st.markdown(
+st.markdown(
     """
     <style>
     .stButton > button {
@@ -94,6 +94,7 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True
+)
 )from datetime import datetime
 
 # ...
