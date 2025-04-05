@@ -1,6 +1,6 @@
 import streamlit as st
-import requests
 import posthog
+from email_assistant import generate_reply
 
 # Initialize PostHog
 posthog.api_key = "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V"
@@ -9,11 +9,17 @@ posthog.host = "https://us.i.posthog.com"
 # Track page view
 posthog.capture(distinct_id="smartreplies_user", event="page_view")
 
-# UI setup
+# UI Setup
 st.set_page_config(page_title="SmartReplies", layout="centered")
 
-st.markdown("<h1 style='text-align: center;'>SmartReplies</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 18px;'>Automatically respond to customer emails like a pro.</p>", unsafe_allow_html=True)
+st.markdown(
+    "<h1 style='text-align: center;'>SmartReplies</h1>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align: center; font-size: 18px;'>Automatically respond to customer emails like a pro.</p>",
+    unsafe_allow_html=True
+)
 
 st.markdown("### Paste the email you'd like a reply to:")
 email_input = st.text_area("Incoming Email:", height=200, label_visibility="collapsed", key="email_input_box")
@@ -32,16 +38,14 @@ if st.button("Generate Reply"):
 
         with st.spinner("Generating reply..."):
             try:
-                response = requests.post("https://smartrepliesai.onrender.com/generate_reply", json={
-                    "incoming_email": email_input,
-                    "tone": tone,
-                    "sender_name": sender_name,
-                    "recipient_name": recipient_name
-                })
+                reply = generate_reply(
+                    email_input=email_input,
+                    tone=tone,
+                    sender_name=sender_name,
+                    recipient_name=recipient_name
+                )
 
-                response.raise_for_status()
-                reply = response.json().get("reply", "")
-                st.success("✅ Here's your reply:")
+                st.success("✅ Here's your reply")
 
                 st.markdown("### Generated Email Reply")
                 st.text_area("AI-Generated Reply:", value=reply, height=200, key="generated_reply_output")
@@ -56,5 +60,5 @@ if st.button("Generate Reply"):
 
                 st.text_area("Copy manually:", value=reply.replace("\n", " "), key="manual_copy_output")
 
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 st.error(f"An error occurred while generating the reply: {e}")
