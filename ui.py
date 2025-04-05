@@ -9,13 +9,16 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # UI Setup
 st.set_page_config(page_title="SmartReplies AI", page_icon="📧", layout="centered")
-st.title("📧 AI Email Assistant")
+st.title("SmartReplies 📧")
 
-st.markdown("### Paste the email message you want a reply to:")
+st.markdown("<h3 style='margin-bottom: 10px;'>📩 Paste the email you'd like a reply to:</h3>", unsafe_allow_html=True)
 email_input = st.text_area("Incoming Email", height=200)
-
+# Save input to a local file for testing/training
+with open("test_emails.txt", "a") as f:
+    f.write(email_input.strip() + "\n---\n")
+st.markdown("<br>", unsafe_allow_html=True)
 tone = st.selectbox("Choose a reply tone:", ["Professional", "Friendly", "Direct", "Casual"])
-
+st.markdown("<br>", unsafe_allow_html=True)
 if st.button("Generate Reply"):
     if not email_input.strip():
         st.warning("Please enter an email message.")
@@ -33,8 +36,11 @@ if st.button("Generate Reply"):
                 reply = response.choices[0].message.content
 
                 st.success("Here’s your reply:")
+                st.markdown("### ✨ Generated Email Reply")
                 st.text_area("AI-Generated Reply", value=reply, height=200, key="reply_output")
-
+                st.markdown("<hr>", unsafe_allow_html=True)  # horizontal line
+                st.markdown("### Export Options", unsafe_allow_html=True)  
+                st.markdown("<br>", unsafe_allow_html=True)
                 # Download button
                 st.download_button("📥 Download Reply as .txt", reply, file_name="reply.txt")
 
@@ -43,3 +49,58 @@ if st.button("Generate Reply"):
 
             except Exception as e:
                 st.error(f"Something went wrong: {e}")
+                # Custom styling
+st.markdown(
+    """
+    <style>
+    textarea {
+        border-radius: 10px !important;
+        padding: 10px !important;
+        font-size: 15px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)# Global styling
+st.markdown(
+    """
+    <style>
+    .stTextArea textarea, .stTextInput input, .stSelectbox div {
+        font-size: 15px !important;
+    }
+    .stButton button {
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-size: 15px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)st.markdown(
+    """
+    <style>
+    .stButton > button {
+        width: 100% !important;
+        background-color: #4CAF50 !important;
+        color: white !important;
+        font-weight: bold;
+        border: none !important;
+        transition: 0.3s;
+    }
+    .stButton > button:hover {
+        background-color: #45a049 !important;
+        transform: scale(1.02);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)from datetime import datetime
+
+# ...
+
+    # Save input and reply to a local file for testing/training
+with open("test_emails.txt", "a") as f:
+    f.write(f"{datetime.now()}\n")
+    f.write(f"Incoming Email:\n{email_input.strip()}\n\n")
+    f.write(f"AI Reply:\n{reply.strip()}\n")
+    f.write("-" * 40 + "\n\n")
