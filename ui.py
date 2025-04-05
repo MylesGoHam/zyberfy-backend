@@ -67,8 +67,19 @@ from datetime import datetime
 # ...
 
     # Save input and reply to a local file for testing/training
-with open("test_emails.txt", "a") as f:
-    f.write(f"{datetime.now()}\n")
-    f.write(f"Incoming Email:\n{email_input.strip()}\n\n")
-    f.write(f"AI Reply:\n{reply.strip()}\n")
-    f.write("-" * 40 + "\n\n")
+try:
+    ...
+    reply = generate_reply(email_input, selected_tone)
+
+    st.text_area("AI-Generated Reply", value=reply, height=200, key="reply_output")
+    
+    # Save input and reply to a local file for testing/training
+    with open("test_emails.txt", "a") as f:
+        f.write(f"{datetime.now()}\n")
+        f.write(f"Incoming Email:\n{email_input.strip()}\n\n")
+        f.write(f"AI Reply:\n{reply.strip()}\n")
+        f.write("-" * 40 + "\n\n")
+
+    ...
+except Exception as e:
+    st.error(f"Something went wrong: {e}")
