@@ -61,40 +61,6 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True
-)# Global styling
-st.markdown(
-    """
-    <style>
-    .stTextArea textarea, .stTextInput input, .stSelectbox div {
-        font-size: 15px !important;
-    }
-    .stButton button {
-        border-radius: 8px !important;
-        padding: 10px 20px !important;
-        font-size: 15px !important;
-    }
-    </style>
-    """,
-    
-st.markdown(
-    """
-    <style>
-    .stButton > button {
-        width: 100% !important;
-        background-color: #4CAF50 !important;
-        color: white !important;
-        font-weight: bold;
-        border: none !important;
-        transition: 0.3s;
-    }
-    .stButton > button:hover {
-        background-color: #45a049 !important;
-        transform: scale(1.02);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True)
-
 )
 from datetime import datetime
 
