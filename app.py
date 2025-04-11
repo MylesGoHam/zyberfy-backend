@@ -86,4 +86,7 @@ def is_valid_email(email):
     return re.match(email_regex, email) is not None
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Use the port provided by the environment, defaulting to 5000
+    port = int(os.environ.get("PORT", 5000))
+    # Bind to 0.0.0.0 so that the app is accessible externally on Render
+    app.run(host="0.0.0.0", port=port, debug=True)
