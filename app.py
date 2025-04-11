@@ -1,76 +1,89 @@
-import openai
-import os
-from dotenv import load_dotenv
+from flask import Flask, request, render_template, redirect, url_for, flash
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
+from dotenv import load_dotenv
+import os
+import re
 
-# Load environment variables from the .env file
+# Load environment variables
 load_dotenv()
 
-# OpenAI API key setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize Flask app
+app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')  # Ensure you set a secret key for sessions and flashing
 
-# SendGrid API key setup
+# SendGrid setup
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
-# Function to generate an email reply using OpenAI's GPT model
-def generate_reply(email_input, tone, sender_email, recipient_name):
-    # Clean name inputs
-    sender_name = sender_email.split("@")[0].capitalize()
-    recipient_display = recipient_name.strip() if recipient_name else "Customer"
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        try:
+            # Get form data
+            email = request.form.get("email")
+            service = request.form.get("service")
+            budget = request.form.get("budget")
+            location = request.form.get("location")
 
-    # Create the prompt for OpenAI
-    prompt = f"""
-    You are an AI email assistant helping write a reply.
+            # Validate email format
+            if not is_valid_email(email):
+                flash("Invalid email address", "error")
+                return redirect(url_for('index'))
 
-    - Use a {tone.lower()} tone.
-    - Address the recipient as: Dear {recipient_display}
-    - Sign off with: {sender_name}
+            # Print form data for debugging
+            print(f"Email: {email}, Service: {service}, Budget: {budget}, Location: {location}")
 
-    Here is the email you're replying to:
-    "{email_input}"
+            # Create email content
+            subject = f"New request for {service}"
+            content = f"""
+            Name: {email}
+            Service: {service}
+            Budget: {budget}
+            Location: {location}
+            """
 
-    Now write a clear and helpful reply:
-    """
+            # Send email through SendGrid
+            send_email(subject, content)
 
+            # Flash success message and redirect
+            flash("Your request has been sent successfully!", "success")
+            return redirect(url_for('index'))  # Redirect back to the form page
+
+        except Exception as e:
+            # If an error occurs, catch it and print it in the console for debugging
+            print(f"Error: {e}")
+            flash(f"An error occurred: {e}", "error")
+            return redirect(url_for('index'))  # Redirect back to the form page on error
+    
+    return render_template("index.html")
+
+def send_email(subject, content):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=500
-        )
-        return response.choices[0].message["content"].strip()
+        # Replace with your sender and recipient emails
+        from_email = Email("hello@zyberfy.com")  # Sender email
+        to_email = To("mylescunningham0@gmail.com")  # Recipient email
+        content = Content("text/plain", content)
+        mail = Mail(from_email, to_email, subject, content)
 
-    except Exception as e:
-        return f"Error generating reply: {str(e)}"
-
-# Function to send an email using SendGrid
-def send_email(subject, recipient_email, body_content):
-    sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-    from_email = Email("hello@zyberfy.com")  # Replace with your email
-    to_email = To(recipient_email)
-    content = Content("text/plain", body_content)
-    mail = Mail(from_email, subject, to_email, content)
-
-    try:
+        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
         response = sg.send(mail)
-        return response.status_code, response.body, response.headers
+
+        # Debugging output
+        print(f"SendGrid Response: {response.status_code}")
+        print(f"Response Body: {response.body}")
+        print(f"Response Headers: {response.headers}")
+
+        return response
+
     except Exception as e:
-        return f"Error sending email: {str(e)}"
+        # Catch any exceptions in sending the email
+        print(f"SendGrid error: {e}")
+        raise e  # Re-raise the error to be caught in the index route
+
+def is_valid_email(email):
+    # Simple regex for basic email validation
+    email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
+    return re.match(email_regex, email) is not None
 
 if __name__ == "__main__":
-    # Example usage
-    email_input = "Hello, I need help with my order. Can you assist me?"
-    tone = "friendly"
-    sender_email = "customer@example.com"
-    recipient_name = "Support Team"
-
-    reply = generate_reply(email_input, tone, sender_email, recipient_name)
-    print(f"Generated Reply: {reply}")
-
-    # Send the reply via email
-    subject = "Re: Help with Order"
-    recipient_email = "support@yourcompany.com"
-    status_code, response_body, response_headers = send_email(subject, recipient_email, reply)
-    print(f"Email Sent with status code: {status_code}")
+    app.run(debug=True)
