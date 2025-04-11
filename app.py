@@ -59,8 +59,9 @@ def index():
 
 def send_email(subject, content):
     try:
-        from_email = Email("hello@zyberfy.com")
-        to_email = To("mylescunningham0@gmail.com")
+        # Replace with your sender and recipient emails
+        from_email = Email("hello@zyberfy.com")  # Replace with your sender email
+        to_email = To("mylescunningham0@gmail.com")  # Replace with the recipient email
         content = Content("text/plain", content)
         mail = Mail(from_email, to_email, subject, content)
 
