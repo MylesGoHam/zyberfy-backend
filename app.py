@@ -85,6 +85,10 @@ def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
     return re.match(email_regex, email) is not None
 
+@app.route("/api/test", methods=["GET"])
+def test_api():
+    return {"status": "ok", "message": "Backend is connected!"}, 200
+
 if __name__ == "__main__":
     # Use the port provided by the environment, defaulting to 5000
     port = int(os.environ.get("PORT", 5000))
