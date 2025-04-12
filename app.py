@@ -21,7 +21,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 def index():
     if request.method == "POST":
         try:
-            print("\U0001f6a8 Form POST hit Flask route")
+            print("🚨 Form POST hit Flask route")
 
             name = request.form.get("name")
             email = request.form.get("email")
@@ -34,7 +34,7 @@ def index():
                 flash("Invalid email address", "error")
                 return redirect(url_for('index'))
 
-            print(f"\U0001f4e8 Generating proposal for {name} - {service}")
+            print(f"📨 Generating proposal for {name} - {service}")
             proposal = generate_proposal(name, service, budget, location, special_requests)
 
             subject = f"Proposal Request from {name} ({service})"
@@ -47,7 +47,7 @@ Location: {location}
 Special Requests: {special_requests}
 
 ---------------------
-\u2728 AI-Generated Proposal:
+✨ AI-Generated Proposal:
 {proposal}
 """
             send_email(subject, content, user_email=email)
@@ -56,7 +56,7 @@ Special Requests: {special_requests}
             return render_template("thank_you.html", name=name, proposal=proposal)
 
         except Exception as e:
-            print(f"\u274c Error in POST handler: {e}")
+            print(f"❌ Error in POST handler: {e}")
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for('index'))
 
@@ -67,6 +67,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
+
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             return redirect(url_for('dashboard'))
@@ -92,7 +93,7 @@ def dashboard():
     return render_template("dashboard.html", proposals=proposals)
 
 def send_email(subject, content, user_email=None):
-    print("\U0001f4e7 Sending email...")
+    print("📧 Sending email...")
     from_email = Email("hello@zyberfy.com")
     to_email = To(os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com"))
     mail_content = Content("text/plain", content)
@@ -100,14 +101,14 @@ def send_email(subject, content, user_email=None):
 
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
     response = sg.send(mail)
-    print(f"\u2705 Internal Email Sent | Status: {response.status_code}")
+    print(f"✅ Internal Email Sent | Status: {response.status_code}")
 
     if user_email:
         confirm_subject = "Your Proposal Request Was Received"
         confirm_content = Content("text/plain", "Thanks for your request! We'll be in touch soon. — Team Zyberfy")
         confirmation_mail = Mail(from_email, To(user_email), confirm_subject, confirm_content)
         user_response = sg.send(confirmation_mail)
-        print(f"\u2705 Confirmation Sent to User | Status: {user_response.status_code}")
+        print(f"✅ Confirmation Sent to User | Status: {user_response.status_code}")
 
     return response
 
@@ -119,7 +120,7 @@ def save_to_csv(name, email, service, budget, location, requests, proposal):
         if not file_exists:
             writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
         writer.writerow([datetime.now().isoformat(), name, email, service, budget, location, requests, proposal])
-    print("\U0001f4dc Proposal saved to CSV")
+    print("📝 Proposal saved to CSV")
 
 def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
@@ -128,4 +129,3 @@ def is_valid_email(email):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-
