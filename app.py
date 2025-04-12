@@ -74,6 +74,10 @@ def test_api():
     return jsonify(status="ok", message="Backend is connected!")
 
 def send_email(subject, content):
+    print("📨 About to send email...")  # NEW
+    print("Subject:", subject)          # NEW
+    print("Content:", content)          # NEW
+
     from_email = Email("hello@zyberfy.com")
     to_email = To("mylescunningham0@gmail.com")
     mail_content = Content("text/plain", content)
@@ -82,7 +86,6 @@ def send_email(subject, content):
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
     response = sg.send(mail)
 
-    # Debugging output
     print(f"SendGrid Response: {response.status_code}")
     print(f"Response Body: {response.body}")
     print(f"Response Headers: {response.headers}")
