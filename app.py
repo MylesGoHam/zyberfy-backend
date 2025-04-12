@@ -69,7 +69,7 @@ def login():
         password = request.form.get("password")
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['logged_in'] = True
-            flash("✅ Logged in successfully!", "success")
+            session['just_logged_in'] = True
             return redirect(url_for('dashboard'))
         else:
             flash("Incorrect login credentials", "error")
@@ -88,27 +88,29 @@ def dashboard():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
+    if session.get("just_logged_in"):
+        flash("✅ Logged in successfully!", "success")
+        session.pop("just_logged_in")
+
     proposals = []
     if os.path.exists("proposals.csv"):
         with open("proposals.csv", newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
             proposals = list(reader)
-    else:
-        print("No proposals.csv file found yet — skipping.")
 
     return render_template("dashboard.html", proposals=proposals)
 
 @app.route("/download")
-def download_csv():
+def download():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    file_path = "proposals.csv"
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=True)
-    else:
-        flash("No CSV file found to download.", "error")
+    path = os.path.join(os.getcwd(), "proposals.csv")
+    if not os.path.exists(path):
+        flash("No CSV file available to download.", "error")
         return redirect(url_for("dashboard"))
+
+    return send_file(path, as_attachment=True)
 
 def send_email(subject, content, user_email=None):
     print("📧 Sending email...")
