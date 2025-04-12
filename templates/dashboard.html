@@ -17,12 +17,30 @@
       padding: 20px 40px;
       background-color: #fff;
       border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .logo {
       font-size: 2rem;
       font-weight: bold;
       color: #007bff;
+    }
+
+    .logout {
+      font-size: 0.9rem;
+      background-color: #007bff;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .logout:hover {
+      background-color: #005fcc;
     }
 
     .container {
@@ -76,6 +94,7 @@
 
   <div class="header">
     <div class="logo">Zyberfy</div>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
   </div>
 
   <div class="container">
@@ -104,4 +123,12 @@
           <td>{{ row.Location }}</td>
           <td>{{ row.Requests }}</td>
           <td class="proposal-text">{{ row.Proposal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
        
