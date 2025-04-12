@@ -82,4 +82,8 @@ def is_valid_email(email):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     # Bind to 0.0.0.0 so Render can route to it
+<<<<<<< HEAD
     app.run(host="0.0.0.0", port=port, debug=True)
+=======
+    app.run(host="0.0.0.0", port=port, debug=True)
+>>>>>>> 4d7ec17 (chore: remove debug route and clean up app.py)
