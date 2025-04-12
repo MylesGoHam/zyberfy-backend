@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
@@ -10,7 +10,7 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')  # Ensure you set a secret key for sessions and flashing
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
 
 # SendGrid setup
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
@@ -30,45 +30,59 @@ def index():
                 flash("Invalid email address", "error")
                 return redirect(url_for('index'))
 
-            # Print form data for debugging
+            # Debug print
             print(f"Email: {email}, Service: {service}, Budget: {budget}, Location: {location}")
 
             # Create email content
             subject = f"New request for {service}"
             content = f"""
-            Name: {email}
-            Service: {service}
-            Budget: {budget}
-            Location: {location}
-            """
+Name: {email}
+Service: {service}
+Budget: {budget}
+Location: {location}
+"""
 
             # Send email through SendGrid
             send_email(subject, content)
 
-            # Flash success message and redirect
             flash("Your request has been sent successfully!", "success")
-            return redirect(url_for('index'))  # Redirect back to the form page
+            return redirect(url_for('index'))
 
         except Exception as e:
-            # If an error occurs, catch it and print it in the console for debugging
             print(f"Error: {e}")
             flash(f"An error occurred: {e}", "error")
-            return redirect(url_for('index'))  # Redirect back to the form page on error
-    
+            return redirect(url_for('index'))
+
     return render_template("index.html")
+
+@app.route("/api/test", methods=["GET"])
+def test_api():
+    return {"status": "ok", "message": "Backend is connected!"}, 200
+
+@app.route("/__debug__/files", methods=["GET"])
+def debug_files():
+    """
+    Debug route: lists files in the deployed container
+    """
+    root = os.listdir(".")
+    templates = os.listdir("templates") if os.path.isdir("templates") else []
+    static = os.listdir("static") if os.path.isdir("static") else []
+    return jsonify({
+        "root": root,
+        "templates": templates,
+        "static": static
+    })
 
 def send_email(subject, content):
     try:
-        # Replace with your sender and recipient emails
-        from_email = Email("hello@zyberfy.com")  # Sender email
-        to_email = To("mylescunningham0@gmail.com")  # Recipient email
+        from_email = Email("hello@zyberfy.com")
+        to_email = To("mylescunningham0@gmail.com")
         content = Content("text/plain", content)
         mail = Mail(from_email, to_email, subject, content)
 
         sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
         response = sg.send(mail)
 
-        # Debugging output
         print(f"SendGrid Response: {response.status_code}")
         print(f"Response Body: {response.body}")
         print(f"Response Headers: {response.headers}")
@@ -76,21 +90,13 @@ def send_email(subject, content):
         return response
 
     except Exception as e:
-        # Catch any exceptions in sending the email
         print(f"SendGrid error: {e}")
-        raise e  # Re-raise the error to be caught in the index route
+        raise
 
 def is_valid_email(email):
-    # Simple regex for basic email validation
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
     return re.match(email_regex, email) is not None
 
-@app.route("/api/test", methods=["GET"])
-def test_api():
-    return {"status": "ok", "message": "Backend is connected!"}, 200
-
 if __name__ == "__main__":
-    # Use the port provided by the environment, defaulting to 5000
     port = int(os.environ.get("PORT", 5000))
-    # Bind to 0.0.0.0 so that the app is accessible externally on Render
     app.run(host="0.0.0.0", port=port, debug=True)
