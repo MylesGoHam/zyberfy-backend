@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session, send_file
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
@@ -97,6 +97,18 @@ def dashboard():
         print("No proposals.csv file found yet — skipping.")
 
     return render_template("dashboard.html", proposals=proposals)
+
+@app.route("/download")
+def download_csv():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    file_path = "proposals.csv"
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        flash("No CSV file found to download.", "error")
+        return redirect(url_for("dashboard"))
 
 def send_email(subject, content, user_email=None):
     print("📧 Sending email...")
