@@ -1,10 +1,10 @@
-from email_assistant import generate_proposal
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
 import os
 import re
+from email_assistant import generate_proposal  # Make sure this file exists
 
 # Load environment variables
 load_dotenv()
@@ -21,10 +21,12 @@ def index():
     if request.method == "POST":
         try:
             # Get form data
+            name = request.form.get("name")
             email = request.form.get("email")
             service = request.form.get("service")
             budget = request.form.get("budget")
             location = request.form.get("location")
+            special_requests = request.form.get("requests")
 
             # Validate email format
             if not is_valid_email(email):
@@ -32,16 +34,27 @@ def index():
                 return redirect(url_for('index'))
 
             # Debug print
-            print(f"Email: {email}, Service: {service}, Budget: {budget}, Location: {location}")
+            print(f"Name: {name}, Email: {email}, Service: {service}, Budget: {budget}, Location: {location}, Special Requests: {special_requests}")
+
+            # Generate AI-powered proposal
+            proposal = generate_proposal(name, service, budget, location, special_requests)
 
             # Create email content
-            subject = f"New request for {service}"
-            content = (
-                f"Name: {email}\n"
-                f"Service: {service}\n"
-                f"Budget: {budget}\n"
-                f"Location: {location}"
-            )
+            subject = f"Proposal Request from {name} ({service})"
+            content = f"""
+A new proposal request has been submitted:
+
+Name: {name}
+Email: {email}
+Service: {service}
+Budget: {budget}
+Location: {location}
+Special Requests: {special_requests}
+
+---------------------
+✨ AI-Generated Proposal:
+{proposal}
+"""
 
             # Send email through SendGrid
             send_email(subject, content)
