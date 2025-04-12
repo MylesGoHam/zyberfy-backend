@@ -35,12 +35,12 @@ def index():
 
             # Create email content
             subject = f"New request for {service}"
-            content = f"""
-Name: {email}
-Service: {service}
-Budget: {budget}
-Location: {location}
-"""
+            content = (
+                f"Name: {email}\n"
+                f"Service: {service}\n"
+                f"Budget: {budget}\n"
+                f"Location: {location}"
+            )
 
             # Send email through SendGrid
             send_email(subject, content)
@@ -57,41 +57,23 @@ Location: {location}
 
 @app.route("/api/test", methods=["GET"])
 def test_api():
-    return {"status": "ok", "message": "Backend is connected!"}, 200
-
-@app.route("/__debug__/files", methods=["GET"])
-def debug_files():
-    """
-    Debug route: lists files in the deployed container
-    """
-    root = os.listdir(".")
-    templates = os.listdir("templates") if os.path.isdir("templates") else []
-    static = os.listdir("static") if os.path.isdir("static") else []
-    return jsonify({
-        "root": root,
-        "templates": templates,
-        "static": static
-    })
+    return jsonify(status="ok", message="Backend is connected!")
 
 def send_email(subject, content):
-    try:
-        from_email = Email("hello@zyberfy.com")
-        to_email = To("mylescunningham0@gmail.com")
-        content = Content("text/plain", content)
-        mail = Mail(from_email, to_email, subject, content)
+    from_email = Email("hello@zyberfy.com")
+    to_email = To("mylescunningham0@gmail.com")
+    mail_content = Content("text/plain", content)
+    mail = Mail(from_email, to_email, subject, mail_content)
 
-        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-        response = sg.send(mail)
+    sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
+    response = sg.send(mail)
 
-        print(f"SendGrid Response: {response.status_code}")
-        print(f"Response Body: {response.body}")
-        print(f"Response Headers: {response.headers}")
+    # Debugging output
+    print(f"SendGrid Response: {response.status_code}")
+    print(f"Response Body: {response.body}")
+    print(f"Response Headers: {response.headers}")
 
-        return response
-
-    except Exception as e:
-        print(f"SendGrid error: {e}")
-        raise
+    return response
 
 def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
@@ -99,4 +81,5 @@ def is_valid_email(email):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+    # Bind to 0.0.0.0 so Render can route to it
     app.run(host="0.0.0.0", port=port, debug=True)
