@@ -6,7 +6,7 @@ import os
 import re
 import csv
 from datetime import datetime
-from email_assistant import generate_proposal  # Your GPT logic here
+from email_assistant import generate_proposal
 
 # Load environment variables
 load_dotenv()
@@ -67,7 +67,6 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['logged_in'] = True
             return redirect(url_for('dashboard'))
@@ -83,12 +82,12 @@ def dashboard():
         return redirect(url_for("login"))
 
     proposals = []
-    try:
+    if os.path.exists("proposals.csv"):
         with open("proposals.csv", newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
             proposals = list(reader)
-    except Exception as e:
-        print("Error reading CSV:", e)
+    else:
+        print("No proposals.csv file found yet — skipping.")
 
     return render_template("dashboard.html", proposals=proposals)
 
@@ -115,7 +114,7 @@ def send_email(subject, content, user_email=None):
 def save_to_csv(name, email, service, budget, location, requests, proposal):
     filename = "proposals.csv"
     file_exists = os.path.isfile(filename)
-    with open(filename, mode="a", newline="", encoding="utf-8") as file:
+    with open(filename, mode="a", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
