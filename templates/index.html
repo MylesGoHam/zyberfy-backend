@@ -20,7 +20,8 @@
     .logo {
       font-size: 2rem;
       font-weight: bold;
-      color: #007bff; /* Electric Blue */
+      color: #007bff;
+      animation: fadeInLeft 1s ease;
     }
 
     .container {
@@ -30,6 +31,7 @@
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      animation: fadeInUp 0.7s ease-out;
     }
 
     .form-group {
@@ -60,11 +62,12 @@
       font-weight: 600;
       font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.3s ease;
     }
 
     button:hover {
       background-color: #005fcc;
+      transform: translateY(-2px);
     }
 
     .flash-messages {
@@ -72,24 +75,41 @@
       padding: 0;
       max-width: 600px;
       margin: 20px auto;
+      animation: fadeIn 0.5s ease-out;
     }
 
     .flash-messages li.success {
-      color: green;
-      background-color: #e6ffed;
-      padding: 10px;
-      border: 1px solid green;
+      color: #155724;
+      background-color: #d4edda;
+      padding: 12px 16px;
+      border: 1px solid #c3e6cb;
       border-radius: 5px;
       margin-bottom: 10px;
     }
 
     .flash-messages li.error {
-      color: red;
-      background-color: #ffe6e6;
-      padding: 10px;
-      border: 1px solid red;
+      color: #721c24;
+      background-color: #f8d7da;
+      padding: 12px 16px;
+      border: 1px solid #f5c6cb;
       border-radius: 5px;
       margin-bottom: 10px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
@@ -108,34 +128,4 @@
           <li class="{{ category }}">{{ message }}</li>
         {% endfor %}
       </ul>
-    {% endif %}
-  {% endwith %}
-
-  <!-- Proposal Form -->
-  <div class="container">
-    <form action="/" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow-md animate-fade-in-up">
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name" required />
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required />
-      </div>
-
-      <div class="form-group">
-        <label for="service">Service Type</label>
-        <select id="service" name="service">
-          <option value="luxury-travel">Luxury Travel</option>
-          <option value="event-planning">Event Planning</option>
-          <option value="yacht-charter">Yacht Charter</option>
-          <option value="interior-design">Interior Design</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="budget">Budget</label>
-        <input type="text" id="budget" name="budget" placeholder="$10,000" required />
-      </div>
+   
