@@ -4,6 +4,8 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
 import os
 import re
+import csv
+from datetime import datetime
 from email_assistant import generate_proposal  # Your GPT logic here
 
 # Load environment variables
@@ -37,7 +39,7 @@ def index():
             # Generate proposal
             proposal = generate_proposal(name, service, budget, location, special_requests)
 
-            # Compose internal email to you
+            # Compose internal email
             subject = f"Proposal Request from {name} ({service})"
             content = f"""
 A new proposal request has been submitted:
@@ -54,6 +56,7 @@ Special Requests: {special_requests}
 {proposal}
 """
             send_email(subject, content, user_email=email)
+            save_to_csv(name, email, service, budget, location, special_requests, proposal)
 
             flash("✅ Your request has been sent successfully!", "success")
             return redirect(url_for('index'))
@@ -73,7 +76,7 @@ def send_email(subject, content, user_email=None):
     print("📧 Sending email...")
     from_email = Email("hello@zyberfy.com")
     
-    # Internal email to your admin inbox
+    # Internal email to admin inbox
     to_email = To(os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com"))
     mail_content = Content("text/plain", content)
     mail = Mail(from_email, to_email, subject, mail_content)
@@ -91,6 +94,17 @@ def send_email(subject, content, user_email=None):
         print(f"✅ Confirmation Sent to User | Status: {user_response.status_code}")
 
     return response
+
+def save_to_csv(name, email, service, budget, location, requests, proposal):
+    filename = "proposals.csv"
+    file_exists = os.path.isfile(filename)
+    
+    with open(filename, mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        if not file_exists:
+            writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
+        writer.writerow([datetime.now().isoformat(), name, email, service, budget, location, requests, proposal])
+    print("📝 Proposal saved to CSV")
 
 def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
