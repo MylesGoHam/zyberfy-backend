@@ -69,12 +69,19 @@ def login():
         password = request.form.get("password")
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['logged_in'] = True
+            flash("✅ Logged in successfully!", "success")
             return redirect(url_for('dashboard'))
         else:
             flash("Incorrect login credentials", "error")
             return redirect(url_for('login'))
 
     return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("logged_in", None)
+    flash("✅ Logged out successfully.", "success")
+    return redirect(url_for("login"))
 
 @app.route("/dashboard")
 def dashboard():
