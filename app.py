@@ -71,20 +71,24 @@ def test_api():
     return jsonify(status="ok", message="Backend is connected!")
 
 def send_email(subject, content):
-    print("📧 Sending email...")
+    print("📧 Attempting to send email...")
+    print("Subject:", subject)
+    print("Email content preview:")
+    print(content[:500])  # Print first 500 characters of content
+
     from_email = Email("hello@zyberfy.com")
     to_email = To("mylescunningham0@gmail.com")
     mail_content = Content("text/plain", content)
     mail = Mail(from_email, to_email, subject, mail_content)
 
-    sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-    response = sg.send(mail)
-
-    print(f"✅ SendGrid Response: {response.status_code}")
-    print(f"Body: {response.body}")
-    print(f"Headers: {response.headers}")
-
-    return response
+    try:
+        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
+        response = sg.send(mail)
+        print(f"✅ SendGrid Response: {response.status_code}")
+        print(f"Body: {response.body}")
+        print(f"Headers: {response.headers}")
+    except Exception as e:
+        print(f"❌ Error sending email: {e}")
 
 def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
