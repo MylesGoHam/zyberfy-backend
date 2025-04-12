@@ -1,3 +1,4 @@
+from email_assistant import generate_proposal
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
