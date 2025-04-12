@@ -11,9 +11,11 @@ body {
   color: var(--text-color);
 }
 
+/* Responsive container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Navbar */
@@ -30,8 +32,15 @@ body {
   font-size: 2rem;
   color: var(--brand-blue);
   font-weight: bold;
+  animation: fadeInUp 0.7s ease-in-out;
 }
 
+/* Buttons and form elements with transitions */
+input, select, textarea, button {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Dropdown */
 .nav-right {
   position: relative;
 }
@@ -191,6 +200,13 @@ hr {
   color: var(--gray);
 }
 
+/* Button hover pop */
+button:hover {
+  background-color: #005fcc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
 /* Footer */
 footer {
   text-align: center;
@@ -199,6 +215,7 @@ footer {
   color: var(--gray);
 }
 
+/* Fade in animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -212,32 +229,4 @@ footer {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out;
-}
-
-.flash-messages {
-  max-width: 600px;
-  margin: 1rem auto;
-  padding: 0;
-  list-style: none;
-}
-
-.flash-messages li {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  color: white;
-  animation: fadeIn 0.5s ease-out;
-}
-
-.flash-messages li.success {
-  background-color: #22c55e; /* green */
-}
-
-.flash-messages li.error {
-  background-color: #ef4444; /* red */
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
