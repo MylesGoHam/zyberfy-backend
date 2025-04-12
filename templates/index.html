@@ -96,7 +96,6 @@
       margin-bottom: 10px;
     }
 
-    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -128,4 +127,51 @@
           <li class="{{ category }}">{{ message }}</li>
         {% endfor %}
       </ul>
-   
+    {% endif %}
+  {% endwith %}
+
+  <!-- Proposal Form -->
+  <div class="container">
+    <form action="/" method="POST">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="service">Service Type</label>
+        <select id="service" name="service">
+          <option value="luxury-travel">Luxury Travel</option>
+          <option value="event-planning">Event Planning</option>
+          <option value="yacht-charter">Yacht Charter</option>
+          <option value="interior-design">Interior Design</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="budget">Budget</label>
+        <input type="text" id="budget" name="budget" placeholder="$10,000" required />
+      </div>
+
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" placeholder="City, Country" />
+      </div>
+
+      <div class="form-group">
+        <label for="requests">Special Requests</label>
+        <textarea id="requests" name="requests" rows="4"></textarea>
+      </div>
+
+      <button type="submit">Submit Proposal</button>
+    </form>
+  </div>
+
+</body>
+</html>
