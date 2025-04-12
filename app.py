@@ -16,6 +16,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@zyberfy.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
+CSV_FILENAME = "proposals.csv"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -93,8 +94,14 @@ def dashboard():
         session.pop("just_logged_in")
 
     proposals = []
-    if os.path.exists("proposals.csv"):
-        with open("proposals.csv", newline='', encoding="utf-8") as file:
+
+    if not os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
+            print("📄 proposals.csv file created.")
+    else:
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
             proposals = list(reader)
 
@@ -105,12 +112,11 @@ def download():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    path = os.path.join(os.getcwd(), "proposals.csv")
-    if not os.path.exists(path):
+    if not os.path.exists(CSV_FILENAME):
         flash("No CSV file available to download.", "error")
         return redirect(url_for("dashboard"))
 
-    return send_file(path, as_attachment=True)
+    return send_file(CSV_FILENAME, as_attachment=True)
 
 def send_email(subject, content, user_email=None):
     print("📧 Sending email...")
@@ -127,15 +133,14 @@ def send_email(subject, content, user_email=None):
         confirm_subject = "Your Proposal Request Was Received"
         confirm_content = Content("text/plain", "Thanks for your request! We'll be in touch soon. — Team Zyberfy")
         confirmation_mail = Mail(from_email, To(user_email), confirm_subject, confirm_content)
-        user_response = sg.send(confirmation_mail)
-        print(f"✅ Confirmation Sent to User | Status: {user_response.status_code}")
+        sg.send(confirmation_mail)
+        print(f"✅ Confirmation Sent to User")
 
     return response
 
 def save_to_csv(name, email, service, budget, location, requests, proposal):
-    filename = "proposals.csv"
-    file_exists = os.path.isfile(filename)
-    with open(filename, mode="a", newline='', encoding="utf-8") as file:
+    file_exists = os.path.isfile(CSV_FILENAME)
+    with open(CSV_FILENAME, mode="a", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         if not file_exists:
             writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
