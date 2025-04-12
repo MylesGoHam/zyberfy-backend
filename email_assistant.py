@@ -2,35 +2,34 @@ import openai
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env
 load_dotenv()
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
-def generate_reply(email_input, tone, sender_name, recipient_name):
+def generate_proposal(name, service, budget, location, special_requests):
     prompt = f"""
-You are an AI email assistant helping write a reply.
+You are an elite concierge assistant writing high-end service proposals.
+Client Name: {name}
+Requested Service: {service}
+Budget: {budget}
+Location: {location}
+Special Requests: {special_requests}
 
-- Use a {tone.lower()} tone.
-- Address the recipient as: Dear {recipient_name},
-- Sign off with: {sender_name}
-
-Here’s the email you're replying to:
-\"\"\"
-{email_input}
-\"\"\"
-
-Now write a clear and helpful reply:
-"""
+Write a polished, luxury-style service proposal in under 200 words.
+    """
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You write upscale, warm proposals for concierge clients."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
             temperature=0.7,
-            max_tokens=500
         )
-        return response.choices[0].message["content"].strip()
+        return response.choices[0].message.content.strip()
 
     except Exception as e:
-        return f"Error generating reply: {str(e)}"
+        print(f"OpenAI Error: {e}")
+        return "We're preparing your custom proposal. A concierge will follow up shortly."
