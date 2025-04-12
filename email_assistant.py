@@ -2,8 +2,10 @@ import openai
 import os
 from dotenv import load_dotenv
 
+# Load .env variables
 load_dotenv()
 
+# Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_proposal(name, service, budget, location, special_requests):
