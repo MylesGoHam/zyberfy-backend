@@ -30,17 +30,22 @@
 
     .logout {
       background-color: #007bff;
-      color: #fff;
+      color: white;
       padding: 10px 16px;
       border: none;
       border-radius: 6px;
-      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .logout:hover {
+      background-color: #005fcc;
     }
 
     .container {
-      max-width: 960px;
+      max-width: 1080px;
       margin: 40px auto;
       background: white;
       padding: 2rem;
@@ -54,13 +59,16 @@
       margin-bottom: 2rem;
     }
 
-    #search {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1.5rem;
+    .search-bar {
+      margin-bottom: 20px;
+      text-align: right;
+    }
+
+    .search-bar input {
+      padding: 0.5rem 1rem;
+      width: 250px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1rem;
     }
 
     table {
@@ -78,6 +86,7 @@
     th {
       background-color: #f3f7fb;
       color: #333;
+      cursor: pointer;
     }
 
     tr:nth-child(even) {
@@ -93,22 +102,41 @@
       white-space: pre-wrap;
       overflow-wrap: break-word;
     }
+
+    .download-btn {
+      margin-top: 1rem;
+      text-align: right;
+    }
+
+    .download-btn a {
+      text-decoration: none;
+      padding: 10px 16px;
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+    }
+
+    .download-btn a:hover {
+      background-color: #218838;
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <div class="logo">Zyberfy</div>
-    <form action="/logout" method="GET">
-      <button class="logout">Logout</button>
-    </form>
+    <a href="/logout" class="logout">Logout</a>
   </div>
 
   <div class="container">
     <h1>📊 Proposal Dashboard</h1>
-    <input type="text" id="search" placeholder="Search by name, email, service, or location..." onkeyup="filterTable()" />
 
-    <table id="proposalTable">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search proposals...">
+    </div>
+
+    <table id="proposalsTable">
       <thead>
         <tr>
           <th>Timestamp</th>
@@ -136,28 +164,22 @@
         {% endfor %}
       </tbody>
     </table>
+
+    <div class="download-btn">
+      <a href="/download">⬇️ Export CSV</a>
+    </div>
   </div>
 
   <script>
-    function filterTable() {
-      const input = document.getElementById("search");
-      const filter = input.value.toLowerCase();
-      const table = document.getElementById("proposalTable");
-      const trs = table.getElementsByTagName("tr");
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#proposalsTable tbody tr");
 
-      for (let i = 1; i < trs.length; i++) {
-        const row = trs[i];
-        const cells = row.getElementsByTagName("td");
-        let match = false;
-        for (let j = 0; j < cells.length - 1; j++) {
-          if (cells[j].textContent.toLowerCase().includes(filter)) {
-            match = true;
-            break;
-          }
-        }
-        row.style.display = match ? "" : "none";
-      }
-    }
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? "" : "none";
+      });
+    });
   </script>
 
 </body>
