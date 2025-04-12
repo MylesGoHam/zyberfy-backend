@@ -1,61 +1,113 @@
-<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Login | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f4f8;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background-color: #f0f4f8;
-      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
     }
-    .login-box {
+
+    .login-container {
       background: white;
-      padding: 2rem;
+      padding: 2.5rem;
       border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
       width: 100%;
       max-width: 400px;
+      animation: fadeIn 0.6s ease-out;
     }
-    .login-box h2 {
-      margin-bottom: 1rem;
+
+    h2 {
+      margin-bottom: 1.5rem;
       color: #007bff;
+      text-align: center;
     }
-    .login-box input {
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    input {
       width: 100%;
       padding: 0.75rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-    .login-box button {
+
+    button {
       width: 100%;
+      padding: 0.75rem;
       background-color: #007bff;
       color: white;
-      padding: 0.75rem;
       border: none;
       border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
-    .error {
-      color: red;
+
+    button:hover {
+      background-color: #005fcc;
+    }
+
+    .flash-messages {
+      list-style: none;
+      padding: 0;
       margin-bottom: 1rem;
+    }
+
+    .flash-messages li.error {
+      color: #721c24;
+      background-color: #f8d7da;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #f5c6cb;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <form class="login-box" method="POST">
+
+  <div class="login-container">
     <h2>Admin Login</h2>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <input type="text" name="username" placeholder="Username" required />
-    <input type="password" name="password" placeholder="Password" required />
-    <button type="submit">Login</button>
-  </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <label for="email">Email</label>
+      <input type="email" name="email" id="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" name="password" id="password" required>
+
+      <button type="submit">Log In</button>
+    </form>
+  </div>
+
 </body>
 </html>
