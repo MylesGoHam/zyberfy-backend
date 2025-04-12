@@ -80,7 +80,7 @@ def send_email(subject, content):
     print("Content:", content)
 
     from_email = Email("hello@zyberfy.com")  # Change this if needed
-    to_email = To("mylescunningham0@gmail.com")  # Or test with another email
+    to_email = To("yourverifiedemail@gmail.com")  # Or test with another email
     mail_content = Content("text/plain", content)
     mail = Mail(from_email, to_email, subject, mail_content)
 
