@@ -20,7 +20,7 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 def index():
     if request.method == "POST":
         try:
-            print("🚨 Form POST hit Flask route")  # ✅ STEP 3 DEBUG LINE
+            print("📡 Flask route '/' was hit")  # ✅ STEP 3 DEBUG LINE
 
             # Get form data
             name = request.form.get("name")
@@ -79,8 +79,8 @@ def send_email(subject, content):
     print("Subject:", subject)
     print("Content:", content)
 
-    from_email = Email("hello@zyberfy.com")  # Change this if needed
-    to_email = To("yourverifiedemail@gmail.com")  # Or test with another email
+    from_email = Email("yourverifiedemail@gmail.com")  # Change this if needed
+    to_email = To("mylescunningham0@gmail.com")  # Or test with another email
     mail_content = Content("text/plain", content)
     mail = Mail(from_email, to_email, subject, mail_content)
 
