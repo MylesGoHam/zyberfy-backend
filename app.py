@@ -54,7 +54,8 @@ Special Requests: {special_requests}
 {proposal}
 """
 
-            send_email(subject, content)
+            # Send email to both user + you
+            send_email(subject, content, email)
 
             flash("✅ Your request has been sent successfully!", "success")
             return redirect(url_for('index'))
@@ -70,25 +71,28 @@ Special Requests: {special_requests}
 def test_api():
     return jsonify(status="ok", message="Backend is connected!")
 
-def send_email(subject, content):
-    print("📧 Attempting to send email...")
-    print("Subject:", subject)
-    print("Email content preview:")
-    print(content[:500])  # Print first 500 characters of content
-
+def send_email(subject, content, user_email):
+    print("📧 Sending email...")
     from_email = Email("hello@zyberfy.com")
-    to_email = To("mylescunningham0@gmail.com")
-    mail_content = Content("text/plain", content)
-    mail = Mail(from_email, to_email, subject, mail_content)
+    
+    # Admin and user recipient
+    TO_EMAIL = os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com")
+    recipients = [To(TO_EMAIL), To(user_email)]
 
-    try:
-        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-        response = sg.send(mail)
-        print(f"✅ SendGrid Response: {response.status_code}")
-        print(f"Body: {response.body}")
-        print(f"Headers: {response.headers}")
-    except Exception as e:
-        print(f"❌ Error sending email: {e}")
+    mail_content = Content("text/plain", content)
+    mail = Mail(from_email, recipients[0], subject, mail_content)
+    
+    # Add second recipient
+    mail.personalizations[0].add_to(recipients[1])
+
+    sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
+    response = sg.send(mail)
+
+    print(f"✅ SendGrid Response: {response.status_code}")
+    print(f"Body: {response.body}")
+    print(f"Headers: {response.headers}")
+
+    return response
 
 def is_valid_email(email):
     email_regex = r"(^[A-Za-z0-9]+[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"
