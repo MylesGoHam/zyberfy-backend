@@ -1,232 +1,178 @@
-:root {
-  --brand-blue: #007bff;
-  --text-color: #333;
-  --gray: #777;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zyberfy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
 
-body {
-  margin: 0;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #ffffff;
-  color: var(--text-color);
-}
+    .header {
+      padding: 20px 40px;
+    }
 
-/* Responsive container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      animation: fadeInLeft 1s ease;
+    }
 
-/* Navbar */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 40px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #ddd;
-}
+    .container {
+      max-width: 640px;
+      margin: 40px auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      animation: fadeInUp 0.7s ease-out;
+    }
 
-.nav-left .logo {
-  font-size: 2rem;
-  color: var(--brand-blue);
-  font-weight: bold;
-  animation: fadeInUp 0.7s ease-in-out;
-}
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
 
-/* Buttons and form elements with transitions */
-input, select, textarea, button {
-  transition: all 0.2s ease-in-out;
-}
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
 
-/* Dropdown */
-.nav-right {
-  position: relative;
-}
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
 
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
 
-.dropbtn {
-  background-color: var(--brand-blue);
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
+    button:hover {
+      background-color: #005fcc;
+      transform: translateY(-2px);
+    }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: #f3f3f3;
-  min-width: 160px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  z-index: 1;
-  border-radius: 6px;
-}
+    .flash-messages {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 20px auto;
+      animation: fadeIn 0.5s ease-out;
+    }
 
-.dropdown-content a {
-  color: var(--text-color);
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-}
+    .flash-messages li.success {
+      color: #155724;
+      background-color: #d4edda;
+      padding: 12px 16px;
+      border: 1px solid #c3e6cb;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
 
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
+    .flash-messages li.error {
+      color: #721c24;
+      background-color: #f8d7da;
+      padding: 12px 16px;
+      border: 1px solid #f5c6cb;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
 
-.dropdown:hover .dropdown-content {
-  display: block;
-}
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Hero Section */
-.hero {
-  text-align: center;
-  padding: 80px 20px;
-}
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.hero-logo {
-  font-size: 3.5rem;
-  color: var(--brand-blue);
-  margin-bottom: 10px;
-}
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
 
-.tagline {
-  font-size: 1.2rem;
-  color: var(--gray);
-  margin-bottom: 20px;
-}
+  <!-- Logo -->
+  <div class="header">
+    <div class="logo">Zyberfy</div>
+  </div>
 
-.cta-button {
-  background-color: var(--brand-blue);
-  color: #fff;
-  padding: 12px 30px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.3s ease;
-}
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
-.cta-button:hover {
-  background-color: #005dd1;
-}
+  <!-- Proposal Form -->
+  <div class="container">
+    <form action="/" method="POST">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
 
-/* Horizontal Line */
-hr {
-  border: none;
-  height: 1px;
-  background-color: #eee;
-  margin: 60px 0;
-}
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+      </div>
 
-/* Features Section */
-.features {
-  padding: 60px 20px;
-  text-align: center;
-}
+      <div class="form-group">
+        <label for="service">Service Type</label>
+        <select id="service" name="service">
+          <option value="luxury-travel">Luxury Travel</option>
+          <option value="event-planning">Event Planning</option>
+          <option value="yacht-charter">Yacht Charter</option>
+          <option value="interior-design">Interior Design</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-.features h2 {
-  font-size: 2rem;
-  margin-bottom: 40px;
-}
+      <div class="form-group">
+        <label for="budget">Budget</label>
+        <input type="text" id="budget" name="budget" placeholder="$10,000" required />
+      </div>
 
-.feature-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" placeholder="City, Country" />
+      </div>
 
-.feature-card {
-  background: #f9f9f9;
-  border-radius: 12px;
-  padding: 25px;
-  width: 280px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
+      <div class="form-group">
+        <label for="requests">Special Requests</label>
+        <textarea id="requests" name="requests" rows="4"></textarea>
+      </div>
 
-/* CTA Section */
-.cta {
-  text-align: center;
-  background-color: #f3f3f3;
-  padding: 80px 20px;
-  border-radius: 20px;
-  margin: 40px auto;
-  max-width: 800px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+      <button type="submit">Submit Proposal</button>
+    </form>
+  </div>
 
-.cta h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.cta p {
-  font-size: 1.1rem;
-  margin-bottom: 30px;
-  color: var(--text-color);
-}
-
-/* Testimonials Section */
-.testimonials {
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.testimonials h2 {
-  font-size: 2rem;
-  margin-bottom: 40px;
-}
-
-.testimonial {
-  background: #f3f3f3;
-  border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.testimonial span {
-  display: block;
-  margin-top: 10px;
-  font-style: italic;
-  color: var(--gray);
-}
-
-/* Button hover pop */
-button:hover {
-  background-color: #005fcc;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-}
-
-/* Footer */
-footer {
-  text-align: center;
-  padding: 40px 20px;
-  font-size: 0.9rem;
-  color: var(--gray);
-}
-
-/* Fade in animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out;
-}
+</body>
+</html>
