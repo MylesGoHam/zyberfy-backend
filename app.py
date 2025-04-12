@@ -4,7 +4,7 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
 import os
 import re
-from email_assistant import generate_proposal  # Your GPT proposal logic
+from email_assistant import generate_proposal  # Your GPT logic here
 
 # Load environment variables
 load_dotenv()
@@ -37,7 +37,7 @@ def index():
             # Generate proposal
             proposal = generate_proposal(name, service, budget, location, special_requests)
 
-            # Compose email
+            # Compose internal email to you
             subject = f"Proposal Request from {name} ({service})"
             content = f"""
 A new proposal request has been submitted:
@@ -53,9 +53,7 @@ Special Requests: {special_requests}
 ✨ AI-Generated Proposal:
 {proposal}
 """
-
-            # Send email to both user + you
-            send_email(subject, content, email)
+            send_email(subject, content, user_email=email)
 
             flash("✅ Your request has been sent successfully!", "success")
             return redirect(url_for('index'))
@@ -71,26 +69,26 @@ Special Requests: {special_requests}
 def test_api():
     return jsonify(status="ok", message="Backend is connected!")
 
-def send_email(subject, content, user_email):
+def send_email(subject, content, user_email=None):
     print("📧 Sending email...")
     from_email = Email("hello@zyberfy.com")
     
-    # Admin and user recipient
-    TO_EMAIL = os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com")
-    recipients = [To(TO_EMAIL), To(user_email)]
-
+    # Internal email to your admin inbox
+    to_email = To(os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com"))
     mail_content = Content("text/plain", content)
-    mail = Mail(from_email, recipients[0], subject, mail_content)
-    
-    # Add second recipient
-    mail.personalizations[0].add_to(recipients[1])
+    mail = Mail(from_email, to_email, subject, mail_content)
 
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
     response = sg.send(mail)
+    print(f"✅ Internal Email Sent | Status: {response.status_code}")
 
-    print(f"✅ SendGrid Response: {response.status_code}")
-    print(f"Body: {response.body}")
-    print(f"Headers: {response.headers}")
+    # Confirmation to user
+    if user_email:
+        confirm_subject = "Your Proposal Request Was Received"
+        confirm_content = Content("text/plain", "Thanks for your request! We'll be in touch soon. — Team Zyberfy")
+        confirmation_mail = Mail(from_email, To(user_email), confirm_subject, confirm_content)
+        user_response = sg.send(confirmation_mail)
+        print(f"✅ Confirmation Sent to User | Status: {user_response.status_code}")
 
     return response
 
