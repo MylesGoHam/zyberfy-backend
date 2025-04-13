@@ -39,7 +39,7 @@
     }
 
     .dropdown {
-      display: none;
+      display: block;
       position: absolute;
       top: 70px;
       right: 2rem;
@@ -47,7 +47,17 @@
       border: 1px solid #ddd;
       border-radius: 6px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
       z-index: 100;
+    }
+
+    .dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     .dropdown a {
@@ -184,16 +194,14 @@
 
 <script>
   function toggleMenu() {
-    const dropdown = document.getElementById('dropdownMenu');
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    document.getElementById('dropdownMenu').classList.toggle('show');
   }
 
-  // Optional: Hide dropdown if clicked outside
   window.addEventListener('click', function(e) {
     const menu = document.getElementById('dropdownMenu');
     const button = document.querySelector('.menu-icon');
     if (!menu.contains(e.target) && !button.contains(e.target)) {
-      menu.style.display = 'none';
+      menu.classList.remove('show');
     }
   });
 </script>
