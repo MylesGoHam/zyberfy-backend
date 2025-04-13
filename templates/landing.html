@@ -3,208 +3,278 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome to Zyberfy</title>
+  <title>Zyberfy Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8fafc;
       margin: 0;
       padding: 0;
-      background-color: #f8fafc;
     }
 
-    nav {
-      background-color: white;
-      padding: 1rem 2rem;
+    .header {
+      padding: 20px 40px;
+      background-color: #fff;
+      border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #eee;
-      position: relative;
     }
 
-    .nav-logo {
-      font-size: 1.5rem;
+    .logo {
+      font-size: 2rem;
       font-weight: bold;
       color: #007bff;
-      text-decoration: none;
     }
 
-    .menu-icon {
-      font-size: 1.75rem;
-      cursor: pointer;
-      user-select: none;
-      background: none;
-      border: none;
-    }
-
-    .dropdown {
-      display: block;
-      position: absolute;
-      top: 70px;
-      right: 2rem;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.25s ease;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .dropdown.show {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .dropdown a {
-      display: block;
-      padding: 12px 20px;
-      color: #333;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background-color 0.2s ease;
-    }
-
-    .dropdown a:hover {
-      background-color: #f0f4f8;
-    }
-
-    .hero {
-      max-width: 900px;
-      margin: 80px auto;
-      padding: 2rem;
-      text-align: center;
-    }
-
-    .hero h1 {
-      font-size: 2.75rem;
-      color: #007bff;
-      margin-bottom: 1rem;
-    }
-
-    .hero p {
-      font-size: 1.25rem;
-      color: #444;
-      margin-bottom: 2rem;
-    }
-
-    .cta-btn {
+    .logout {
       background-color: #007bff;
       color: white;
-      font-size: 1.1rem;
-      padding: 0.9rem 1.75rem;
+      padding: 10px 16px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
       text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
     }
 
-    .cta-btn:hover {
+    .logout:hover {
       background-color: #005fcc;
     }
 
-    .how-section {
-      background-color: white;
-      padding: 4rem 2rem;
-      text-align: center;
+    .container {
+      max-width: 1080px;
+      margin: 40px auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     }
 
-    .how-section h2 {
+    h1 {
       color: #007bff;
+      text-align: center;
       margin-bottom: 2rem;
     }
 
-    .steps {
+    .stats {
       display: flex;
+      justify-content: space-around;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
     }
 
-    .step {
-      background-color: #f9fbfd;
-      padding: 1.5rem;
-      border-radius: 12px;
-      max-width: 280px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
+    .stat-box {
+      background: #f1f5fb;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      min-width: 200px;
     }
 
-    .step:hover {
-      transform: translateY(-4px);
+    .stat-box h3 {
+      color: #007bff;
+      margin: 0;
+      font-size: 1.25rem;
     }
 
-    .step h3 {
-      margin-bottom: 0.75rem;
+    .stat-box p {
+      margin: 0.25rem 0 0;
+      font-size: 1.1rem;
+      font-weight: bold;
       color: #333;
     }
 
-    .step p {
-      color: #555;
+    .search-bar {
+      margin-bottom: 20px;
+      text-align: right;
     }
 
-    @media (max-width: 768px) {
-      .steps {
-        flex-direction: column;
-        align-items: center;
-      }
+    .search-bar input {
+      padding: 0.5rem 1rem;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #f3f7fb;
+      color: #333;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+
+    .proposal-text {
+      max-width: 320px;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+    }
+
+    .download-btn {
+      margin-top: 1rem;
+      text-align: right;
+    }
+
+    .download-btn a {
+      text-decoration: none;
+      padding: 10px 16px;
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+    }
+
+    .download-btn a:hover {
+      background-color: #218838;
+    }
+
+    .client-table {
+      margin-top: 2rem;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .client-table th, .client-table td {
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .client-table th {
+      background-color: #f3f7fb;
+      color: #333;
     }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">Zyberfy</a>
-  <button class="menu-icon" onclick="toggleMenu()">⋮</button>
-  <div class="dropdown" id="dropdownMenu">
-    <a href="/proposal">Get Proposal</a>
-    <a href="/onboarding">Onboarding</a>
-    <a href="/login">Login</a>
+  <div class="header">
+    <div class="logo">Zyberfy</div>
+    <a href="/logout" class="logout">Logout</a>
   </div>
-</nav>
 
-<div class="hero">
-  <h1>Luxury Proposals, Automated by <strong>AI</strong></h1>
-  <p>Effortlessly generate high-end client proposals tailored to your niche. Instant. Intelligent. Impressive.</p>
-  <a href="/proposal" class="cta-btn">Try It Now</a>
-</div>
+  <div class="container">
+    <h1>📊 Proposal Dashboard</h1>
 
-<div class="how-section">
-  <h2>How Zyberfy Works</h2>
-  <div class="steps">
-    <div class="step">
-      <h3>1. Fill Out the Form</h3>
-      <p>Tell us what service your client needs and the basic project details.</p>
+    <div class="stats">
+      <div class="stat-box">
+        <h3>Total Proposals</h3>
+        <p>{{ stats.total_proposals }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Total Clients</h3>
+        <p>{{ stats.total_clients }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Est. Revenue</h3>
+        <p>${{ stats.estimated_revenue }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Top Service</h3>
+        <p>{{ stats.most_common_service or "—" }}</p>
+      </div>
     </div>
-    <div class="step">
-      <h3>2. AI Crafts the Proposal</h3>
-      <p>Our AI instantly generates a tailored, luxury-grade proposal based on your input.</p>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search proposals...">
     </div>
-    <div class="step">
-      <h3>3. You Close the Deal</h3>
-      <p>Use the polished proposal to impress and convert high-value clients with ease.</p>
+
+    <table id="proposalsTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Service</th>
+          <th>Budget</th>
+          <th>Location</th>
+          <th>Requests</th>
+          <th>Proposal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in proposals %}
+        <tr>
+          <td>{{ row.Timestamp }}</td>
+          <td>{{ row.Name }}</td>
+          <td>{{ row.Email }}</td>
+          <td>{{ row.Service }}</td>
+          <td>{{ row.Budget }}</td>
+          <td>{{ row.Location }}</td>
+          <td>{{ row.Requests }}</td>
+          <td class="proposal-text">{{ row.Proposal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="download-btn">
+      <a href="/download">⬇️ Export Proposals CSV</a>
+    </div>
+
+    <h2>Client Management</h2>
+    <table class="client-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Company</th>
+          <th>Phone</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+        <tr>
+          <td>{{ client.Timestamp }}</td>
+          <td>{{ client.Name }}</td>
+          <td>{{ client.Email }}</td>
+          <td>{{ client.Company }}</td>
+          <td>{{ client.Phone }}</td>
+          <td>{{ client.Message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="download-btn">
+      <a href="/download_clients">⬇️ Export Clients CSV</a>
     </div>
   </div>
-</div>
 
-<script>
-  function toggleMenu() {
-    document.getElementById('dropdownMenu').classList.toggle('show');
-  }
+  <script>
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#proposalsTable tbody tr");
 
-  window.addEventListener('click', function(e) {
-    const menu = document.getElementById('dropdownMenu');
-    const button = document.querySelector('.menu-icon');
-    if (!menu.contains(e.target) && !button.contains(e.target)) {
-      menu.classList.remove('show');
-    }
-  });
-</script>
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? "" : "none";
+      });
+    });
+  </script>
 
 </body>
 </html>
