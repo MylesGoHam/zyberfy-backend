@@ -20,10 +20,41 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# ---------- FIXED LANDING PAGE ----------
+# ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
 def home():
-    return redirect(url_for("proposal"))  # Safe redirect
+    proposals, clients = [], []
+
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            proposals = list(reader)
+
+    if os.path.exists(CLIENTS_FILENAME):
+        with open(CLIENTS_FILENAME, newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            clients = list(reader)
+
+    total_proposals = len(proposals)
+    total_clients = len(clients)
+
+    def extract_number(value):
+        digits = ''.join(c for c in value if c.isdigit())
+        return int(digits) if digits else 0
+
+    estimated_revenue = sum(extract_number(p.get("Budget", "")) for p in proposals)
+    service_counter = Counter(p.get("Service", "") for p in proposals)
+    most_popular_service = service_counter.most_common(1)[0][0] if service_counter else "N/A"
+
+    stats = {
+        "total_proposals": total_proposals,
+        "total_clients": total_clients,
+        "estimated_revenue": estimated_revenue,
+        "most_common_service": most_popular_service
+    }
+
+    return render_template("landing.html", stats=stats)
+
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -68,6 +99,7 @@ Special Requests: {special_requests}
 
     return render_template("index.html")
 
+
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
 def onboarding():
@@ -98,6 +130,7 @@ Message: {message}"""
 
     return render_template("onboarding.html")
 
+
 # ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -118,6 +151,7 @@ def logout():
     session.pop("logged_in", None)
     flash("✅ Logged out successfully.", "success")
     return redirect(url_for("login"))
+
 
 # ---------- DASHBOARD ----------
 @app.route("/dashboard")
@@ -161,6 +195,7 @@ def dashboard():
         most_popular_service=most_popular_service
     )
 
+
 # ---------- CSV EXPORT ----------
 @app.route("/download")
 def download():
@@ -179,6 +214,7 @@ def download_clients():
         flash("No client CSV file found.", "error")
         return redirect(url_for("dashboard"))
     return send_file(CLIENTS_FILENAME, as_attachment=True)
+
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -222,6 +258,7 @@ def save_to_csv(filename, *args):
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+
 
 # ---------- RUN ----------
 if __name__ == "__main__":
