@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Client Proposal | Zyberfy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .box {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 700px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    h2 {
+      color: #007bff;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .proposal {
+      white-space: pre-wrap;
+      font-family: monospace;
+      background-color: #f1f5fb;
+      padding: 1.25rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Proposal for {{ name }}</h2>
+    <div class="proposal">{{ proposal }}</div>
+  </div>
+</body>
+</html>
