@@ -14,88 +14,84 @@
     }
 
     .sidebar {
-      width: 160px;
-      background-color: #ffffff;
-      border-right: 1px solid #eee;
+      width: 200px;
+      background-color: #fff;
+      border-right: 1px solid #007bff;
       height: 100vh;
-      padding: 20px 10px;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+      padding: 1rem;
+      box-shadow: 4px 0 8px rgba(0,0,0,0.03);
     }
 
-    .sidebar h2 {
-      font-size: 1.3rem;
+    .sidebar .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
       color: #007bff;
       margin-bottom: 2rem;
-      text-align: center;
     }
 
-    .menu-item {
+    .sidebar a {
       display: block;
-      color: #222;
-      padding: 10px;
-      font-size: 0.95rem;
+      padding: 0.75rem 0;
       text-decoration: none;
+      color: #333;
       border-bottom: 1px solid #007bff;
-      transition: background-color 0.2s;
     }
 
-    .menu-item:hover {
-      background-color: #f0f4f8;
+    .sidebar a:hover {
+      color: #007bff;
+      font-weight: 600;
     }
 
-    .content {
-      flex-grow: 1;
+    .main {
+      flex: 1;
       padding: 2rem;
     }
 
-    h1 {
+    h2 {
       color: #007bff;
-      font-size: 1.8rem;
       margin-bottom: 2rem;
     }
 
-    .stats {
+    .cards {
       display: flex;
+      gap: 1.5rem;
       flex-wrap: wrap;
-      gap: 2rem;
-      margin-bottom: 2rem;
     }
 
-    .stat-card {
-      flex: 1;
-      min-width: 200px;
-      background-color: #fff;
+    .card {
+      background: white;
+      flex: 1 1 220px;
       padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
 
-    .stat-card h2 {
+    .card h3 {
       font-size: 1.1rem;
       color: #007bff;
       margin-bottom: 0.5rem;
     }
 
-    .stat-card p {
-      font-size: 1.3rem;
+    .card p {
+      font-size: 1.2rem;
       font-weight: bold;
-      color: #333;
+      color: #222;
     }
 
     .buttons {
-      display: flex;
-      gap: 1rem;
+      margin-top: 2rem;
     }
 
     .buttons a {
+      text-decoration: none;
+      padding: 10px 18px;
       background-color: #007bff;
       color: white;
-      padding: 10px 16px;
-      text-decoration: none;
       border-radius: 6px;
+      margin-right: 1rem;
       font-weight: 600;
-      font-size: 0.95rem;
+      display: inline-block;
     }
 
     .buttons a:hover {
@@ -104,33 +100,35 @@
   </style>
 </head>
 <body>
+
   <div class="sidebar">
-    <h2>Zyberfy</h2>
-    <a href="/dashboard" class="menu-item">Dashboard</a>
-    <a href="/proposal" class="menu-item">Proposal Generator</a>
-    <a href="/onboarding" class="menu-item">Client Onboarding</a>
-    <a href="#" class="menu-item">Activity</a>
-    <a href="/logout" class="menu-item">Logout</a>
+    <div class="logo">Zyberfy</div>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/proposal">Proposal Generator</a>
+    <a href="/onboarding">Client Onboarding</a>
+    <a href="/activity">Activity</a>
+    <a href="/settings">Settings</a>
+    <a href="/memberships">Memberships</a>
+    <a href="/logout">Logout</a>
   </div>
 
-  <div class="content">
-    <h1>📊 Dashboard Overview</h1>
-
-    <div class="stats">
-      <div class="stat-card">
-        <h2>Total Proposals</h2>
+  <div class="main">
+    <h2>📊 Dashboard Overview</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Total Proposals</h3>
         <p>{{ total_proposals }}</p>
       </div>
-      <div class="stat-card">
-        <h2>Total Clients</h2>
+      <div class="card">
+        <h3>Total Clients</h3>
         <p>{{ total_clients }}</p>
       </div>
-      <div class="stat-card">
-        <h2>Est. Revenue</h2>
+      <div class="card">
+        <h3>Est. Revenue</h3>
         <p>${{ estimated_revenue }}</p>
       </div>
-      <div class="stat-card">
-        <h2>Top Service</h2>
+      <div class="card">
+        <h3>Top Service</h3>
         <p>{{ most_popular_service }}</p>
       </div>
     </div>
@@ -140,5 +138,6 @@
       <a href="/download_clients">📥 Export Clients</a>
     </div>
   </div>
+
 </body>
 </html>
