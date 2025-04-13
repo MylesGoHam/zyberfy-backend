@@ -6,6 +6,7 @@ import os
 import re
 import csv
 from datetime import datetime
+from collections import Counter
 from email_assistant import generate_proposal
 
 # Load environment variables
@@ -58,7 +59,6 @@ Special Requests: {special_requests}
             send_email(subject, content, user_email=email)
             save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
 
-            # ✅ Send admin alert
             send_admin_alert("📨 New Proposal Submission", f"Proposal submitted by {name} ({email}) for {service}")
 
             return render_template("thank_you.html", name=name, proposal=proposal_text)
@@ -94,7 +94,6 @@ Phone: {phone}
 Message: {message}"""
         send_email(subject, content, user_email=email)
 
-        # ✅ Send admin alert
         send_admin_alert("👤 New Client Onboarding", f"New client: {name} ({email}) from {company}")
 
         return render_template("thank_you.html", name=name, proposal="Your onboarding was submitted successfully.")
@@ -134,17 +133,37 @@ def dashboard():
         flash("✅ Logged in successfully!", "login")
         session.pop("just_logged_in")
 
-    proposals = []
+    proposals, clients = [], []
+
     if os.path.exists(CSV_FILENAME):
         with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
             reader = csv.DictReader(file)
             proposals = list(reader)
-    else:
-        with open(CSV_FILENAME, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
 
-    return render_template("dashboard.html", proposals=proposals)
+    if os.path.exists(CLIENTS_FILENAME):
+        with open(CLIENTS_FILENAME, newline='', encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            clients = list(reader)
+
+    total_proposals = len(proposals)
+    total_clients = len(clients)
+
+    def extract_number(value):
+        digits = ''.join(c for c in value if c.isdigit())
+        return int(digits) if digits else 0
+
+    estimated_revenue = sum(extract_number(p.get("Budget", "")) for p in proposals)
+    service_counter = Counter(p.get("Service", "") for p in proposals)
+    most_popular_service = service_counter.most_common(1)[0][0] if service_counter else "N/A"
+
+    return render_template("dashboard.html",
+        proposals=proposals,
+        clients=clients,
+        total_proposals=total_proposals,
+        total_clients=total_clients,
+        estimated_revenue=estimated_revenue,
+        most_popular_service=most_popular_service
+    )
 
 
 # ---------- CSV EXPORT ----------
@@ -157,11 +176,20 @@ def download():
         return redirect(url_for("dashboard"))
     return send_file(CSV_FILENAME, as_attachment=True)
 
+@app.route("/download_clients")
+def download_clients():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    if not os.path.exists(CLIENTS_FILENAME):
+        flash("No client CSV file found.", "error")
+        return redirect(url_for("dashboard"))
+    return send_file(CLIENTS_FILENAME, as_attachment=True)
+
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
     from_email = Email("hello@zyberfy.com")
-    to_email = To("mylescunningham0@gmail.com")  # Internal backup email
+    to_email = To("mylescunningham0@gmail.com")
     mail = Mail(from_email, to_email, subject, Content("text/plain", content))
 
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
@@ -199,7 +227,7 @@ def save_to_csv(filename, *args):
         writer.writerow([datetime.now().isoformat(), *args])
 
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
 
 
 # ---------- RUN ----------
