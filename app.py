@@ -90,7 +90,7 @@ def dashboard():
         return redirect(url_for("login"))
 
     if session.get("just_logged_in"):
-        flash("✅ Logged in successfully!", "success")
+        flash("✅ Logged in successfully!", "login")
         session.pop("just_logged_in")
 
     proposals = []
