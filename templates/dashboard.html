@@ -3,117 +3,197 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Login | Zyberfy</title>
+  <title>Zyberfy Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background-color: #f8fafc;
       margin: 0;
+      padding: 0;
     }
 
-    .login-container {
+    .header {
+      padding: 20px 40px;
+      background-color: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .logout {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .logout:hover {
+      background-color: #005fcc;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 40px auto;
       background: white;
-      padding: 2.5rem;
+      padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      width: 100%;
-      max-width: 400px;
-      animation: fadeIn 0.6s ease-out;
     }
 
-    h2 {
-      margin-bottom: 1.5rem;
+    h1 {
       color: #007bff;
       text-align: center;
+      margin-bottom: 2rem;
     }
 
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
+    .search-bar {
+      margin-bottom: 20px;
+      text-align: right;
     }
 
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1.25rem;
+    .search-bar input {
+      padding: 0.5rem 1rem;
+      width: 250px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
 
-    button {
+    table {
       width: 100%;
-      padding: 0.75rem;
-      background-color: #007bff;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #f3f7fb;
+      color: #333;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+
+    .proposal-text {
+      max-width: 320px;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+    }
+
+    .download-btn {
+      margin-top: 1rem;
+      text-align: right;
+    }
+
+    .download-btn a {
+      text-decoration: none;
+      padding: 10px 16px;
+      background-color: #28a745;
       color: white;
-      border: none;
+      font-weight: bold;
       border-radius: 6px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
     }
 
-    button:hover {
-      background-color: #005fcc;
-    }
-
-    .flash-messages {
-      list-style: none;
-      padding: 0;
-      margin-bottom: 1rem;
-    }
-
-    .flash-messages li.error {
-      color: #721c24;
-      background-color: #f8d7da;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #f5c6cb;
-    }
-
-    .flash-messages li.success {
-      display: none;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .download-btn a:hover {
+      background-color: #218838;
     }
   </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <h2>Admin Login</h2>
+  <div class="header">
+    <div class="logo">Zyberfy</div>
+    <a href="/logout" class="logout">Logout</a>
+  </div>
+
+  <div class="container">
+    <h1>📊 Proposal Dashboard</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <ul class="flash-messages">
           {% for category, message in messages %}
-            {% if category != 'success' %}
-              <li class="{{ category }}">{{ message }}</li>
+            {% if category == 'login' %}
+              <li style="background-color: #e6ffed; color: #155724; padding: 12px; margin-bottom: 1rem; border-radius: 6px;">
+                {{ message }}
+              </li>
             {% endif %}
           {% endfor %}
         </ul>
       {% endif %}
     {% endwith %}
 
-    <form method="POST">
-      <label for="email">Email</label>
-      <input type="email" name="email" id="email" required>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search proposals...">
+    </div>
 
-      <label for="password">Password</label>
-      <input type="password" name="password" id="password" required>
+    <table id="proposalsTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Service</th>
+          <th>Budget</th>
+          <th>Location</th>
+          <th>Requests</th>
+          <th>Proposal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in proposals %}
+        <tr>
+          <td>{{ row.Timestamp }}</td>
+          <td>{{ row.Name }}</td>
+          <td>{{ row.Email }}</td>
+          <td>{{ row.Service }}</td>
+          <td>{{ row.Budget }}</td>
+          <td>{{ row.Location }}</td>
+          <td>{{ row.Requests }}</td>
+          <td class="proposal-text">{{ row.Proposal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-      <button type="submit">Log In</button>
-    </form>
+    <div class="download-btn">
+      <a href="/download">⬇️ Export CSV</a>
+    </div>
   </div>
+
+  <script>
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#proposalsTable tbody tr");
+
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? "" : "none";
+      });
+    });
+  </script>
 
 </body>
 </html>
