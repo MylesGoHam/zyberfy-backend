@@ -10,21 +10,24 @@
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
     }
 
-    .card {
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #1e40af;
+      text-align: left;
+      padding: 20px 40px;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 80px auto;
       background: white;
       padding: 3rem;
       border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-      max-width: 480px;
-      width: 90%;
-      animation: fadeInUp 0.6s ease-out;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
     }
 
     h1 {
@@ -34,46 +37,51 @@
     }
 
     p {
+      color: #374151;
       font-size: 1.1rem;
-      color: #4b5563;
       margin-bottom: 2rem;
     }
 
-    .btn {
-      display: inline-block;
-      background-color: #3b82f6;
-      color: white;
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: background-color 0.2s ease, transform 0.2s ease;
+    pre {
+      background-color: #f3f4f6;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: left;
+      overflow-x: auto;
+      font-size: 0.95rem;
+      color: #111827;
     }
 
-    .btn:hover {
-      background-color: #2563eb;
-      transform: translateY(-2px);
+    .share-box {
+      margin-top: 2rem;
     }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .share-box input {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>Thank You</h1>
-    <p>Your proposal has been generated and sent to your inbox.</p>
-    <a href="/" class="btn">Back to Home</a>
+  {% if show_branding %}
+    <div class="logo">Zyberfy</div>
+  {% endif %}
+
+  <div class="container">
+    <h1>Thank You, {{ name }}!</h1>
+    <p>Your proposal has been generated. We'll follow up shortly — in the meantime, here’s a preview:</p>
+    <pre>{{ proposal }}</pre>
+
+    {% if share_url %}
+      <div class="share-box">
+        <p><strong>Share this link:</strong></p>
+        <input type="text" value="{{ share_url }}" readonly onclick="this.select()" />
+      </div>
+    {% endif %}
   </div>
 
 </body>
