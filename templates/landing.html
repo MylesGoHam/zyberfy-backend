@@ -3,126 +3,208 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy</title>
+  <title>Welcome to Zyberfy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8fafc;
       margin: 0;
       padding: 0;
+      background-color: #f8fafc;
     }
 
-    .header {
-      padding: 20px 40px;
-      background-color: #fff;
-      border-bottom: 1px solid #eee;
+    nav {
+      background-color: white;
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 1px solid #eee;
+      position: relative;
     }
 
-    .logo {
-      font-size: 2rem;
+    .nav-logo {
+      font-size: 1.5rem;
       font-weight: bold;
       color: #007bff;
+      text-decoration: none;
     }
 
-    .menu {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dots {
-      font-size: 24px;
+    .menu-icon {
+      font-size: 1.75rem;
       cursor: pointer;
       user-select: none;
+      background: none;
+      border: none;
     }
 
-    .menu-content {
-      display: none;
+    .dropdown {
+      display: block;
       position: absolute;
-      right: 0;
-      background-color: #fff;
-      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-      z-index: 1;
+      top: 70px;
+      right: 2rem;
+      background-color: white;
+      border: 1px solid #ddd;
       border-radius: 6px;
-      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
     }
 
-    .menu-content a {
+    .dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .dropdown a {
       display: block;
-      padding: 10px 16px;
-      text-decoration: none;
+      padding: 12px 20px;
       color: #333;
+      text-decoration: none;
       font-weight: 500;
+      transition: background-color 0.2s ease;
     }
 
-    .menu-content a:hover {
-      background-color: #f1f1f1;
+    .dropdown a:hover {
+      background-color: #f0f4f8;
     }
 
-    .menu:hover .menu-content {
-      display: block;
-    }
-
-    .main {
+    .hero {
+      max-width: 900px;
+      margin: 80px auto;
+      padding: 2rem;
       text-align: center;
-      padding: 80px 20px;
     }
 
-    h1 {
-      font-size: 2.5rem;
-      color: #111;
+    .hero h1 {
+      font-size: 2.75rem;
+      color: #007bff;
+      margin-bottom: 1rem;
     }
 
-    p {
-      font-size: 1.2rem;
-      color: #555;
+    .hero p {
+      font-size: 1.25rem;
+      color: #444;
+      margin-bottom: 2rem;
     }
 
-    .cta-button {
-      margin-top: 30px;
-      font-size: 1.1rem;
+    .cta-btn {
       background-color: #007bff;
       color: white;
-      padding: 14px 28px;
+      font-size: 1.1rem;
+      padding: 0.9rem 1.75rem;
       border: none;
       border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
       text-decoration: none;
+      font-weight: bold;
       transition: background-color 0.3s ease;
     }
 
-    .cta-button:hover {
+    .cta-btn:hover {
       background-color: #005fcc;
+    }
+
+    .how-section {
+      background-color: white;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .how-section h2 {
+      color: #007bff;
+      margin-bottom: 2rem;
+    }
+
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .step {
+      background-color: #f9fbfd;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 280px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .step:hover {
+      transform: translateY(-4px);
+    }
+
+    .step h3 {
+      margin-bottom: 0.75rem;
+      color: #333;
+    }
+
+    .step p {
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .steps {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="logo">Zyberfy</div>
-    <div class="menu">
-      <div class="dots">⋮</div>
-      <div class="menu-content">
-        {% if session.logged_in %}
-          <a href="/dashboard">Dashboard</a>
-          <a href="/logout">Logout</a>
-        {% else %}
-          <a href="/login">Admin Login</a>
-        {% endif %}
-      </div>
+<nav>
+  <a href="/" class="nav-logo">Zyberfy</a>
+  <button class="menu-icon" onclick="toggleMenu()">⋮</button>
+  <div class="dropdown" id="dropdownMenu">
+    <a href="/proposal">Get Proposal</a>
+    <a href="/onboarding">Onboarding</a>
+    <a href="/login">Login</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Luxury Proposals, Automated by <strong>AI</strong></h1>
+  <p>Effortlessly generate high-end client proposals tailored to your niche. Instant. Intelligent. Impressive.</p>
+  <a href="/proposal" class="cta-btn">Try It Now</a>
+</div>
+
+<div class="how-section">
+  <h2>How Zyberfy Works</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>1. Fill Out the Form</h3>
+      <p>Tell us what service your client needs and the basic project details.</p>
+    </div>
+    <div class="step">
+      <h3>2. AI Crafts the Proposal</h3>
+      <p>Our AI instantly generates a tailored, luxury-grade proposal based on your input.</p>
+    </div>
+    <div class="step">
+      <h3>3. You Close the Deal</h3>
+      <p>Use the polished proposal to impress and convert high-value clients with ease.</p>
     </div>
   </div>
+</div>
 
-  <div class="main">
-    <h1>Zyberfy</h1>
-    <p>Effortless AI Proposals for Luxury Services</p>
-    <p>Submit leads. Get a personalized proposal in seconds.</p>
-    <a class="cta-button" href="/proposal">Get Started</a>
-  </div>
+<script>
+  function toggleMenu() {
+    document.getElementById('dropdownMenu').classList.toggle('show');
+  }
+
+  window.addEventListener('click', function(e) {
+    const menu = document.getElementById('dropdownMenu');
+    const button = document.querySelector('.menu-icon');
+    if (!menu.contains(e.target) && !button.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+</script>
 
 </body>
 </html>
