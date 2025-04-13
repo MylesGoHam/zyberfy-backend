@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 import os
 import re
 import csv
-import uuid
-import json
 from datetime import datetime
 from collections import Counter
 from email_assistant import generate_proposal
@@ -21,10 +19,7 @@ ADMIN_EMAIL = "hello@zyberfy.com"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
-PROPOSALS_FOLDER = "proposals"
 
-if not os.path.exists(PROPOSALS_FOLDER):
-    os.makedirs(PROPOSALS_FOLDER)
 
 # ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
@@ -61,10 +56,12 @@ def home():
 
     return render_template("landing.html", stats=stats)
 
-# ---------- ABOUT ----------
+
+# ---------- ABOUT US ----------
 @app.route("/about")
 def about():
     return render_template("about.html")
+
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -83,24 +80,8 @@ def proposal():
                 return redirect(url_for("proposal"))
 
             proposal_text = generate_proposal(name, service, budget, location, special_requests)
-            proposal_id = str(uuid.uuid4())
+            slug_name = name.strip().lower().replace(" ", "-")
 
-            # Save proposal data as JSON
-            proposal_data = {
-                "name": name,
-                "email": email,
-                "service": service,
-                "budget": budget,
-                "location": location,
-                "special_requests": special_requests,
-                "proposal_text": proposal_text,
-                "created_at": datetime.now().isoformat()
-            }
-
-            with open(f"{PROPOSALS_FOLDER}/{proposal_id}.json", "w", encoding="utf-8") as f:
-                json.dump(proposal_data, f)
-
-            # Email + CSV
             subject = f"Proposal Request from {name} ({service})"
             content = f"""Name: {name}
 Email: {email}
@@ -118,7 +99,8 @@ Special Requests: {special_requests}
 
             send_admin_alert("📨 New Proposal Submission", f"Proposal submitted by {name} ({email}) for {service}")
 
-            share_url = url_for("view_proposal", proposal_id=proposal_id, _external=True)
+            share_url = f"{request.url_root}proposal/{slug_name}".rstrip("/")
+
             return render_template("thank_you.html", name=name, proposal=proposal_text, share_url=share_url)
 
         except Exception as e:
@@ -127,17 +109,22 @@ Special Requests: {special_requests}
 
     return render_template("index.html")
 
-# ---------- VIEW PROPOSAL BY ID ----------
-@app.route("/proposals/<proposal_id>")
-def view_proposal(proposal_id):
-    filepath = f"{PROPOSALS_FOLDER}/{proposal_id}.json"
-    if not os.path.exists(filepath):
-        return "Proposal not found", 404
 
-    with open(filepath, "r", encoding="utf-8") as f:
-        proposal_data = json.load(f)
+# ---------- PUBLIC PROPOSAL PAGE ----------
+@app.route("/proposal/<name_slug>")
+def view_proposal(name_slug):
+    if not os.path.exists(CSV_FILENAME):
+        return "Proposal not found."
 
-    return render_template("shared_proposal.html", proposal=proposal_data)
+    with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            slug = row["Name"].strip().lower().replace(" ", "-")
+            if slug == name_slug:
+                return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
+
+    return "Proposal not found."
+
 
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
@@ -169,6 +156,7 @@ Message: {message}"""
 
     return render_template("onboarding.html")
 
+
 # ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -184,11 +172,13 @@ def login():
             return redirect(url_for("login"))
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.pop("logged_in", None)
     flash("✅ Logged out successfully.", "success")
     return redirect(url_for("login"))
+
 
 # ---------- DASHBOARD ----------
 @app.route("/dashboard")
@@ -232,6 +222,7 @@ def dashboard():
         most_popular_service=most_popular_service
     )
 
+
 # ---------- CSV EXPORT ----------
 @app.route("/download")
 def download():
@@ -250,6 +241,7 @@ def download_clients():
         flash("No client CSV file found.", "error")
         return redirect(url_for("dashboard"))
     return send_file(CLIENTS_FILENAME, as_attachment=True)
+
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -293,6 +285,7 @@ def save_to_csv(filename, *args):
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+
 
 # ---------- RUN ----------
 if __name__ == "__main__":
