@@ -93,7 +93,13 @@ Special Requests: {special_requests}
 ---------------------
 ✨ AI-Generated Proposal:
 {proposal_text}
+
+—
+The Zyberfy Concierge Team
+hello@zyberfy.com
+www.zyberfy.com
 """
+
             send_email(subject, content, user_email=email)
             save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
 
@@ -257,7 +263,7 @@ def send_email(subject, content, user_email=None):
             from_email,
             To(user_email),
             "Your Proposal Request Was Received",
-            Content("text/plain", "Thanks for your request! We'll be in touch soon. — Team Zyberfy")
+            Content("text/plain", "Thanks for your proposal request! Our concierge team will be in touch shortly.\n\n— The Zyberfy Concierge Team")
         )
         sg.send(confirm)
 
