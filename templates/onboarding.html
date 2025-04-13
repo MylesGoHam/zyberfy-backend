@@ -1,28 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Client Onboarding | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
     }
 
     .container {
-      max-width: 640px;
+      max-width: 680px;
       margin: 60px auto;
       background: white;
       padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+      animation: fadeInUp 0.6s ease-out;
     }
 
-    h2 {
+    h1 {
       text-align: center;
-      color: #007bff;
+      color: #1e40af;
+      font-size: 2rem;
       margin-bottom: 2rem;
     }
 
@@ -32,76 +35,110 @@
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
       font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
     }
 
     input, textarea {
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #ccc;
+      border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 1rem;
+      background-color: #f9fafb;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #3b82f6;
+      background-color: #fff;
+      outline: none;
     }
 
     button {
       width: 100%;
       padding: 0.9rem;
-      background-color: #007bff;
+      background-color: #3b82f6;
       color: white;
       font-weight: 600;
+      font-size: 1rem;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
       cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
     button:hover {
-      background-color: #005fcc;
+      background-color: #2563eb;
+      transform: translateY(-2px);
     }
 
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #007bff;
-      text-align: center;
-      padding: 20px 0;
+    .success-banner {
+      background-color: #e6ffed;
+      color: #155724;
+      padding: 12px 16px;
+      border-left: 5px solid #28a745;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <div class="logo">Zyberfy</div>
 
   <div class="container">
-    <h2>Client Onboarding</h2>
-    <form action="/onboarding" method="POST">
+    <h1>Client Onboarding</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="success-banner">
+          {% for category, message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/onboarding">
       <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" name="name" id="name" required />
+        <label for="company">Company Name</label>
+        <input type="text" id="company" name="company" required />
       </div>
 
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" required />
+        <label for="contact">Primary Contact</label>
+        <input type="text" id="contact" name="contact" required />
       </div>
 
       <div class="form-group">
-        <label for="company">Company</label>
-        <input type="text" name="company" id="company" />
+        <label for="email">Contact Email</label>
+        <input type="email" id="email" name="email" required />
       </div>
 
       <div class="form-group">
-        <label for="phone">Phone</label>
-        <input type="text" name="phone" id="phone" />
+        <label for="website">Website</label>
+        <input type="url" id="website" name="website" placeholder="https://example.com" />
       </div>
 
       <div class="form-group">
-        <label for="message">Message</label>
-        <textarea name="message" id="message" rows="4"></textarea>
+        <label for="details">Project Overview / Notes</label>
+        <textarea id="details" name="details" rows="5" placeholder="Describe the client goals, expectations, or context..."></textarea>
       </div>
 
-      <button type="submit">Submit</button>
+      <button type="submit">Submit Client Info</button>
     </form>
   </div>
+
 </body>
 </html>
