@@ -2,223 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zyberfy Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Zyberfy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8fafc;
       margin: 0;
-      padding: 0;
-    }
-
-    nav {
-      background-color: white;
-      padding: 1rem 2rem;
+      background-color: #f8fafc;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-      position: relative;
     }
 
-    .nav-logo {
-      font-size: 1.5rem;
-      font-weight: bold;
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      border-right: 1px solid #eee;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 2rem 1.5rem;
+      box-shadow: 4px 0 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .sidebar h2 {
       color: #007bff;
-      text-decoration: none;
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
     }
 
-    .menu-icon {
-      font-size: 1.75rem;
-      cursor: pointer;
-      user-select: none;
-      background: none;
-      border: none;
-    }
-
-    .dropdown {
+    .sidebar a {
       display: block;
-      position: absolute;
-      top: 70px;
-      right: 2rem;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.25s ease;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .dropdown.show {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .dropdown a {
-      display: block;
-      padding: 12px 20px;
       color: #333;
       text-decoration: none;
       font-weight: 500;
+      margin-bottom: 1rem;
+      padding: 10px;
+      border-radius: 6px;
       transition: background-color 0.2s ease;
     }
 
-    .dropdown a:hover {
-      background-color: #f0f4f8;
+    .sidebar a:hover {
+      background-color: #f0f4ff;
     }
 
-    .dashboard {
-      max-width: 1100px;
-      margin: 40px auto;
-      padding: 2rem;
+    .main {
+      margin-left: 240px;
+      padding: 3rem 2rem;
+      flex: 1;
     }
 
-    .dashboard h2 {
+    h1 {
       color: #007bff;
       margin-bottom: 2rem;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .stats {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.5rem;
-      justify-content: center;
-      margin-bottom: 3rem;
-    }
-
-    .stat-box {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-      text-align: center;
-      min-width: 220px;
-    }
-
-    .stat-box h3 {
-      color: #007bff;
-      margin-bottom: 0.75rem;
-      font-size: 1.2rem;
-    }
-
-    .stat-box p {
-      font-size: 1.5rem;
-      color: #333;
-      margin: 0;
-    }
-
-    .actions {
-      text-align: center;
+      gap: 2rem;
       margin-bottom: 2rem;
     }
 
-    .actions a {
-      display: inline-block;
-      margin: 0 0.5rem;
-      text-decoration: none;
-      background-color: #007bff;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+      flex: 1;
+      min-width: 220px;
+      text-align: center;
+    }
+
+    .card h3 {
+      color: #007bff;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      font-size: 1.5rem;
       font-weight: bold;
-    }
-
-    .actions a:hover {
-      background-color: #005fcc;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: white;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: #f1f5fb;
       color: #333;
     }
 
-    tr:hover {
-      background-color: #f9fafb;
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .buttons a {
+      background-color: #007bff;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      transition: background-color 0.2s ease;
+    }
+
+    .buttons a:hover {
+      background-color: #005fcc;
     }
 
     @media (max-width: 768px) {
-      .stats {
-        flex-direction: column;
-        align-items: center;
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 2rem 1rem;
       }
     }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">Zyberfy</a>
-  <button class="menu-icon" onclick="toggleMenu()">⋮</button>
-  <div class="dropdown" id="dropdownMenu">
-    <a href="/logout">Logout</a>
-  </div>
-</nav>
-
-<div class="dashboard">
-  <h2>📊 Dashboard Overview</h2>
-
-  <div class="stats">
-    <div class="stat-box">
-      <h3>Total Proposals</h3>
-      <p>{{ total_proposals }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Total Clients</h3>
-      <p>{{ total_clients }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Est. Revenue</h3>
-      <p>${{ estimated_revenue }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Top Service</h3>
-      <p>{{ most_popular_service }}</p>
-    </div>
+  <!-- Sidebar Menu -->
+  <div class="sidebar">
+    <h2>Zyberfy</h2>
+    <a href="/dashboard">📊 Dashboard</a>
+    <a href="/proposal">✨ Proposal Generator</a>
+    <a href="/onboarding">👤 Client Onboarding</a>
+    <a href="#">📜 Activity</a>
+    <a href="/logout">🔓 Logout</a>
   </div>
 
-  <div class="actions">
-    <a href="/download">📥 Export Proposals</a>
-    <a href="/download_clients">📥 Export Clients</a>
+  <!-- Main Content -->
+  <div class="main">
+    <h1>📈 Dashboard Overview</h1>
+
+    <div class="stats">
+      <div class="card">
+        <h3>Total Proposals</h3>
+        <p>{{ total_proposals }}</p>
+      </div>
+      <div class="card">
+        <h3>Total Clients</h3>
+        <p>{{ total_clients }}</p>
+      </div>
+      <div class="card">
+        <h3>Est. Revenue</h3>
+        <p>${{ estimated_revenue }}</p>
+      </div>
+      <div class="card">
+        <h3>Top Service</h3>
+        <p>{{ most_popular_service }}</p>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <a href="/download">📥 Export Proposals</a>
+      <a href="/download_clients">📥 Export Clients</a>
+    </div>
   </div>
-
-  <!-- Optional: Could later insert tables here for proposals or clients -->
-</div>
-
-<script>
-  function toggleMenu() {
-    document.getElementById('dropdownMenu').classList.toggle('show');
-  }
-
-  window.addEventListener('click', function(e) {
-    const menu = document.getElementById('dropdownMenu');
-    const button = document.querySelector('.menu-icon');
-    if (!menu.contains(e.target) && !button.contains(e.target)) {
-      menu.classList.remove('show');
-    }
-  });
-</script>
 
 </body>
 </html>
