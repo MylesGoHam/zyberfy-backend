@@ -8,86 +8,72 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8fafc;
       margin: 0;
       padding: 0;
-      background-color: #f8fafc;
-      color: #333;
     }
 
-    nav {
-      background-color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-    }
-
-    .nav-logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #007bff;
-      text-decoration: none;
-    }
-
-    .about-section {
+    .container {
       max-width: 800px;
       margin: 80px auto;
       padding: 2rem;
-      background: white;
+      background-color: white;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.5s ease-out;
     }
 
-    .about-section h1 {
+    h1 {
       font-size: 2.5rem;
       color: #007bff;
-      margin-bottom: 1rem;
-    }
-
-    .about-section p {
-      font-size: 1.1rem;
-      line-height: 1.7;
-      margin-bottom: 1.2rem;
-    }
-
-    .about-section strong {
-      color: #007bff;
-    }
-
-    footer {
+      margin-bottom: 1.5rem;
       text-align: center;
-      padding: 2rem;
-      color: #777;
-      font-size: 0.95rem;
+    }
+
+    p {
+      font-size: 1.15rem;
+      color: #333;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 2rem;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <nav>
-    <a href="/" class="nav-logo">Zyberfy</a>
-  </nav>
+  <div class="container">
+    <h1>About Zyberfy</h1>
+    <p>
+      Zyberfy was created for a single purpose: to make luxury proposal generation effortless for high-end businesses. Built by a small team who understand both automation and elegance, Zyberfy turns time-consuming emails into sleek, impressive quotes in seconds.
+    </p>
+    <p>
+      We believe personalization shouldn't mean hours of effort — our platform blends powerful AI with human-like fluency, helping you deliver proposals that win trust, deals, and loyalty.
+    </p>
+    <p>
+      While many tools try to serve everyone, we intentionally don’t. We focus on elite services and high-end teams who expect precision and polish, not complexity.
+    </p>
+    <p>
+      Whether you're planning luxury trips, crafting interior design quotes, or chartering private yachts — Zyberfy was built for your world.
+    </p>
 
-  <div class="about-section">
-    <h1>About Us</h1>
-    <p>
-      Zyberfy was built with a clear goal in mind: to make high-conversion client proposals as effortless as possible for businesses that demand quality.
-    </p>
-    <p>
-      From luxury travel to interior design, high-end service providers operate in a class of their own — but the proposal process often slows them down. We built Zyberfy to automate that, using advanced AI to deliver beautiful, customized proposals in seconds.
-    </p>
-    <p>
-      We don’t serve everyone. <strong>Zyberfy is for serious businesses that value precision, speed, and brand elegance.</strong> If that’s you — you’re in the right place.
-    </p>
-    <p>
-      This isn’t just software. It’s the future of client acquisition, and we’re building it for the boldest businesses out there.
-    </p>
+    <a href="/">← Back to Home</a>
   </div>
-
-  <footer>
-    &copy; {{ now().year }} Zyberfy. All rights reserved.
-  </footer>
 
 </body>
 </html>
