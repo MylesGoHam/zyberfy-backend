@@ -1,143 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <title>Zyberfy Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background-color: #f8fafc;
-      display: flex;
-    }
-
-    .sidebar {
-      width: 200px;
-      background-color: #fff;
-      border-right: 1px solid #007bff;
-      height: 100vh;
-      padding: 1rem;
-      box-shadow: 4px 0 8px rgba(0,0,0,0.03);
-    }
-
-    .sidebar .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #007bff;
-      margin-bottom: 2rem;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 0.75rem 0;
-      text-decoration: none;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f8fc;
       color: #333;
-      border-bottom: 1px solid #007bff;
+      padding: 40px;
+      max-width: 1200px;
+      margin: auto;
     }
-
-    .sidebar a:hover {
-      color: #007bff;
-      font-weight: 600;
+    h1, h2, h3 {
+      color: #1e1e2f;
     }
-
-    .main {
-      flex: 1;
-      padding: 2rem;
-    }
-
-    h2 {
-      color: #007bff;
-      margin-bottom: 2rem;
-    }
-
-    .cards {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .card {
-      background: white;
-      flex: 1 1 220px;
-      padding: 1.5rem;
+    .section {
+      background: #fff;
+      padding: 30px;
+      margin-bottom: 30px;
       border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
-
-    .card h3 {
-      font-size: 1.1rem;
-      color: #007bff;
-      margin-bottom: 0.5rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
     }
-
-    .card p {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #222;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-size: 14px;
+      text-align: left;
     }
-
-    .buttons {
-      margin-top: 2rem;
+    th {
+      background-color: #f0f0f0;
     }
-
-    .buttons a {
-      text-decoration: none;
-      padding: 10px 18px;
-      background-color: #007bff;
-      color: white;
+    .btn {
+      padding: 10px 16px;
+      background-color: #1e1e2f;
+      color: #fff;
+      border: none;
       border-radius: 6px;
-      margin-right: 1rem;
-      font-weight: 600;
-      display: inline-block;
+      cursor: pointer;
+      margin-top: 10px;
     }
-
-    .buttons a:hover {
-      background-color: #005fcc;
+    .btn:hover {
+      background-color: #343456;
+    }
+    #formLink {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    #qrcode {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <div class="logo">Zyberfy</div>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/proposal">Proposal Generator</a>
-    <a href="/onboarding">Client Onboarding</a>
-    <a href="/activity">Activity</a>
-    <a href="/settings">Settings</a>
-    <a href="/memberships">Memberships</a>
-    <a href="/logout">Logout</a>
+  <h1>📊 Zyberfy Admin Dashboard</h1>
+
+  <div class="section">
+    <h2>Business Overview</h2>
+    <p><strong>Total Proposals:</strong> {{ total_proposals }}</p>
+    <p><strong>Total Clients:</strong> {{ total_clients }}</p>
+    <p><strong>Estimated Revenue:</strong> ${{ estimated_revenue }}</p>
+    <p><strong>Most Popular Service:</strong> {{ most_popular_service }}</p>
   </div>
 
-  <div class="main">
-    <h2>📊 Dashboard Overview</h2>
-    <div class="cards">
-      <div class="card">
-        <h3>Total Proposals</h3>
-        <p>{{ total_proposals }}</p>
-      </div>
-      <div class="card">
-        <h3>Total Clients</h3>
-        <p>{{ total_clients }}</p>
-      </div>
-      <div class="card">
-        <h3>Est. Revenue</h3>
-        <p>${{ estimated_revenue }}</p>
-      </div>
-      <div class="card">
-        <h3>Top Service</h3>
-        <p>{{ most_popular_service }}</p>
-      </div>
-    </div>
-
-    <div class="buttons">
-      <a href="/download">📥 Export Proposals</a>
-      <a href="/download_clients">📥 Export Clients</a>
-    </div>
+  <div class="section">
+    <h2>📝 All Proposals</h2>
+    <a href="/download" class="btn">Download Proposals CSV</a>
+    <table>
+      <tr>
+        <th>Timestamp</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Service</th>
+        <th>Budget</th>
+        <th>Location</th>
+        <th>Requests</th>
+      </tr>
+      {% for p in proposals %}
+      <tr>
+        <td>{{ p['Timestamp'] }}</td>
+        <td>{{ p['Name'] }}</td>
+        <td>{{ p['Email'] }}</td>
+        <td>{{ p['Service'] }}</td>
+        <td>{{ p['Budget'] }}</td>
+        <td>{{ p['Location'] }}</td>
+        <td>{{ p['Requests'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
   </div>
+
+  <div class="section">
+    <h2>👥 Client Onboardings</h2>
+    <a href="/download_clients" class="btn">Download Clients CSV</a>
+    <table>
+      <tr>
+        <th>Timestamp</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Company</th>
+        <th>Phone</th>
+        <th>Message</th>
+      </tr>
+      {% for c in clients %}
+      <tr>
+        <td>{{ c['Timestamp'] }}</td>
+        <td>{{ c['Name'] }}</td>
+        <td>{{ c['Email'] }}</td>
+        <td>{{ c['Company'] }}</td>
+        <td>{{ c['Phone'] }}</td>
+        <td>{{ c['Message'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>📩 Share Your Proposal Form</h2>
+    <p>This is your personalized form link for collecting new proposals. You can use this link on social media, your website, or QR code cards.</p>
+
+    <input id="formLink" value="https://zyberfy.com/proposal" readonly />
+    <button class="btn" onclick="copyLink()">📋 Copy Form Link</button>
+
+    <div id="qrcode"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script>
+    // Copy proposal form link
+    function copyLink() {
+      const linkInput = document.getElementById("formLink");
+      linkInput.select();
+      document.execCommand("copy");
+      alert("✅ Proposal form link copied to clipboard!");
+    }
+
+    // Generate QR code for /proposal
+    new QRious({
+      element: document.getElementById("qrcode"),
+      value: "https://zyberfy.com/proposal",
+      size: 160
+    });
+  </script>
 
 </body>
 </html>
