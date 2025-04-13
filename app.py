@@ -228,6 +228,13 @@ def dashboard():
         most_popular_service=most_popular_service
     )
 
+# ---------- MEMBERSHIPS ----------
+@app.route("/memberships")
+def memberships():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("memberships.html")
+
 
 # ---------- CSV EXPORT ----------
 @app.route("/download")
