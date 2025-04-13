@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings | Zyberfy</title>
   <style>
     body {
       background-color: #f8fafc;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 2rem;
+      transition: background 0.3s, color 0.3s;
     }
 
     .container {
@@ -31,10 +32,11 @@
       margin-bottom: 2rem;
     }
 
-    .label {
+    label {
       font-weight: 600;
-      margin-bottom: 0.5rem;
       display: block;
+      margin-bottom: 0.5rem;
+      color: #374151;
     }
 
     input {
@@ -61,11 +63,6 @@
       background-color: #2563eb;
     }
 
-    .danger {
-      border-top: 1px solid #fca5a5;
-      padding-top: 2rem;
-    }
-
     .danger button {
       background-color: #ef4444;
     }
@@ -73,33 +70,91 @@
     .danger button:hover {
       background-color: #dc2626;
     }
+
+    .dark-mode {
+      background-color: #111827;
+      color: #f3f4f6;
+    }
+
+    .dark-mode .container {
+      background-color: #1f2937;
+      color: #f3f4f6;
+    }
+
+    .flash {
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .success {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .danger {
+      background-color: #fee2e2;
+      color: #991b1b;
+      padding-top: 2rem;
+      border-top: 1px solid #fca5a5;
+    }
+
+    .toggle {
+      margin-bottom: 2rem;
+    }
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>Settings</h1>
 
-    <div class="section">
-      <label class="label">Admin Email</label>
-      <input type="email" value="hello@zyberfy.com" readonly />
-    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     <div class="section">
-      <label class="label" for="password">Change Admin Password</label>
-      <input type="password" id="password" placeholder="New Password..." />
-      <button>Update Password</button>
+      <label>Admin Email</label>
+      <input type="email" value="{{ admin_email }}" readonly />
     </div>
+
+    <form method="POST">
+      <div class="section">
+        <label for="new_password">Change Admin Password</label>
+        <input type="password" id="new_password" name="new_password" placeholder="New password..." />
+        <button type="submit">Update Password</button>
+      </div>
+    </form>
 
     <div class="section">
-      <label class="label">Export Data</label>
-      <a href="/download"><button style="margin-right: 10px;">📄 Export Proposals</button></a>
-      <a href="/download_clients"><button>📁 Export Clients</button></a>
+      <label>Export Data</label>
+      <a href="/download"><button type="button">📄 Export Proposals</button></a>
+      <a href="/download_clients"><button type="button">📁 Export Clients</button></a>
     </div>
 
-    <div class="section danger">
-      <label class="label">Danger Zone</label>
-      <button onclick="confirm('Are you sure? This will erase all proposal data.')">🧨 Clear All Data</button>
+    <form method="POST" onsubmit="return confirm('Are you sure you want to delete ALL data? This cannot be undone.');">
+      <input type="hidden" name="clear_data" value="true" />
+      <div class="section danger">
+        <label>Danger Zone</label>
+        <button type="submit">🧨 Clear All Data</button>
+      </div>
+    </form>
+
+    <div class="section toggle">
+      <label>Theme</label>
+      <button type="button" onclick="toggleTheme()">🌓 Toggle Dark Mode</button>
     </div>
   </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+
 </body>
 </html>
