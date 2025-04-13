@@ -36,7 +36,6 @@
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
       text-decoration: none;
     }
 
@@ -57,6 +56,36 @@
       color: #007bff;
       text-align: center;
       margin-bottom: 2rem;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .stat-box {
+      background: #f1f5fb;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      min-width: 200px;
+    }
+
+    .stat-box h3 {
+      color: #007bff;
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .stat-box p {
+      margin: 0.25rem 0 0;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
     }
 
     .search-bar {
@@ -148,19 +177,24 @@
   <div class="container">
     <h1>📊 Proposal Dashboard</h1>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flash-messages">
-          {% for category, message in messages %}
-            {% if category == 'login' %}
-              <li style="background-color: #e6ffed; color: #155724; padding: 12px; margin-bottom: 1rem; border-radius: 6px;">
-                {{ message }}
-              </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    <div class="stats">
+      <div class="stat-box">
+        <h3>Total Proposals</h3>
+        <p>{{ stats.total_proposals }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Total Clients</h3>
+        <p>{{ stats.total_clients }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Est. Revenue</h3>
+        <p>${{ stats.estimated_revenue }}</p>
+      </div>
+      <div class="stat-box">
+        <h3>Top Service</h3>
+        <p>{{ stats.most_common_service or "—" }}</p>
+      </div>
+    </div>
 
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Search proposals...">
