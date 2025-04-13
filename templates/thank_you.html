@@ -2,141 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Thank You | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
-    }
-
-    .box {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      max-width: 680px;
       text-align: center;
-      animation: fadeIn 0.6s ease-out;
     }
 
-    h2 {
-      color: #007bff;
+    .card {
+      background: white;
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      max-width: 480px;
+      width: 90%;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    h1 {
+      color: #1e40af;
+      font-size: 2rem;
       margin-bottom: 1rem;
     }
 
     p {
       font-size: 1.1rem;
-      color: #333;
+      color: #4b5563;
+      margin-bottom: 2rem;
     }
 
-    .proposal {
-      margin-top: 1.5rem;
-      background-color: #f1f5fb;
-      padding: 1rem;
-      border-radius: 8px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      text-align: left;
-    }
-
-    .share-link {
-      margin-top: 2rem;
-      background-color: #eef4ff;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-
-    .share-link input {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    .share-link button {
-      margin-left: 10px;
-      padding: 10px 16px;
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .share-link button:hover {
-      background-color: #005fcc;
-    }
-
-    #qr {
-      margin-top: 20px;
-    }
-
-    a.back {
+    .btn {
       display: inline-block;
-      margin-top: 2rem;
-      text-decoration: none;
-      padding: 10px 16px;
-      background-color: #007bff;
+      background-color: #3b82f6;
       color: white;
-      font-weight: bold;
-      border-radius: 6px;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 0.2s ease, transform 0.2s ease;
     }
 
-    a.back:hover {
-      background-color: #005fcc;
+    .btn:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="box">
-    <h2>Thank You, {{ name }}!</h2>
-    <p>Your submission has been received.</p>
-
-    {% if proposal %}
-      <div class="proposal">{{ proposal }}</div>
-
-      <div class="share-link">
-        <p style="margin-bottom: 10px;"><strong>Share Your Proposal</strong></p>
-        <input id="proposalLink" type="text" value="https://zyberfy.com/proposal/{{ name|replace(' ', '-')|lower }}" readonly />
-        <button onclick="copyLink()">Copy Link</button>
-        <div id="qr"></div>
-      </div>
-    {% endif %}
-
-    <a href="/dashboard" class="back">Return to Dashboard</a>
+  <div class="card">
+    <h1>Thank You!</h1>
+    <p>Your proposal has been generated and sent to your inbox.</p>
+    <a href="/" class="btn">Back to Home</a>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <script>
-    function copyLink() {
-      const linkInput = document.getElementById("proposalLink");
-      linkInput.select();
-      linkInput.setSelectionRange(0, 99999);
-      document.execCommand("copy");
-      alert("Link copied to clipboard!");
-    }
-
-    // Generate QR code
-    const link = document.getElementById("proposalLink").value;
-    QRCode.toCanvas(document.getElementById("qr"), link, { width: 180 }, function (error) {
-      if (error) console.error(error);
-    });
-  </script>
 
 </body>
 </html>
