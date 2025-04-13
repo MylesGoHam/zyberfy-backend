@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 import os
 import re
 import csv
-from datetime import datetime
-from collections import Counter
 import uuid
 import json
+from datetime import datetime
+from collections import Counter
 from email_assistant import generate_proposal
 
 # Load environment variables
@@ -21,10 +21,10 @@ ADMIN_EMAIL = "hello@zyberfy.com"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
-PROPOSALS_DIR = "proposals"
+PROPOSALS_FOLDER = "proposals"
 
-if not os.path.exists(PROPOSALS_DIR):
-    os.makedirs(PROPOSALS_DIR)
+if not os.path.exists(PROPOSALS_FOLDER):
+    os.makedirs(PROPOSALS_FOLDER)
 
 # ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
@@ -61,22 +61,10 @@ def home():
 
     return render_template("landing.html", stats=stats)
 
-# ---------- ABOUT US ----------
+# ---------- ABOUT ----------
 @app.route("/about")
 def about():
     return render_template("about.html")
-
-# ---------- VIEW SHARED PROPOSAL ----------
-@app.route("/proposals/<proposal_id>")
-def view_proposal(proposal_id):
-    filepath = os.path.join(PROPOSALS_DIR, f"{proposal_id}.json")
-    if not os.path.exists(filepath):
-        return "Proposal not found.", 404
-
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    return render_template("view_proposal.html", name=data["name"], proposal=data["proposal"])
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -95,8 +83,24 @@ def proposal():
                 return redirect(url_for("proposal"))
 
             proposal_text = generate_proposal(name, service, budget, location, special_requests)
-            proposal_id = str(uuid.uuid4())[:8]  # Short unique ID
+            proposal_id = str(uuid.uuid4())
 
+            # Save proposal data as JSON
+            proposal_data = {
+                "name": name,
+                "email": email,
+                "service": service,
+                "budget": budget,
+                "location": location,
+                "special_requests": special_requests,
+                "proposal_text": proposal_text,
+                "created_at": datetime.now().isoformat()
+            }
+
+            with open(f"{PROPOSALS_FOLDER}/{proposal_id}.json", "w", encoding="utf-8") as f:
+                json.dump(proposal_data, f)
+
+            # Email + CSV
             subject = f"Proposal Request from {name} ({service})"
             content = f"""Name: {name}
 Email: {email}
@@ -112,20 +116,28 @@ Special Requests: {special_requests}
             send_email(subject, content, user_email=email)
             save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
 
-            # Save proposal file for later sharing
-            with open(os.path.join(PROPOSALS_DIR, f"{proposal_id}.json"), "w", encoding="utf-8") as f:
-                json.dump({"name": name, "proposal": proposal_text}, f)
-
             send_admin_alert("📨 New Proposal Submission", f"Proposal submitted by {name} ({email}) for {service}")
 
-            shareable_link = f"https://zyberfy.com/proposals/{proposal_id}"
-            return render_template("thank_you.html", name=name, proposal=proposal_text, link=shareable_link)
+            share_url = url_for("view_proposal", proposal_id=proposal_id, _external=True)
+            return render_template("thank_you.html", name=name, proposal=proposal_text, share_url=share_url)
 
         except Exception as e:
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for("proposal"))
 
     return render_template("index.html")
+
+# ---------- VIEW PROPOSAL BY ID ----------
+@app.route("/proposals/<proposal_id>")
+def view_proposal(proposal_id):
+    filepath = f"{PROPOSALS_FOLDER}/{proposal_id}.json"
+    if not os.path.exists(filepath):
+        return "Proposal not found", 404
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        proposal_data = json.load(f)
+
+    return render_template("shared_proposal.html", proposal=proposal_data)
 
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
