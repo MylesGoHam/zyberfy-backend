@@ -235,6 +235,28 @@ def memberships():
         return redirect(url_for("login"))
     return render_template("memberships.html")
 
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        if request.form.get("new_password"):
+            new_password = request.form.get("new_password")
+            # Update .env or some secure store here (temporary for demo)
+            os.environ["ADMIN_PASSWORD"] = new_password
+            flash("✅ Admin password updated successfully!", "success")
+
+        if request.form.get("clear_data") == "true":
+            for filename in [CSV_FILENAME, CLIENTS_FILENAME]:
+                if os.path.exists(filename):
+                    os.remove(filename)
+            flash("⚠️ All data has been cleared.", "danger")
+
+        return redirect(url_for("settings"))
+
+    return render_template("settings.html", admin_email=ADMIN_EMAIL)
+
 
 # ---------- CSV EXPORT ----------
 @app.route("/download")
