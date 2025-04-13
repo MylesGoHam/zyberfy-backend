@@ -37,6 +37,7 @@
         .buttons {
             margin-top: 20px;
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
         }
         button {
@@ -78,16 +79,17 @@
         <div id="qrcode"></div>
     </div>
 
+    <!-- QR Generator & Copy Function -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script>
-        // QR Code generation
+        // Generate QR Code for current page
         const qr = new QRious({
             element: document.getElementById('qrcode'),
             value: window.location.href,
             size: 150
         });
 
-        // Copy to clipboard
+        // Copy proposal content
         function copyProposal() {
             const el = document.createElement('textarea');
             el.value = document.getElementById('proposal-content').innerText;
