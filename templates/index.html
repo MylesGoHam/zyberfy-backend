@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Request a Proposal | Zyberfy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
     }
 
     .logo {
@@ -27,7 +27,14 @@
       padding: 2.5rem;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      animation: fadeInUp 0.7s ease-out;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    h1 {
+      text-align: center;
+      color: #007bff;
+      font-size: 2rem;
+      margin-bottom: 2rem;
     }
 
     .form-group {
@@ -47,6 +54,13 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 1rem;
+      background-color: #f9f9f9;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      background-color: #fff;
     }
 
     button {
@@ -67,23 +81,22 @@
       transform: translateY(-2px);
     }
 
+    .loading {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #555;
+      margin-top: 10px;
+      display: none;
+    }
+
     .success-banner {
       background-color: #e6ffed;
       color: #155724;
       padding: 12px 16px;
       border-left: 5px solid #28a745;
       border-radius: 6px;
-      margin: 20px auto;
-      max-width: 640px;
-      font-weight: 500;
+      margin-bottom: 1.5rem;
       animation: fadeIn 0.8s ease-out;
-    }
-
-    .loading {
-      text-align: center;
-      font-size: 1.1rem;
-      color: #555;
-      margin-top: 10px;
     }
 
     @keyframes fadeInUp {
@@ -98,6 +111,7 @@
   </style>
 </head>
 <body>
+
   <div class="logo">Zyberfy</div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -111,20 +125,21 @@
   {% endwith %}
 
   <div class="container">
-    <form action="/" method="POST" onsubmit="showLoading()">
+    <h1>Request a Proposal</h1>
+    <form action="/proposal" method="POST" onsubmit="showLoading()">
       <div class="form-group">
-        <label for="name">Name</label>
+        <label for="name">Full Name</label>
         <input id="name" name="name" type="text" required />
       </div>
 
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">Email Address</label>
         <input id="email" name="email" type="email" required />
       </div>
 
       <div class="form-group">
         <label for="service">Service Type</label>
-        <select id="service" name="service">
+        <select id="service" name="service" required>
           <option value="luxury-travel">Luxury Travel</option>
           <option value="event-planning">Event Planning</option>
           <option value="yacht-charter">Yacht Charter</option>
@@ -135,21 +150,21 @@
 
       <div class="form-group">
         <label for="budget">Budget</label>
-        <input id="budget" name="budget" type="text" placeholder="$10,000" required />
+        <input id="budget" name="budget" type="text" placeholder="$10,000+" required />
       </div>
 
       <div class="form-group">
-        <label for="location">Location</label>
+        <label for="location">Preferred Location</label>
         <input id="location" name="location" type="text" placeholder="City, Country" />
       </div>
 
       <div class="form-group">
         <label for="requests">Special Requests</label>
-        <textarea id="requests" name="requests" rows="4"></textarea>
+        <textarea id="requests" name="requests" rows="4" placeholder="Any additional info or needs..."></textarea>
       </div>
 
-      <button type="submit">Submit Proposal</button>
-      <div class="loading" id="loading" style="display: none;">Generating proposal...</div>
+      <button type="submit">Generate Proposal</button>
+      <div class="loading" id="loading">Generating your proposal with AI...</div>
     </form>
   </div>
 
@@ -158,6 +173,6 @@
       document.getElementById('loading').style.display = 'block';
     }
   </script>
+
 </body>
 </html>
-
