@@ -1,105 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Your Proposal from Zyberfy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f7f9fc;
-            color: #333;
-            padding: 40px;
-            max-width: 800px;
-            margin: auto;
-        }
-        h1 {
-            color: #1e1e2f;
-        }
-        .proposal-box {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-top: 30px;
-        }
-        .signature {
-            margin-top: 40px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-            color: #555;
-            line-height: 1.6;
-        }
-        .signature a {
-            color: #3366cc;
-            text-decoration: none;
-        }
-        .buttons {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #1e1e2f;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background-color: #343456;
-        }
-        #qrcode {
-            margin-top: 30px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Proposal | Zyberfy</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      background-color: #f9fafb;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      color: #1e40af;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .share-section {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn {
+      background-color: #3b82f6;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: #2563eb;
+    }
+
+    .qr-container {
+      text-align: center;
+    }
+
+    .footer-signature {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 1rem;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Proposal for {{ name }}</h1>
+  <div class="container">
+    <h1>Your Proposal</h1>
 
-    <div class="proposal-box" id="proposal-content">
-        <p>{{ proposal | safe }}</p>
+    <p>{{ proposal_text | safe }}</p>
 
-        <div class="signature">
-            —<br>
-            <strong>The Zyberfy Concierge Team</strong><br>
-            <a href="mailto:hello@zyberfy.com">hello@zyberfy.com</a><br>
-            <a href="https://www.zyberfy.com" target="_blank">www.zyberfy.com</a>
-        </div>
-
-        <div class="buttons">
-            <button onclick="copyProposal()">📋 Copy Proposal</button>
-            <button onclick="window.print()">🖨️ Print</button>
-        </div>
-
+    <!-- 🔗 QR + Copy + Print -->
+    <div class="share-section">
+      <div class="qr-container">
         <div id="qrcode"></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <button class="btn" onclick="copyLink()">Copy Link</button>
+        <button class="btn" onclick="window.print()">Print Proposal</button>
+      </div>
     </div>
 
-    <!-- QR Generator & Copy Function -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <script>
-        // Generate QR Code for current page
-        const qr = new QRious({
-            element: document.getElementById('qrcode'),
-            value: window.location.href,
-            size: 150
-        });
+    <!-- Signature -->
+    <div class="footer-signature">
+      Sent with ❤️ by Zyberfy | hello@zyberfy.com
+    </div>
+  </div>
 
-        // Copy proposal content
-        function copyProposal() {
-            const el = document.createElement('textarea');
-            el.value = document.getElementById('proposal-content').innerText;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert('✅ Proposal copied to clipboard!');
-        }
-    </script>
+  <script>
+    const currentUrl = window.location.href;
+
+    new QRCode(document.getElementById("qrcode"), {
+      text: currentUrl,
+      width: 120,
+      height: 120,
+      colorDark: "#1e40af",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    function copyLink() {
+      navigator.clipboard.writeText(currentUrl).then(() => {
+        alert("Link copied to clipboard!");
+      });
+    }
+  </script>
 
 </body>
 </html>
