@@ -3,120 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Admin Login | Zyberfy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8fafc;
-      margin: 0;
-      padding: 0;
-    }
-    .header {
-      padding: 20px 40px;
-      background-color: #fff;
-      border-bottom: 1px solid #eee;
+      background-color: #f0f4f8;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #007bff;
-    }
-    .logout {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .container {
-      max-width: 1080px;
-      margin: 40px auto;
+
+    .login-container {
       background: white;
-      padding: 2rem;
+      padding: 2.5rem;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.6s ease-out;
     }
-    h1 {
+
+    h2 {
+      margin-bottom: 1.5rem;
       color: #007bff;
       text-align: center;
     }
-    .chart-wrapper {
-      margin-bottom: 40px;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
-    canvas {
-      max-width: 100%;
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005fcc;
+    }
+
+    .flash-messages {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
+
+    .flash-messages li.error {
+      color: #721c24;
+      background-color: #f8d7da;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #f5c6cb;
+    }
+
+    .flash-messages li.success {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">Zyberfy</div>
-    <a href="/logout" class="logout">Logout</a>
+
+  <div class="login-container">
+    <h2>Admin Login</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for category, message in messages %}
+            {% if category != 'success' %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <label for="email">Email</label>
+      <input type="email" name="email" id="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" name="password" id="password" required>
+
+      <button type="submit">Log In</button>
+    </form>
   </div>
 
-  <div class="container">
-    <h1>📊 Proposal Dashboard</h1>
-
-    <div class="chart-wrapper">
-      <canvas id="serviceChart"></canvas>
-    </div>
-    <div class="chart-wrapper">
-      <canvas id="budgetChart"></canvas>
-    </div>
-
-    <!-- The rest of your dashboard (search input, table, export button) stays the same -->
-    {% include 'dashboard_table.html' %}
-  </div>
-
-  <script>
-    const proposals = {{ proposals|tojson }};
-    const serviceCount = {};
-    const budgetTotals = {};
-
-    proposals.forEach(p => {
-      const service = p.Service || 'Unknown';
-      const budget = parseFloat(p.Budget.replace(/[^\d\.]/g, '')) || 0;
-      serviceCount[service] = (serviceCount[service] || 0) + 1;
-      budgetTotals[service] = (budgetTotals[service] || 0) + budget;
-    });
-
-    const labels = Object.keys(serviceCount);
-    const counts = Object.values(serviceCount);
-    const budgets = labels.map(label => budgetTotals[label]);
-
-    new Chart(document.getElementById('serviceChart'), {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Proposal Count by Service',
-          data: counts,
-          backgroundColor: '#007bff'
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-
-    new Chart(document.getElementById('budgetChart'), {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Total Budget by Service ($)',
-          data: budgets,
-          backgroundColor: '#28a745'
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-  </script>
 </body>
 </html>
