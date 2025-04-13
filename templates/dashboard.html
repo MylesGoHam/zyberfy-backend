@@ -13,178 +13,212 @@
       padding: 0;
     }
 
-    .header {
-      padding: 20px 40px;
-      background-color: #fff;
-      border-bottom: 1px solid #eee;
+    nav {
+      background-color: white;
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #007bff;
-    }
-
-    .menu {
+      border-bottom: 1px solid #eee;
       position: relative;
     }
 
-    .menu-icon {
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .menu-items {
-      position: absolute;
-      top: 30px;
-      right: 0;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      display: none;
-      flex-direction: column;
-      width: 150px;
-      z-index: 1000;
-    }
-
-    .menu-items a {
-      padding: 10px;
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #007bff;
       text-decoration: none;
+    }
+
+    .menu-icon {
+      font-size: 1.75rem;
+      cursor: pointer;
+      user-select: none;
+      background: none;
+      border: none;
+    }
+
+    .dropdown {
+      display: block;
+      position: absolute;
+      top: 70px;
+      right: 2rem;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 12px 20px;
       color: #333;
+      text-decoration: none;
       font-weight: 500;
+      transition: background-color 0.2s ease;
     }
 
-    .menu-items a:hover {
-      background-color: #f0f0f0;
+    .dropdown a:hover {
+      background-color: #f0f4f8;
     }
 
-    .container {
-      max-width: 1080px;
+    .dashboard {
+      max-width: 1100px;
       margin: 40px auto;
-      background: white;
+      padding: 2rem;
+    }
+
+    .dashboard h2 {
+      color: #007bff;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+
+    .stat-box {
+      background-color: white;
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      min-width: 220px;
     }
 
-    h1 {
+    .stat-box h3 {
       color: #007bff;
+      margin-bottom: 0.75rem;
+      font-size: 1.2rem;
+    }
+
+    .stat-box p {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .actions {
       text-align: center;
       margin-bottom: 2rem;
     }
 
-    .table-container {
-      overflow-x: auto;
+    .actions a {
+      display: inline-block;
+      margin: 0 0.5rem;
+      text-decoration: none;
+      background-color: #007bff;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .actions a:hover {
+      background-color: #005fcc;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 2rem;
+      background-color: white;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     th, td {
-      padding: 12px 16px;
-      border: 1px solid #ddd;
+      padding: 1rem;
       text-align: left;
+      border-bottom: 1px solid #eee;
     }
 
     th {
-      background-color: #f3f7fb;
+      background-color: #f1f5fb;
       color: #333;
     }
 
-    tr:nth-child(even) {
-      background-color: #fafafa;
-    }
-
     tr:hover {
-      background-color: #f1f9ff;
+      background-color: #f9fafb;
     }
 
-    .proposal-text {
-      max-width: 320px;
-      white-space: pre-wrap;
-      overflow-wrap: break-word;
-    }
-
-    .download-btn {
-      text-align: right;
-    }
-
-    .download-btn a {
-      text-decoration: none;
-      padding: 10px 16px;
-      background-color: #28a745;
-      color: white;
-      font-weight: bold;
-      border-radius: 6px;
-    }
-
-    .download-btn a:hover {
-      background-color: #218838;
+    @media (max-width: 768px) {
+      .stats {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">Zyberfy</div>
-    <div class="menu">
-      <div class="menu-icon" onclick="toggleMenu()">&#8942;</div>
-      <div class="menu-items" id="menuItems">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/logout">Logout</a>
-      </div>
+
+<nav>
+  <a href="/" class="nav-logo">Zyberfy</a>
+  <button class="menu-icon" onclick="toggleMenu()">⋮</button>
+  <div class="dropdown" id="dropdownMenu">
+    <a href="/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="dashboard">
+  <h2>📊 Dashboard Overview</h2>
+
+  <div class="stats">
+    <div class="stat-box">
+      <h3>Total Proposals</h3>
+      <p>{{ total_proposals }}</p>
+    </div>
+    <div class="stat-box">
+      <h3>Total Clients</h3>
+      <p>{{ total_clients }}</p>
+    </div>
+    <div class="stat-box">
+      <h3>Est. Revenue</h3>
+      <p>${{ estimated_revenue }}</p>
+    </div>
+    <div class="stat-box">
+      <h3>Top Service</h3>
+      <p>{{ most_popular_service }}</p>
     </div>
   </div>
 
-  <div class="container">
-    <h1>📊 Proposal Dashboard</h1>
-
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Service</th>
-            <th>Budget</th>
-            <th>Location</th>
-            <th>Requests</th>
-            <th>Proposal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in proposals %}
-          <tr>
-            <td>{{ row.Timestamp }}</td>
-            <td>{{ row.Name }}</td>
-            <td>{{ row.Email }}</td>
-            <td>{{ row.Service }}</td>
-            <td>{{ row.Budget }}</td>
-            <td>{{ row.Location }}</td>
-            <td>{{ row.Requests }}</td>
-            <td class="proposal-text">{{ row.Proposal }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="download-btn">
-      <a href="/download">⬇️ Export Proposals CSV</a>
-    </div>
+  <div class="actions">
+    <a href="/download">📥 Export Proposals</a>
+    <a href="/download_clients">📥 Export Clients</a>
   </div>
 
-  <script>
-    function toggleMenu() {
-      const menu = document.getElementById("menuItems");
-      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  <!-- Optional: Could later insert tables here for proposals or clients -->
+</div>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('dropdownMenu').classList.toggle('show');
+  }
+
+  window.addEventListener('click', function(e) {
+    const menu = document.getElementById('dropdownMenu');
+    const button = document.querySelector('.menu-icon');
+    if (!menu.contains(e.target) && !button.contains(e.target)) {
+      menu.classList.remove('show');
     }
-  </script>
+  });
+</script>
+
 </body>
 </html>
