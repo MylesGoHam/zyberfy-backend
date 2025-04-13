@@ -20,6 +20,7 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #eee;
+      animation: fadeIn 0.7s ease-out;
     }
 
     .nav-logo {
@@ -42,9 +43,10 @@
 
     .hero {
       max-width: 900px;
-      margin: 80px auto;
+      margin: 80px auto 40px;
       padding: 2rem;
       text-align: center;
+      animation: fadeUp 0.8s ease-out;
     }
 
     .hero h1 {
@@ -74,6 +76,73 @@
     .cta-btn:hover {
       background-color: #005fcc;
     }
+
+    .how-it-works {
+      background-color: #fff;
+      padding: 60px 20px;
+      text-align: center;
+      animation: fadeUp 0.9s ease-out;
+    }
+
+    .how-it-works h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #007bff;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .step {
+      width: 300px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .step:hover {
+      transform: translateY(-5px);
+    }
+
+    .step h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .step p {
+      color: #555;
+      font-size: 1rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .steps {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .step {
+        width: 90%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -81,7 +150,7 @@
 <nav>
   <a href="/" class="nav-logo">Zyberfy</a>
   <div class="nav-links">
-    <a href="/">Get Proposal</a>
+    <a href="/proposal">Get Proposal</a>
     <a href="/onboarding">Onboarding</a>
     <a href="/login">Login</a>
   </div>
@@ -90,8 +159,26 @@
 <div class="hero">
   <h1>Luxury Proposals, Automated by AI</h1>
   <p>Effortlessly generate high-end client proposals tailored to your niche. Instant. Intelligent. Impressive.</p>
-  <a href="/" class="cta-btn">Try It Now</a>
+  <a href="/proposal" class="cta-btn">Try It Now</a>
 </div>
+
+<section class="how-it-works">
+  <h2>How Zyberfy Works</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>1. Fill Out the Form</h3>
+      <p>Tell us what service your client needs and the basic project details.</p>
+    </div>
+    <div class="step">
+      <h3>2. AI Crafts the Proposal</h3>
+      <p>Our AI instantly generates a tailored, luxury-grade proposal based on your input.</p>
+    </div>
+    <div class="step">
+      <h3>3. Impress Your Client</h3>
+      <p>Email or download the ready-to-send proposal and win the job effortlessly.</p>
+    </div>
+  </div>
+</section>
 
 </body>
 </html>
