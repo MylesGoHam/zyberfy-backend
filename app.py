@@ -7,6 +7,8 @@ import re
 import csv
 from datetime import datetime
 from collections import Counter
+import uuid
+import json
 from email_assistant import generate_proposal
 
 # Load environment variables
@@ -19,6 +21,10 @@ ADMIN_EMAIL = "hello@zyberfy.com"
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
+PROPOSALS_DIR = "proposals"
+
+if not os.path.exists(PROPOSALS_DIR):
+    os.makedirs(PROPOSALS_DIR)
 
 # ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
@@ -55,12 +61,22 @@ def home():
 
     return render_template("landing.html", stats=stats)
 
-
 # ---------- ABOUT US ----------
 @app.route("/about")
 def about():
     return render_template("about.html")
 
+# ---------- VIEW SHARED PROPOSAL ----------
+@app.route("/proposals/<proposal_id>")
+def view_proposal(proposal_id):
+    filepath = os.path.join(PROPOSALS_DIR, f"{proposal_id}.json")
+    if not os.path.exists(filepath):
+        return "Proposal not found.", 404
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return render_template("view_proposal.html", name=data["name"], proposal=data["proposal"])
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -79,6 +95,7 @@ def proposal():
                 return redirect(url_for("proposal"))
 
             proposal_text = generate_proposal(name, service, budget, location, special_requests)
+            proposal_id = str(uuid.uuid4())[:8]  # Short unique ID
 
             subject = f"Proposal Request from {name} ({service})"
             content = f"""Name: {name}
@@ -95,16 +112,20 @@ Special Requests: {special_requests}
             send_email(subject, content, user_email=email)
             save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
 
+            # Save proposal file for later sharing
+            with open(os.path.join(PROPOSALS_DIR, f"{proposal_id}.json"), "w", encoding="utf-8") as f:
+                json.dump({"name": name, "proposal": proposal_text}, f)
+
             send_admin_alert("📨 New Proposal Submission", f"Proposal submitted by {name} ({email}) for {service}")
 
-            return render_template("thank_you.html", name=name, proposal=proposal_text)
+            shareable_link = f"https://zyberfy.com/proposals/{proposal_id}"
+            return render_template("thank_you.html", name=name, proposal=proposal_text, link=shareable_link)
 
         except Exception as e:
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for("proposal"))
 
     return render_template("index.html")
-
 
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
@@ -136,7 +157,6 @@ Message: {message}"""
 
     return render_template("onboarding.html")
 
-
 # ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -157,7 +177,6 @@ def logout():
     session.pop("logged_in", None)
     flash("✅ Logged out successfully.", "success")
     return redirect(url_for("login"))
-
 
 # ---------- DASHBOARD ----------
 @app.route("/dashboard")
@@ -201,7 +220,6 @@ def dashboard():
         most_popular_service=most_popular_service
     )
 
-
 # ---------- CSV EXPORT ----------
 @app.route("/download")
 def download():
@@ -220,7 +238,6 @@ def download_clients():
         flash("No client CSV file found.", "error")
         return redirect(url_for("dashboard"))
     return send_file(CLIENTS_FILENAME, as_attachment=True)
-
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -264,7 +281,6 @@ def save_to_csv(filename, *args):
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
-
 
 # ---------- RUN ----------
 if __name__ == "__main__":
