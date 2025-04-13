@@ -19,13 +19,15 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# 👇 NEW Landing Page
-@app.route("/home")
-def landing_page():
+# ---------- LANDING PAGE ----------
+@app.route("/", methods=["GET"])
+def home():
     return render_template("landing.html")
 
-@app.route("/", methods=["GET", "POST"])
-def index():
+
+# ---------- PROPOSAL FORM ----------
+@app.route("/proposal", methods=["GET", "POST"])
+def proposal():
     if request.method == "POST":
         try:
             name = request.form.get("name")
@@ -37,9 +39,9 @@ def index():
 
             if not is_valid_email(email):
                 flash("Invalid email address", "error")
-                return redirect(url_for("index"))
+                return redirect(url_for("proposal"))
 
-            proposal = generate_proposal(name, service, budget, location, special_requests)
+            proposal_text = generate_proposal(name, service, budget, location, special_requests)
 
             subject = f"Proposal Request from {name} ({service})"
             content = f"""Name: {name}
@@ -51,19 +53,21 @@ Special Requests: {special_requests}
 
 ---------------------
 ✨ AI-Generated Proposal:
-{proposal}
+{proposal_text}
 """
             send_email(subject, content, user_email=email)
-            save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal)
+            save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
 
-            return render_template("thank_you.html", name=name, proposal=proposal)
+            return render_template("thank_you.html", name=name, proposal=proposal_text)
 
         except Exception as e:
             flash(f"An error occurred: {e}", "error")
-            return redirect(url_for("index"))
+            return redirect(url_for("proposal"))
 
     return render_template("index.html")
 
+
+# ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
 def onboarding():
     if request.method == "POST":
@@ -91,6 +95,8 @@ Message: {message}"""
 
     return render_template("onboarding.html")
 
+
+# ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -111,6 +117,8 @@ def logout():
     flash("✅ Logged out successfully.", "success")
     return redirect(url_for("login"))
 
+
+# ---------- DASHBOARD ----------
 @app.route("/dashboard")
 def dashboard():
     if not session.get("logged_in"):
@@ -132,6 +140,8 @@ def dashboard():
 
     return render_template("dashboard.html", proposals=proposals)
 
+
+# ---------- CSV EXPORT ----------
 @app.route("/download")
 def download():
     if not session.get("logged_in"):
@@ -141,6 +151,8 @@ def download():
         return redirect(url_for("dashboard"))
     return send_file(CSV_FILENAME, as_attachment=True)
 
+
+# ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
     from_email = Email("hello@zyberfy.com")
     to_email = To(os.getenv("TO_EMAIL_ADDRESS", "mylescunningham0@gmail.com"))
@@ -172,6 +184,8 @@ def save_to_csv(filename, *args):
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
+
+# ---------- RUN ----------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
