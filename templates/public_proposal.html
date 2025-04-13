@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proposal for {{ name }} | Zyberfy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
     body {
       background-color: #f8fafc;
@@ -43,6 +44,46 @@
       font-size: 1rem;
       line-height: 1.6;
       color: #111827;
+      position: relative;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    button {
+      background-color: #1e40af;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    button:hover {
+      background-color: #1e3a8a;
+    }
+
+    .signature {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+
+    .qr-code {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .qr-code canvas {
+      margin-top: 0.5rem;
     }
   </style>
 </head>
@@ -54,10 +95,40 @@
 
   <div class="container">
     <h1>Proposal for {{ name }}</h1>
-    <div class="proposal-box">
+
+    <div class="proposal-box" id="proposalContent">
       {{ proposal }}
     </div>
+
+    <div class="actions">
+      <button onclick="copyProposal()">Copy</button>
+      <button onclick="window.print()">Print</button>
+    </div>
+
+    <div class="signature">
+      — The Zyberfy Concierge Team<br>
+      hello@zyberfy.com<br>
+      www.zyberfy.com
+    </div>
+
+    <div class="qr-code">
+      <p>Scan to open on your phone:</p>
+      <canvas id="qrCanvas"></canvas>
+    </div>
   </div>
+
+  <script>
+    function copyProposal() {
+      const text = document.getElementById("proposalContent").innerText;
+      navigator.clipboard.writeText(text).then(() => alert("Proposal copied to clipboard!"));
+    }
+
+    const qr = new QRious({
+      element: document.getElementById("qrCanvas"),
+      value: window.location.href,
+      size: 160
+    });
+  </script>
 
 </body>
 </html>
