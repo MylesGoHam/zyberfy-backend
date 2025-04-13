@@ -19,6 +19,11 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
+# 👇 NEW Landing Page
+@app.route("/home")
+def landing_page():
+    return render_template("landing.html")
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -170,5 +175,3 @@ def is_valid_email(email):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
