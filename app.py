@@ -17,6 +17,7 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@zyberfy.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
+CLIENTS_FILENAME = "clients.csv"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -48,7 +49,7 @@ Special Requests: {special_requests}
 {proposal}
 """
             send_email(subject, content, user_email=email)
-            save_to_csv(name, email, service, budget, location, special_requests, proposal)
+            save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal)
 
             return render_template("thank_you.html", name=name, proposal=proposal)
 
@@ -57,6 +58,33 @@ Special Requests: {special_requests}
             return redirect(url_for("index"))
 
     return render_template("index.html")
+
+@app.route("/onboarding", methods=["GET", "POST"])
+def onboarding():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        company = request.form.get("company")
+        phone = request.form.get("phone")
+        message = request.form.get("message")
+
+        if not is_valid_email(email):
+            flash("Invalid email format.", "error")
+            return redirect(url_for("onboarding"))
+
+        save_to_csv(CLIENTS_FILENAME, name, email, company, phone, message, "")
+
+        subject = f"New Client Onboarding: {name}"
+        content = f"""Name: {name}
+Email: {email}
+Company: {company}
+Phone: {phone}
+Message: {message}"
+        send_email(subject, content, user_email=email)
+
+        return render_template("thank_you.html", name=name, proposal="Your onboarding was submitted successfully.")
+
+    return render_template("onboarding.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -125,13 +153,16 @@ def send_email(subject, content, user_email=None):
         )
         sg.send(confirm)
 
-def save_to_csv(name, email, service, budget, location, requests, proposal):
-    file_exists = os.path.isfile(CSV_FILENAME)
-    with open(CSV_FILENAME, mode="a", newline='', encoding="utf-8") as file:
+def save_to_csv(filename, *args):
+    file_exists = os.path.isfile(filename)
+    with open(filename, mode="a", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
-        writer.writerow([datetime.now().isoformat(), name, email, service, budget, location, requests, proposal])
+            if filename == CLIENTS_FILENAME:
+                writer.writerow(["Timestamp", "Name", "Email", "Company", "Phone", "Message", "Proposal"])
+            else:
+                writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
+        writer.writerow([datetime.now().isoformat(), *args])
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
@@ -139,3 +170,4 @@ def is_valid_email(email):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
