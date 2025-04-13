@@ -8,7 +8,7 @@
   <style>
     body {
       background-color: #f9fafb;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 2rem;
       color: #1f2937;
@@ -82,7 +82,6 @@
 
     <p>{{ proposal_text | safe }}</p>
 
-    <!-- 🔗 QR + Copy + Print -->
     <div class="share-section">
       <div class="qr-container">
         <div id="qrcode"></div>
@@ -93,9 +92,8 @@
       </div>
     </div>
 
-    <!-- Signature -->
     <div class="footer-signature">
-      Sent with ❤️ by Zyberfy | hello@zyberfy.com
+      Sent by Zyberfy | hello@zyberfy.com
     </div>
   </div>
 
@@ -113,7 +111,7 @@
 
     function copyLink() {
       navigator.clipboard.writeText(currentUrl).then(() => {
-        alert("Link copied to clipboard!");
+        alert("Link copied to clipboard.");
       });
     }
   </script>
