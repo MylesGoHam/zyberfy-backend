@@ -14,47 +14,43 @@
     }
 
     .sidebar {
-      width: 240px;
+      width: 160px;
       background-color: #ffffff;
       border-right: 1px solid #eee;
       height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      padding: 2rem 1.5rem;
-      box-shadow: 4px 0 10px rgba(0, 0, 0, 0.04);
+      padding: 20px 10px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
     }
 
     .sidebar h2 {
+      font-size: 1.3rem;
       color: #007bff;
       margin-bottom: 2rem;
-      font-size: 1.5rem;
+      text-align: center;
     }
 
-    .sidebar a {
+    .menu-item {
       display: block;
-      color: #333;
-      text-decoration: none;
-      font-weight: 500;
-      margin-bottom: 1rem;
+      color: #222;
       padding: 10px;
-      border-radius: 6px;
+      font-size: 0.95rem;
+      text-decoration: none;
       border-bottom: 1px solid #007bff;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.2s;
     }
 
-    .sidebar a:hover {
-      background-color: #f0f4ff;
+    .menu-item:hover {
+      background-color: #f0f4f8;
     }
 
-    .main {
-      margin-left: 240px;
-      padding: 3rem 2rem;
-      flex: 1;
+    .content {
+      flex-grow: 1;
+      padding: 2rem;
     }
 
     h1 {
       color: #007bff;
+      font-size: 1.8rem;
       margin-bottom: 2rem;
     }
 
@@ -65,24 +61,24 @@
       margin-bottom: 2rem;
     }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-      padding: 2rem;
+    .stat-card {
       flex: 1;
-      min-width: 220px;
+      min-width: 200px;
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
 
-    .card h3 {
+    .stat-card h2 {
+      font-size: 1.1rem;
       color: #007bff;
       margin-bottom: 0.5rem;
-      font-size: 1.1rem;
     }
 
-    .card p {
-      font-size: 1.5rem;
+    .stat-card p {
+      font-size: 1.3rem;
       font-weight: bold;
       color: #333;
     }
@@ -90,76 +86,59 @@
     .buttons {
       display: flex;
       gap: 1rem;
-      margin-top: 2rem;
     }
 
     .buttons a {
       background-color: #007bff;
       color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
+      padding: 10px 16px;
       text-decoration: none;
+      border-radius: 6px;
       font-weight: 600;
-      display: inline-block;
-      transition: background-color 0.2s ease;
+      font-size: 0.95rem;
     }
 
     .buttons a:hover {
       background-color: #005fcc;
     }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        display: none;
-      }
-
-      .main {
-        margin-left: 0;
-        padding: 2rem 1rem;
-      }
-    }
   </style>
 </head>
 <body>
-
-  <!-- Sidebar Menu -->
   <div class="sidebar">
     <h2>Zyberfy</h2>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/proposal">Proposal Generator</a>
-    <a href="/onboarding">Client Onboarding</a>
-    <a href="#">Activity</a>
-    <a href="/logout">Logout</a>
+    <a href="/dashboard" class="menu-item">Dashboard</a>
+    <a href="/proposal" class="menu-item">Proposal Generator</a>
+    <a href="/onboarding" class="menu-item">Client Onboarding</a>
+    <a href="#" class="menu-item">Activity</a>
+    <a href="/logout" class="menu-item">Logout</a>
   </div>
 
-  <!-- Main Content -->
-  <div class="main">
-    <h1>Dashboard Overview</h1>
+  <div class="content">
+    <h1>📊 Dashboard Overview</h1>
 
     <div class="stats">
-      <div class="card">
-        <h3>Total Proposals</h3>
+      <div class="stat-card">
+        <h2>Total Proposals</h2>
         <p>{{ total_proposals }}</p>
       </div>
-      <div class="card">
-        <h3>Total Clients</h3>
+      <div class="stat-card">
+        <h2>Total Clients</h2>
         <p>{{ total_clients }}</p>
       </div>
-      <div class="card">
-        <h3>Est. Revenue</h3>
+      <div class="stat-card">
+        <h2>Est. Revenue</h2>
         <p>${{ estimated_revenue }}</p>
       </div>
-      <div class="card">
-        <h3>Top Service</h3>
+      <div class="stat-card">
+        <h2>Top Service</h2>
         <p>{{ most_popular_service }}</p>
       </div>
     </div>
 
     <div class="buttons">
-      <a href="/download">Export Proposals</a>
-      <a href="/download_clients">Export Clients</a>
+      <a href="/download">📥 Export Proposals</a>
+      <a href="/download_clients">📥 Export Clients</a>
     </div>
   </div>
-
 </body>
 </html>
