@@ -34,13 +34,33 @@
             color: #3366cc;
             text-decoration: none;
         }
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #1e1e2f;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background-color: #343456;
+        }
+        #qrcode {
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
 
     <h1>Proposal for {{ name }}</h1>
 
-    <div class="proposal-box">
+    <div class="proposal-box" id="proposal-content">
         <p>{{ proposal | safe }}</p>
 
         <div class="signature">
@@ -49,7 +69,35 @@
             <a href="mailto:hello@zyberfy.com">hello@zyberfy.com</a><br>
             <a href="https://www.zyberfy.com" target="_blank">www.zyberfy.com</a>
         </div>
+
+        <div class="buttons">
+            <button onclick="copyProposal()">📋 Copy Proposal</button>
+            <button onclick="window.print()">🖨️ Print</button>
+        </div>
+
+        <div id="qrcode"></div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script>
+        // QR Code generation
+        const qr = new QRious({
+            element: document.getElementById('qrcode'),
+            value: window.location.href,
+            size: 150
+        });
+
+        // Copy to clipboard
+        function copyProposal() {
+            const el = document.createElement('textarea');
+            el.value = document.getElementById('proposal-content').innerText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('✅ Proposal copied to clipboard!');
+        }
+    </script>
 
 </body>
 </html>
