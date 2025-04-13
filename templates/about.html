@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us | Zyberfy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8fafc;
+      color: #333;
+    }
+
+    nav {
+      background-color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .about-section {
+      max-width: 800px;
+      margin: 80px auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .about-section h1 {
+      font-size: 2.5rem;
+      color: #007bff;
+      margin-bottom: 1rem;
+    }
+
+    .about-section p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 1.2rem;
+    }
+
+    .about-section strong {
+      color: #007bff;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #777;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">Zyberfy</a>
+  </nav>
+
+  <div class="about-section">
+    <h1>About Us</h1>
+    <p>
+      Zyberfy was built with a clear goal in mind: to make high-conversion client proposals as effortless as possible for businesses that demand quality.
+    </p>
+    <p>
+      From luxury travel to interior design, high-end service providers operate in a class of their own — but the proposal process often slows them down. We built Zyberfy to automate that, using advanced AI to deliver beautiful, customized proposals in seconds.
+    </p>
+    <p>
+      We don’t serve everyone. <strong>Zyberfy is for serious businesses that value precision, speed, and brand elegance.</strong> If that’s you — you’re in the right place.
+    </p>
+    <p>
+      This isn’t just software. It’s the future of client acquisition, and we’re building it for the boldest businesses out there.
+    </p>
+  </div>
+
+  <footer>
+    &copy; {{ now().year }} Zyberfy. All rights reserved.
+  </footer>
+
+</body>
+</html>
