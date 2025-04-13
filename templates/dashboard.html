@@ -63,7 +63,7 @@
       justify-content: space-around;
       flex-wrap: wrap;
       gap: 2rem;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
       text-align: center;
     }
 
@@ -78,12 +78,12 @@
     .stat-box h3 {
       color: #007bff;
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
     }
 
     .stat-box p {
-      margin: 0.25rem 0 0;
-      font-size: 1.1rem;
+      margin: 0.5rem 0 0;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #333;
     }
@@ -150,7 +150,7 @@
     }
 
     .client-table {
-      margin-top: 2rem;
+      margin-top: 2.5rem;
       width: 100%;
       border-collapse: collapse;
     }
@@ -233,7 +233,7 @@
       <a href="/download">⬇️ Export Proposals CSV</a>
     </div>
 
-    <h2>Client Management</h2>
+    <h2 style="margin-top: 3rem;">Client Management</h2>
     <table class="client-table">
       <thead>
         <tr>
@@ -268,7 +268,6 @@
     document.getElementById("searchInput").addEventListener("keyup", function() {
       const searchTerm = this.value.toLowerCase();
       const rows = document.querySelectorAll("#proposalsTable tbody tr");
-
       rows.forEach(row => {
         const text = row.innerText.toLowerCase();
         row.style.display = text.includes(searchTerm) ? "" : "none";
