@@ -56,6 +56,12 @@ def home():
     return render_template("landing.html", stats=stats)
 
 
+# ---------- ABOUT US ----------
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
@@ -257,7 +263,7 @@ def save_to_csv(filename, *args):
         writer.writerow([datetime.now().isoformat(), *args])
 
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
+    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
 
 # ---------- RUN ----------
