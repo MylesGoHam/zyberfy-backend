@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy — AI Proposal Automation</title>
+  <title>Zyberfy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
     body {
@@ -13,120 +13,116 @@
       padding: 0;
     }
 
-    .hero {
-      background: #ffffff;
-      padding: 4rem 2rem;
-      text-align: center;
+    .header {
+      padding: 20px 40px;
+      background-color: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .logo {
       font-size: 2rem;
       font-weight: bold;
       color: #007bff;
-      margin-bottom: 1rem;
     }
 
-    .headline {
+    .menu {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dots {
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .menu-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #fff;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .menu-content a {
+      display: block;
+      padding: 10px 16px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .menu-content a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .menu:hover .menu-content {
+      display: block;
+    }
+
+    .main {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    h1 {
       font-size: 2.5rem;
-      font-weight: 700;
-      color: #222;
-      margin-bottom: 1rem;
+      color: #111;
     }
 
-    .subheadline {
+    p {
       font-size: 1.2rem;
       color: #555;
-      margin-bottom: 2rem;
     }
 
     .cta-button {
+      margin-top: 30px;
+      font-size: 1.1rem;
       background-color: #007bff;
       color: white;
       padding: 14px 28px;
-      font-size: 1rem;
       border: none;
       border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
-      font-weight: 600;
       text-decoration: none;
+      transition: background-color 0.3s ease;
     }
 
     .cta-button:hover {
       background-color: #005fcc;
     }
-
-    .stats-section {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 2rem;
-      background-color: #f1f5fb;
-      padding: 3rem 2rem;
-      margin-top: 2rem;
-    }
-
-    .stat-box {
-      background: white;
-      padding: 1.5rem 2rem;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      min-width: 220px;
-      text-align: center;
-    }
-
-    .stat-box h3 {
-      color: #007bff;
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-
-    .stat-box p {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #333;
-      margin: 0;
-    }
-
-    footer {
-      margin-top: 3rem;
-      padding: 2rem;
-      text-align: center;
-      font-size: 0.9rem;
-      color: #777;
-    }
   </style>
 </head>
 <body>
 
-  <div class="hero">
+  <div class="header">
     <div class="logo">Zyberfy</div>
-    <div class="headline">Effortless AI Proposals for Luxury Services</div>
-    <div class="subheadline">Submit leads. Get a personalized proposal in seconds.</div>
+    <div class="menu">
+      <div class="dots">⋮</div>
+      <div class="menu-content">
+        {% if session.logged_in %}
+          <a href="/dashboard">Dashboard</a>
+          <a href="/logout">Logout</a>
+        {% else %}
+          <a href="/login">Admin Login</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <h1>Zyberfy</h1>
+    <p>Effortless AI Proposals for Luxury Services</p>
+    <p>Submit leads. Get a personalized proposal in seconds.</p>
     <a class="cta-button" href="/proposal">Get Started</a>
   </div>
-
-  <div class="stats-section">
-    <div class="stat-box">
-      <h3>Total Proposals</h3>
-      <p>{{ stats.total_proposals }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Total Clients</h3>
-      <p>{{ stats.total_clients }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Est. Revenue</h3>
-      <p>${{ stats.estimated_revenue }}</p>
-    </div>
-    <div class="stat-box">
-      <h3>Top Service</h3>
-      <p>{{ stats.most_common_service or "—" }}</p>
-    </div>
-  </div>
-
-  <footer>
-    © 2025 Zyberfy — AI Proposal Automation
-  </footer>
 
 </body>
 </html>
