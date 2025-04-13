@@ -86,16 +86,6 @@
     th {
       background-color: #f3f7fb;
       color: #333;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    th.asc::after {
-      content: " ▲";
-    }
-
-    th.desc::after {
-      content: " ▼";
     }
 
     tr:nth-child(even) {
@@ -107,20 +97,9 @@
     }
 
     .proposal-text {
-      max-width: 280px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .proposal-text a {
-      color: #007bff;
-      text-decoration: none;
-      margin-left: 10px;
-    }
-
-    .proposal-text a:hover {
-      text-decoration: underline;
+      max-width: 320px;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
     }
 
     .download-btn {
@@ -141,42 +120,21 @@
       background-color: #218838;
     }
 
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      left: 0;
-      top: 0;
+    .client-table {
+      margin-top: 2rem;
       width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.4);
+      border-collapse: collapse;
     }
 
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 800px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    .client-table th, .client-table td {
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      text-align: left;
     }
 
-    .modal-content pre {
-      white-space: pre-wrap;
-      font-family: inherit;
-    }
-
-    .close {
-      float: right;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover {
-      color: #007bff;
+    .client-table th {
+      background-color: #f3f7fb;
+      color: #333;
     }
   </style>
 </head>
@@ -231,26 +189,44 @@
           <td>{{ row.Budget }}</td>
           <td>{{ row.Location }}</td>
           <td>{{ row.Requests }}</td>
-          <td class="proposal-text">
-            {{ row.Proposal[:60] }}...
-            <a href="#" onclick="openModal(`{{ row.Proposal|escape }}`)">View Full</a>
-          </td>
+          <td class="proposal-text">{{ row.Proposal }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
 
     <div class="download-btn">
-      <a href="/download">⬇️ Export CSV</a>
+      <a href="/download">⬇️ Export Proposals CSV</a>
     </div>
-  </div>
 
-  <!-- Proposal Modal -->
-  <div id="proposalModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h3 style="color:#007bff;">Full Proposal</h3>
-      <pre id="modalText"></pre>
+    <h2>Client Management</h2>
+    <table class="client-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Company</th>
+          <th>Phone</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+        <tr>
+          <td>{{ client.Timestamp }}</td>
+          <td>{{ client.Name }}</td>
+          <td>{{ client.Email }}</td>
+          <td>{{ client.Company }}</td>
+          <td>{{ client.Phone }}</td>
+          <td>{{ client.Message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="download-btn">
+      <a href="/download_clients">⬇️ Export Clients CSV</a>
     </div>
   </div>
 
@@ -264,37 +240,6 @@
         row.style.display = text.includes(searchTerm) ? "" : "none";
       });
     });
-
-    document.querySelectorAll("th").forEach(header => {
-      header.addEventListener("click", () => {
-        const table = header.closest("table");
-        const index = [...header.parentElement.children].indexOf(header);
-        const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-        const isAsc = header.classList.contains("asc");
-        rows.sort((a, b) => {
-          const cellA = a.children[index].textContent.trim();
-          const cellB = b.children[index].textContent.trim();
-          return isAsc
-            ? cellA.localeCompare(cellB, undefined, { numeric: true })
-            : cellB.localeCompare(cellA, undefined, { numeric: true });
-        });
-
-        table.querySelector("tbody").append(...rows);
-        document.querySelectorAll("th").forEach(h => h.classList.remove("asc", "desc"));
-        header.classList.toggle("asc", !isAsc);
-        header.classList.toggle("desc", isAsc);
-      });
-    });
-
-    function openModal(text) {
-      document.getElementById("modalText").textContent = text;
-      document.getElementById("proposalModal").style.display = "block";
-    }
-
-    function closeModal() {
-      document.getElementById("proposalModal").style.display = "none";
-    }
   </script>
 
 </body>
