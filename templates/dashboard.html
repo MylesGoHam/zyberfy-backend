@@ -195,6 +195,30 @@
     });
   </script>
 
+<script>
+  // Basic sortable table functionality
+  document.querySelectorAll("th").forEach(header => {
+    header.addEventListener("click", () => {
+      const table = header.closest("table");
+      const index = [...header.parentElement.children].indexOf(header);
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+      const isAsc = header.classList.contains("asc");
+      rows.sort((a, b) => {
+        const cellA = a.children[index].textContent.trim();
+        const cellB = b.children[index].textContent.trim();
+        return isAsc
+          ? cellA.localeCompare(cellB, undefined, { numeric: true })
+          : cellB.localeCompare(cellA, undefined, { numeric: true });
+      });
+
+      table.querySelector("tbody").append(...rows);
+      header.classList.toggle("asc", !isAsc);
+      header.classList.toggle("desc", isAsc);
+    });
+  });
+</script>
+
 </body>
 </html>
 
