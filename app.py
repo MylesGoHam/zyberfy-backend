@@ -20,11 +20,10 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# ---------- LANDING PAGE ----------
+# ---------- FIXED LANDING PAGE ----------
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("landing.html")
-
+    return redirect(url_for("proposal"))  # Safe redirect
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -69,7 +68,6 @@ Special Requests: {special_requests}
 
     return render_template("index.html")
 
-
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
 def onboarding():
@@ -100,7 +98,6 @@ Message: {message}"""
 
     return render_template("onboarding.html")
 
-
 # ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -121,7 +118,6 @@ def logout():
     session.pop("logged_in", None)
     flash("✅ Logged out successfully.", "success")
     return redirect(url_for("login"))
-
 
 # ---------- DASHBOARD ----------
 @app.route("/dashboard")
@@ -165,7 +161,6 @@ def dashboard():
         most_popular_service=most_popular_service
     )
 
-
 # ---------- CSV EXPORT ----------
 @app.route("/download")
 def download():
@@ -184,7 +179,6 @@ def download_clients():
         flash("No client CSV file found.", "error")
         return redirect(url_for("dashboard"))
     return send_file(CLIENTS_FILENAME, as_attachment=True)
-
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -227,8 +221,7 @@ def save_to_csv(filename, *args):
         writer.writerow([datetime.now().isoformat(), *args])
 
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
-
+    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
 # ---------- RUN ----------
 if __name__ == "__main__":
