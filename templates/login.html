@@ -89,18 +89,18 @@
     <h2>Admin Login</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul class="flash-messages">
-        {% for category, message in messages %}
-          {% if category == 'error' or category == 'login' %}
-            <li class="{{ category }}">{{ message }}</li>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+      {% if messages %}
+        <ul class="flash-messages">
+          {% for category, message in messages %}
+            {% if category == 'error' or category == 'login' %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
 
-    <form method="POST">
+    <form method="POST" action="/login">
       <label for="email">Email</label>
       <input type="email" name="email" id="email" required>
 
