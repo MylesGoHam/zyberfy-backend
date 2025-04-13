@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zyberfy Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
@@ -28,19 +28,37 @@
       color: #007bff;
     }
 
-    .logout {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
+    .menu {
+      position: relative;
     }
 
-    .logout:hover {
-      background-color: #005fcc;
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .menu-items {
+      position: absolute;
+      top: 30px;
+      right: 0;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: none;
+      flex-direction: column;
+      width: 150px;
+      z-index: 1000;
+    }
+
+    .menu-items a {
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .menu-items a:hover {
+      background-color: #f0f0f0;
     }
 
     .container {
@@ -58,58 +76,20 @@
       margin-bottom: 2rem;
     }
 
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      gap: 2rem;
-      margin-bottom: 2.5rem;
-      text-align: center;
-    }
-
-    .stat-box {
-      background: #f1f5fb;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      min-width: 200px;
-    }
-
-    .stat-box h3 {
-      color: #007bff;
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    .stat-box p {
-      margin: 0.5rem 0 0;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .search-bar {
-      margin-bottom: 20px;
-      text-align: right;
-    }
-
-    .search-bar input {
-      padding: 0.5rem 1rem;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    .table-container {
+      overflow-x: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-bottom: 2rem;
     }
 
     th, td {
       padding: 12px 16px;
       border: 1px solid #ddd;
       text-align: left;
-      font-size: 0.95rem;
     }
 
     th {
@@ -132,7 +112,6 @@
     }
 
     .download-btn {
-      margin-top: 1rem;
       text-align: right;
     }
 
@@ -148,132 +127,64 @@
     .download-btn a:hover {
       background-color: #218838;
     }
-
-    .client-table {
-      margin-top: 2.5rem;
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .client-table th, .client-table td {
-      padding: 12px 16px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-
-    .client-table th {
-      background-color: #f3f7fb;
-      color: #333;
-    }
   </style>
 </head>
 <body>
-
   <div class="header">
     <div class="logo">Zyberfy</div>
-    <a href="/logout" class="logout">Logout</a>
+    <div class="menu">
+      <div class="menu-icon" onclick="toggleMenu()">&#8942;</div>
+      <div class="menu-items" id="menuItems">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
   </div>
 
   <div class="container">
     <h1>📊 Proposal Dashboard</h1>
 
-    <div class="stats">
-      <div class="stat-box">
-        <h3>Total Proposals</h3>
-        <p>{{ stats.total_proposals }}</p>
-      </div>
-      <div class="stat-box">
-        <h3>Total Clients</h3>
-        <p>{{ stats.total_clients }}</p>
-      </div>
-      <div class="stat-box">
-        <h3>Est. Revenue</h3>
-        <p>${{ stats.estimated_revenue }}</p>
-      </div>
-      <div class="stat-box">
-        <h3>Top Service</h3>
-        <p>{{ stats.most_common_service or "—" }}</p>
-      </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Service</th>
+            <th>Budget</th>
+            <th>Location</th>
+            <th>Requests</th>
+            <th>Proposal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in proposals %}
+          <tr>
+            <td>{{ row.Timestamp }}</td>
+            <td>{{ row.Name }}</td>
+            <td>{{ row.Email }}</td>
+            <td>{{ row.Service }}</td>
+            <td>{{ row.Budget }}</td>
+            <td>{{ row.Location }}</td>
+            <td>{{ row.Requests }}</td>
+            <td class="proposal-text">{{ row.Proposal }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search proposals...">
-    </div>
-
-    <table id="proposalsTable">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Service</th>
-          <th>Budget</th>
-          <th>Location</th>
-          <th>Requests</th>
-          <th>Proposal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in proposals %}
-        <tr>
-          <td>{{ row.Timestamp }}</td>
-          <td>{{ row.Name }}</td>
-          <td>{{ row.Email }}</td>
-          <td>{{ row.Service }}</td>
-          <td>{{ row.Budget }}</td>
-          <td>{{ row.Location }}</td>
-          <td>{{ row.Requests }}</td>
-          <td class="proposal-text">{{ row.Proposal }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
 
     <div class="download-btn">
       <a href="/download">⬇️ Export Proposals CSV</a>
     </div>
-
-    <h2 style="margin-top: 3rem;">Client Management</h2>
-    <table class="client-table">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Company</th>
-          <th>Phone</th>
-          <th>Message</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for client in clients %}
-        <tr>
-          <td>{{ client.Timestamp }}</td>
-          <td>{{ client.Name }}</td>
-          <td>{{ client.Email }}</td>
-          <td>{{ client.Company }}</td>
-          <td>{{ client.Phone }}</td>
-          <td>{{ client.Message }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="download-btn">
-      <a href="/download_clients">⬇️ Export Clients CSV</a>
-    </div>
   </div>
 
   <script>
-    document.getElementById("searchInput").addEventListener("keyup", function() {
-      const searchTerm = this.value.toLowerCase();
-      const rows = document.querySelectorAll("#proposalsTable tbody tr");
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? "" : "none";
-      });
-    });
+    function toggleMenu() {
+      const menu = document.getElementById("menuItems");
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    }
   </script>
-
 </body>
 </html>
