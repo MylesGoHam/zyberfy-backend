@@ -2,155 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Client Onboarding | Zyberfy</title>
-  <style>
-    body {
-      background-color: #f8fafc;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #1e40af;
-      text-align: left;
-      padding: 20px 40px;
-    }
-
-    .container {
-      max-width: 680px;
-      margin: 60px auto;
-      background: white;
-      padding: 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    h1 {
-      text-align: center;
-      color: #1e40af;
-      font-size: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #374151;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 1rem;
-      background-color: #f9fafb;
-      transition: border-color 0.2s ease;
-    }
-
-    input:focus, textarea:focus {
-      border-color: #3b82f6;
-      background-color: #fff;
-      outline: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 0.9rem;
-      background-color: #3b82f6;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #2563eb;
-      transform: translateY(-2px);
-    }
-
-    .success-banner {
-      background-color: #e6ffed;
-      color: #155724;
-      padding: 12px 16px;
-      border-left: 5px solid #28a745;
-      border-radius: 6px;
-      margin-bottom: 1.5rem;
-      animation: fadeIn 0.8s ease-out;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <section class="min-h-screen flex flex-col items-center justify-center px-6">
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-bold text-blue-600">Client Onboarding</h1>
+      <p class="text-gray-600 mt-2">Please provide your details to get started with automated proposals.</p>
+    </div>
 
-  {% if show_branding %}
-    <div class="logo">Zyberfy</div>
-  {% endif %}
-
-  <div class="container">
-    <h1>Client Onboarding</h1>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="success-banner">
-          {% for category, message in messages %}
-            {{ message }}
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    <form method="POST" action="/onboarding">
-      <div class="form-group">
-        <label for="company">Company Name</label>
-        <input type="text" id="company" name="company" required />
+    <form action="/onboarding" method="POST" class="bg-white shadow-xl rounded-xl p-8 w-full max-w-lg space-y-6">
+      <div>
+        <label for="name" class="block text-sm font-medium mb-1">Full Name</label>
+        <input type="text" id="name" name="name" required class="w-full border border-gray-300 rounded-md p-2" />
       </div>
 
-      <div class="form-group">
-        <label for="contact">Primary Contact</label>
-        <input type="text" id="contact" name="contact" required />
+      <div>
+        <label for="email" class="block text-sm font-medium mb-1">Email Address</label>
+        <input type="email" id="email" name="email" required class="w-full border border-gray-300 rounded-md p-2" />
       </div>
 
-      <div class="form-group">
-        <label for="email">Contact Email</label>
-        <input type="email" id="email" name="email" required />
+      <div>
+        <label for="service" class="block text-sm font-medium mb-1">Service Needed</label>
+        <input type="text" id="service" name="service" required class="w-full border border-gray-300 rounded-md p-2" />
       </div>
 
-      <div class="form-group">
-        <label for="website">Website</label>
-        <input type="url" id="website" name="website" placeholder="https://example.com" />
+      <div>
+        <label for="budget" class="block text-sm font-medium mb-1">Estimated Budget</label>
+        <input type="text" id="budget" name="budget" class="w-full border border-gray-300 rounded-md p-2" />
       </div>
 
-      <div class="form-group">
-        <label for="details">Project Overview / Notes</label>
-        <textarea id="details" name="details" rows="5" placeholder="Describe the client goals, expectations, or context..."></textarea>
+      <div>
+        <label for="notes" class="block text-sm font-medium mb-1">Additional Notes</label>
+        <textarea id="notes" name="notes" rows="4" class="w-full border border-gray-300 rounded-md p-2"></textarea>
       </div>
 
-      <button type="submit">Submit Client Info</button>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">
+        Submit Onboarding Form
+      </button>
     </form>
-  </div>
-
+  </section>
 </body>
 </html>
