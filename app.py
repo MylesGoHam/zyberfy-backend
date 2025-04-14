@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 from dotenv import load_dotenv
 from ai import generate_proposal
+from email_utils import send_proposal_email
 import os
 import re
 from models import create_automation_table, get_db_connection
@@ -76,7 +77,6 @@ def automation():
         flash("Your automation settings have been saved!", "success")
         return redirect(url_for("dashboard"))
 
-    # GET: Fetch existing settings if available
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
 
@@ -88,6 +88,8 @@ def submit_proposal():
     lead_name = request.form.get("lead_name")
     lead_email = request.form.get("lead_email")
     message = request.form.get("message")
+    inquiry_type = request.form.get("inquiry_type")
+    offer_amount = request.form.get("offer_amount")
     client_email = request.form.get("client_email") or session.get("client_email")
 
     if not client_email:
@@ -108,9 +110,15 @@ def submit_proposal():
         "message": message
     }
 
+    if inquiry_type == "offer" and offer_amount:
+        form_data["message"] += f"\n\nOffer Submitted: ${offer_amount}"
+
     proposal_text = generate_proposal(settings, form_data)
 
-    # TODO: send email or show on screen
+    # ✅ Send proposal email to lead
+    email_subject = settings['subject'] or "Your Proposal from Zyberfy"
+    send_proposal_email(lead_email, email_subject, proposal_text)
+
     return render_template("thank_you.html", proposal=proposal_text)
 
 # ---------- LOGOUT ----------
