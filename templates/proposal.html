@@ -1,55 +1,51 @@
-<!-- templates/proposal.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submit Proposal Inquiry | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8" />
+  <title>Request a Proposal | Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>Submit Your Proposal Inquiry</h1>
-    <p>Fill out the form below and receive a personalized response powered by AI.</p>
+<body class="bg-gray-50 text-gray-800">
 
-    <form action="{{ url_for('submit_proposal') }}" method="POST">
-      <!-- Client Email (hidden if public) -->
-      <input type="hidden" name="client_email" value="{{ client_email }}">
+  <div class="max-w-xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-blue-700 mb-4">Request a Proposal</h1>
+    <p class="text-gray-600 mb-8">Fill out the form below and you'll receive a personalized response shortly.</p>
 
-      <label for="lead_name">Your Name:</label>
-      <input type="text" name="lead_name" placeholder="John Doe" required>
-
-      <label for="lead_email">Your Email:</label>
-      <input type="email" name="lead_email" placeholder="john@example.com" required>
-
-      <label for="message">Describe Your Request:</label>
-      <textarea name="message" rows="5" placeholder="Tell us about what you're looking for..." required></textarea>
-
-      <label for="inquiry_type">Type of Inquiry:</label>
-      <select name="inquiry_type" id="inquiry_type" onchange="toggleOfferInput()">
-        <option value="inquiry">Just an Inquiry</option>
-        <option value="offer">Make an Offer</option>
-      </select>
-
-      <div id="offerInput" style="display: none; margin-top: 10px;">
-        <label for="offer_amount">Your Offer Amount ($):</label>
-        <input type="number" name="offer_amount" min="1" placeholder="e.g. 500">
+    <form action="/submit_proposal" method="POST" class="space-y-6 bg-white p-6 rounded-xl shadow-md">
+      
+      <div>
+        <label for="lead_name" class="block text-sm font-medium text-gray-700">Your Name</label>
+        <input type="text" name="lead_name" required class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500">
       </div>
 
-      <br><br>
-      <button type="submit" class="btn btn-primary">Submit Proposal</button>
+      <div>
+        <label for="lead_email" class="block text-sm font-medium text-gray-700">Your Email</label>
+        <input type="email" name="lead_email" required class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label for="message" class="block text-sm font-medium text-gray-700">Project Details</label>
+        <textarea name="message" rows="4" required class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Inquiry Type</label>
+        <select name="inquiry_type" class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
+          <option value="inquiry">General Inquiry</option>
+          <option value="offer">Make an Offer</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="offer_amount" class="block text-sm font-medium text-gray-700">Offer Amount (optional)</label>
+        <input type="number" name="offer_amount" min="0" placeholder="$5000" class="mt-1 block w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
+      </div>
+
+      <input type="hidden" name="client_email" value="{{ client_email }}">
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">Submit Proposal</button>
     </form>
-
-    <br>
-    <a href="/" class="btn btn-link">← Back to Home</a>
   </div>
-
-  <script>
-    function toggleOfferInput() {
-      const inquiryType = document.getElementById('inquiry_type').value;
-      const offerInput = document.getElementById('offerInput');
-      offerInput.style.display = inquiryType === 'offer' ? 'block' : 'none';
-    }
-  </script>
 </body>
 </html>
