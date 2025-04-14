@@ -6,140 +6,125 @@
   <title>Client Dashboard | Zyberfy</title>
   <style>
     body {
-      background-color: #f8fafc;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
+      background-color: #f9fafb;
     }
 
-    .header {
+    header {
+      background: #ffffff;
+      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 40px;
-      background-color: #ffffff;
       border-bottom: 1px solid #e5e7eb;
     }
 
     .logo {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: bold;
       color: #1e40af;
     }
 
-    .logout-btn {
-      background-color: #1e40af;
-      color: #ffffff;
-      padding: 10px 18px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
+    .menu-icon {
+      font-size: 1.6rem;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      background: none;
+      border: none;
     }
 
-    .logout-btn:hover {
-      background-color: #1c3fa0;
+    .dropdown {
+      position: absolute;
+      right: 32px;
+      top: 64px;
+      background: white;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 10px 0;
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 10;
+    }
+
+    .dropdown a {
+      padding: 10px 20px;
+      text-decoration: none;
+      color: #1f2937;
+      transition: background 0.2s ease;
+    }
+
+    .dropdown a:hover {
+      background: #f3f4f6;
     }
 
     .container {
-      max-width: 880px;
-      margin: 40px auto;
+      max-width: 700px;
+      margin: 80px auto;
       background: white;
       padding: 2.5rem;
       border-radius: 16px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
-      animation: fadeInUp 0.6s ease-out;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
     h1 {
-      font-size: 1.8rem;
       color: #1e40af;
-      text-align: center;
-      margin-bottom: 1rem;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
     }
 
     .subtext {
-      text-align: center;
-      font-size: 1rem;
       color: #6b7280;
+      font-size: 1rem;
       margin-bottom: 2rem;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 14px;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 0.95rem;
-    }
-
-    th {
-      background-color: #f1f5f9;
-      color: #374151;
-    }
-
-    td {
-      color: #374151;
-    }
-
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #6b7280;
-      font-style: italic;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .logout-button {
+      background-color: #3b82f6;
+      color: white;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
+  <header>
     <div class="logo">Zyberfy</div>
-    <form action="/client_logout" method="get">
-      <button class="logout-btn">Logout</button>
-    </form>
-  </div>
+    <button class="menu-icon" onclick="toggleDropdown()">☰</button>
+    <div class="dropdown" id="dropdownMenu">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
 
   <div class="container">
     <h1>Client Dashboard</h1>
     <p class="subtext">Welcome, {{ email }}</p>
-
-    {% if proposals and proposals|length > 0 %}
-      <table>
-        <thead>
-          <tr>
-            <th>Service</th>
-            <th>Budget</th>
-            <th>Location</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for proposal in proposals %}
-          <tr>
-            <td>{{ proposal.Service }}</td>
-            <td>{{ proposal.Budget }}</td>
-            <td>{{ proposal.Location }}</td>
-            <td>{{ proposal.Timestamp.split('T')[0] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="no-data">No proposals found for your account yet.</div>
-    {% endif %}
+    <p>No proposals found for your account yet.</p>
   </div>
+
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    }
+
+    // Close menu if clicked outside
+    document.addEventListener("click", function(event) {
+      const dropdown = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-icon");
+      if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+        dropdown.style.display = "none";
+      }
+    });
+  </script>
 
 </body>
 </html>
