@@ -28,6 +28,11 @@ def get_client_proposals(client_email):
         }
     ]
 
+# Landing page route for zyberfy.com
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # Simulated login; in production you'd verify credentials.
