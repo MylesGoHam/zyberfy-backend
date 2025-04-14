@@ -121,7 +121,8 @@
           <p><strong>Budget:</strong> {{ proposal["Budget"] }}</p>
           <p><strong>Location:</strong> {{ proposal["Location"] }}</p>
         </div>
-        <button onclick="openPreviewModal('{{ proposal['Name'] }}', '{{ proposal['Proposal']|escapejs }}')">Preview Proposal</button>
+        <!-- Using tojson to ensure safe JS strings -->
+        <button onclick="openPreviewModal({{ proposal['Name']|tojson }}, {{ proposal['Proposal']|tojson }})">Preview Proposal</button>
       </div>
     {% endfor %}
 
