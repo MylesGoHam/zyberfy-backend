@@ -95,13 +95,27 @@
 </head>
 <body>
 
-  <header>
-    <div class="logo">Zyberfy</div>
-    <button class="menu-icon" onclick="toggleDropdown()">☰</button>
-    <div class="dropdown" id="dropdownMenu">
-      <a href="/login">Login</a>
+<!-- Header -->
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 20px 40px;">
+  <div class="logo" style="font-size: 1.8rem; font-weight: bold; color: #1e40af;">Zyberfy</div>
+
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <a href="/login" style="font-weight: 600; color: #1e40af; text-decoration: none; font-size: 1rem;">Login</a>
+    <div class="dropdown" style="position: relative;">
+      <div class="hamburger" onclick="toggleDropdown()" style="cursor: pointer; font-size: 1.5rem;">☰</div>
+      <div id="dropdown-menu" style="display: none; position: absolute; right: 0; background: white; border: 1px solid #ccc; border-radius: 6px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <a href="/login" style="display: block; padding: 5px 10px; text-decoration: none; color: #1e40af;">Login</a>
+      </div>
     </div>
-  </header>
+  </div>
+</header>
+
+<script>
+  function toggleDropdown() {
+    const menu = document.getElementById('dropdown-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }
+</script>
 
   <div class="hero">
     <h1>Effortless AI-Powered Proposals</h1>
