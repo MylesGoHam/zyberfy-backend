@@ -11,7 +11,7 @@
 
         <form action="{{ url_for('automation') }}" method="POST">
             <label for="subject">Email Subject Template:</label>
-            <input type="text" name="subject" value="{{ settings['subject'] if settings else '' }}" placeholder="Your subject line..." required>
+            <input type="text" name="subject" value="{{ settings.subject if settings else '' }}">
 
             <label for="greeting">Greeting Style:</label>
             <select name="greeting">
