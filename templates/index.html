@@ -3,211 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Request a Proposal | Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Zyberfy</title>
   <style>
     body {
-      background-color: #f8fafc;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8fafc;
+      color: #1e3a8a;
     }
 
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #1e40af;
-      text-align: left;
-      padding: 20px 40px;
-    }
-
-    .container {
-      max-width: 640px;
-      margin: 40px auto;
-      background: white;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    h1 {
+    .hero {
       text-align: center;
+      padding: 80px 20px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      max-width: 600px;
+      margin: 0 auto;
+      color: #374151;
+    }
+
+    .menu-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+    }
+
+    .menu-btn {
+      font-size: 32px;
+      background: none;
+      border: none;
+      cursor: pointer;
       color: #1e40af;
-      font-size: 2rem;
-      margin-bottom: 2rem;
+      transition: transform 0.2s ease;
     }
 
-    .form-group {
-      margin-bottom: 1.5rem;
+    .menu-btn:hover {
+      transform: scale(1.2);
     }
 
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      margin-top: 8px;
+      background-color: white;
+      min-width: 160px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
-      font-size: 1rem;
-      background-color: #f9f9f9;
+      overflow: hidden;
     }
 
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #1e40af;
-      background-color: #fff;
-    }
-
-    .suggested-service {
-      margin-top: 0.5rem;
-      font-size: 0.95rem;
+    .dropdown-content a {
       color: #1e40af;
+      padding: 12px 16px;
+      display: block;
+      text-decoration: none;
       font-weight: 500;
     }
 
-    button {
-      width: 100%;
-      padding: 0.9rem;
-      background-color: #1e40af;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
+    .dropdown-content a:hover {
+      background-color: #f3f4f6;
     }
 
-    button:hover {
-      background-color: #1e3a8a;
-      transform: translateY(-2px);
-    }
-
-    .loading {
-      text-align: center;
-      font-size: 1.1rem;
-      color: #555;
-      margin-top: 10px;
-      display: none;
-    }
-
-    .success-banner {
-      background-color: #e6ffed;
-      color: #155724;
-      padding: 12px 16px;
-      border-left: 5px solid #28a745;
-      border-radius: 6px;
-      margin-bottom: 1.5rem;
-      animation: fadeIn 0.8s ease-out;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .menu-container:hover .dropdown-content {
+      display: block;
     }
   </style>
 </head>
 <body>
 
-  {% if show_branding %}
-    <div class="logo">Zyberfy</div>
-  {% endif %}
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="success-banner">
-        {% for category, message in messages %}
-          {{ message }}
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <div class="container">
-    <h1>Request a Proposal</h1>
-    <form action="/proposal" method="POST" onsubmit="showLoading()">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input id="name" name="name" type="text" required />
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input id="email" name="email" type="email" required />
-      </div>
-
-      <div class="form-group">
-        <label for="service">Service Type</label>
-        <select id="service" name="service" required>
-          <option value="luxury-travel">Luxury Travel</option>
-          <option value="event-planning">Event Planning</option>
-          <option value="yacht-charter">Yacht Charter</option>
-          <option value="interior-design">Interior Design</option>
-          <option value="other">Other</option>
-        </select>
-        <div id="suggestedService" class="suggested-service"></div>
-      </div>
-
-      <div class="form-group">
-        <label for="budget">Budget</label>
-        <input id="budget" name="budget" type="text" placeholder="$10,000+" required />
-      </div>
-
-      <div class="form-group">
-        <label for="location">Preferred Location</label>
-        <input id="location" name="location" type="text" placeholder="City, Country" />
-      </div>
-
-      <div class="form-group">
-        <label for="requests">Special Requests</label>
-        <textarea id="requests" name="requests" rows="4" placeholder="Any additional info or needs..."></textarea>
-      </div>
-
-      <button type="submit">Generate Proposal</button>
-      <div class="loading" id="loading">Generating your proposal with AI...</div>
-    </form>
+  <div class="menu-container">
+    <button class="menu-btn">⋯</button>
+    <div class="dropdown-content">
+      <a href="/login">Login</a>
+    </div>
   </div>
 
-  <script>
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
-    }
-
-    const budgetInput = document.getElementById('budget');
-    const requestsInput = document.getElementById('requests');
-    const suggestionBox = document.getElementById('suggestedService');
-
-    function suggestService() {
-      const budget = budgetInput.value.toLowerCase();
-      const requests = requestsInput.value.toLowerCase();
-      let suggestion = "";
-
-      if (requests.includes("yacht") || budget.includes("100000")) {
-        suggestion = "Yacht Charter";
-      } else if (requests.includes("wedding") || requests.includes("event")) {
-        suggestion = "Event Planning";
-      } else if (requests.includes("villa") || requests.includes("home")) {
-        suggestion = "Interior Design";
-      } else if (requests.includes("travel") || budget.includes("5000")) {
-        suggestion = "Luxury Travel";
-      }
-
-      suggestionBox.textContent = suggestion ? `Suggested: ${suggestion}` : "";
-    }
-
-    budgetInput.addEventListener("input", suggestService);
-    requestsInput.addEventListener("input", suggestService);
-  </script>
+  <div class="hero">
+    <h1>Welcome to Zyberfy</h1>
+    <p>AI-powered concierge tools for luxury service providers. Automate proposals, onboarding, and more with one click.</p>
+  </div>
 
 </body>
 </html>
