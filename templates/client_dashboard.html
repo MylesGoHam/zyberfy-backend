@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Dashboard | Zyberfy</title>
+  <style>
+    body {
+      background-color: #f8fafc;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #1e40af;
+      padding: 20px 40px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #1e40af;
+      margin-bottom: 1.5rem;
+    }
+    .proposal-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      background-color: #f9fafb;
+    }
+    .proposal-card h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #1e40af;
+    }
+    .proposal-card p {
+      margin: 0.5rem 0;
+      font-size: 0.95rem;
+      color: #374151;
+    }
+    .proposal-card a {
+      display: inline-block;
+      margin-top: 0.75rem;
+      text-decoration: none;
+      color: #3b82f6;
+      font-weight: bold;
+    }
+    .logout {
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .logout a {
+      text-decoration: none;
+      color: #ef4444;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  {% if show_branding is not defined or show_branding %}
+    <div class="logo">Zyberfy</div>
+  {% endif %}
+
+  <div class="container">
+    <h1>Welcome, {{ client_email }}</h1>
+    <h2>Your Proposals</h2>
+    {% if proposals %}
+      {% for proposal in proposals %}
+        <div class="proposal-card">
+          <h2>{{ proposal["Name"] }}</h2>
+          <p><strong>Service:</strong> {{ proposal["Service"] }}</p>
+          <p><strong>Budget:</strong> {{ proposal["Budget"] }}</p>
+          <p><strong>Location:</strong> {{ proposal["Location"] }}</p>
+          <a href="/proposal/{{ proposal["Name"]|lower|replace(" ", "-") }}">View Full Proposal</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No proposals found.</p>
+    {% endif %}
+    <div class="logout">
+      <a href="/client-logout">Logout</a>
+    </div>
+  </div>
+
+</body>
+</html>
