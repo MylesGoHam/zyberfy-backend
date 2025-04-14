@@ -76,36 +76,7 @@
     </form>
   </div>
 
-  <script>
-    function showLoading() {
-      document.getElementById('loading').style.display = 'block';
-    }
-
-    const budgetInput = document.getElementById('budget');
-    const requestsInput = document.getElementById('requests');
-    const suggestionBox = document.getElementById('suggestedService');
-
-    function suggestService() {
-      const budget = budgetInput.value.toLowerCase();
-      const requests = requestsInput.value.toLowerCase();
-      let suggestion = "";
-
-      if (requests.includes("yacht") || budget.includes("100000")) {
-        suggestion = "Yacht Charter";
-      } else if (requests.includes("wedding") || requests.includes("event")) {
-        suggestion = "Event Planning";
-      } else if (requests.includes("villa") || requests.includes("home")) {
-        suggestion = "Interior Design";
-      } else if (requests.includes("travel") || budget.includes("5000")) {
-        suggestion = "Luxury Travel";
-      }
-
-      suggestionBox.textContent = suggestion ? `Suggested: ${suggestion}` : "";
-    }
-
-    budgetInput.addEventListener("input", suggestService);
-    requestsInput.addEventListener("input", suggestService);
-  </script>
-
+  <!-- Reference to the external JavaScript file -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
