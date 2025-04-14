@@ -214,6 +214,41 @@ def memberships():
         return redirect(url_for("login"))
     return render_template("memberships.html")
 
+# ---------- CLIENT LOGIN ----------
+@app.route("/client-login", methods=["GET", "POST"])
+def client_login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        if not is_valid_email(email):
+            flash("Invalid email format.", "error")
+            return redirect(url_for("client_login"))
+        session["client_email"] = email
+        flash("Logged in successfully!", "success")
+        return redirect(url_for("client_dashboard"))
+    return render_template("client_login.html")
+
+# ---------- CLIENT DASHBOARD ----------
+@app.route("/client-dashboard")
+def client_dashboard():
+    client_email = session.get("client_email")
+    if not client_email:
+        flash("Please log in to access your dashboard", "error")
+        return redirect(url_for("client_login"))
+    proposals = []
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+            for row in csv.DictReader(file):
+                if row.get("Email", "").strip().lower() == client_email.strip().lower():
+                    proposals.append(row)
+    return render_template("client_dashboard.html", proposals=proposals, client_email=client_email)
+
+# ---------- CLIENT LOGOUT ----------
+@app.route("/client-logout")
+def client_logout():
+    session.pop("client_email", None)
+    flash("Logged out successfully.", "success")
+    return redirect(url_for("client_login"))
+
 # ---------- EXPORT ----------
 @app.route("/download")
 def download():
