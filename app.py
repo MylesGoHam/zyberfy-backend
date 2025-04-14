@@ -20,23 +20,23 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# ---------- LANDING PAGE ----------
+# ---------- INDEX ----------
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
 # ---------- CLIENT LOGIN ----------
-@app.route("/client_login", methods=["GET", "POST"])
-def client_login():
+@app.route("/login", methods=["GET", "POST"])
+def login():
     if request.method == "POST":
         email = request.form.get("email")
         if not is_valid_email(email):
             flash("Invalid email format.", "error")
-            return redirect(url_for("client_login"))
+            return redirect(url_for("login"))
         session["client_email"] = email
         flash("Welcome back!", "success")
         return redirect(url_for("client_dashboard"))
-    return render_template("client_login.html")
+    return render_template("login.html")
 
 # ---------- CLIENT DASHBOARD ----------
 @app.route("/client_dashboard")
@@ -61,92 +61,6 @@ def client_logout():
     session.pop("client_email", None)
     flash("Logged out successfully.", "success")
     return redirect(url_for("client_login"))
-
-# ---------- PROPOSAL FORM ----------
-@app.route("/proposal", methods=["GET", "POST"])
-def proposal():
-    show_branding = request.args.get("branding", "1") == "1"
-    if request.method == "POST":
-        try:
-            name = request.form["name"]
-            email = request.form["email"]
-            service = request.form["service"]
-            budget = request.form["budget"]
-            location = request.form["location"]
-            special_requests = request.form["requests"]
-
-            if not is_valid_email(email):
-                flash("Invalid email address", "error")
-                return redirect(url_for("proposal"))
-
-            proposal_text = generate_proposal(name, service, budget, location, special_requests)
-            slug_name = name.strip().lower().replace(" ", "-")
-            subject = f"Proposal Request from {name} ({service})"
-            content = f"""Name: {name}
-Email: {email}
-Service: {service}
-Budget: {budget}
-Location: {location}
-Special Requests: {special_requests}
-
----------------------
-AI-Generated Proposal:
-{proposal_text}
-
---
-The Zyberfy Concierge Team
-hello@zyberfy.com
-www.zyberfy.com
-"""
-
-            send_email(subject, content, user_email=email)
-            save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
-            send_admin_alert("New Proposal Submission", f"{name} ({email}) for {service}")
-            share_url = f"{request.url_root}proposal/{slug_name}".rstrip("/")
-            return render_template("thank_you.html", name=name, proposal=proposal_text, share_url=share_url)
-
-        except Exception as e:
-            flash(f"An error occurred: {e}", "error")
-            return redirect(url_for("proposal"))
-
-    return render_template("proposal.html", show_branding=show_branding)
-
-# ---------- PUBLIC PROPOSAL PAGE ----------
-@app.route("/proposal/<name_slug>")
-def view_proposal(name_slug):
-    if os.path.exists(CSV_FILENAME):
-        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
-            for row in csv.DictReader(file):
-                if row["Name"].strip().lower().replace(" ", "-") == name_slug:
-                    return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
-    return "Proposal not found."
-
-# ---------- ONBOARDING ----------
-@app.route("/onboarding", methods=["GET", "POST"])
-def onboarding():
-    show_branding = request.args.get("branding", "1") == "1"
-    if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        company = request.form["company"]
-        phone = request.form["phone"]
-        message = request.form["message"]
-
-        if not is_valid_email(email):
-            flash("Invalid email format.", "error")
-            return redirect(url_for("onboarding"))
-
-        save_to_csv(CLIENTS_FILENAME, name, email, company, phone, message, "")
-        content = f"""Name: {name}
-Email: {email}
-Company: {company}
-Phone: {phone}
-Message: {message}"""
-        send_email(f"New Client Onboarding: {name}", content, user_email=email)
-        send_admin_alert("New Client Onboarding", f"{name} ({email}) from {company}")
-        return render_template("thank_you.html", name=name, proposal="Your onboarding was submitted successfully.")
-
-    return render_template("onboarding.html", show_branding=show_branding)
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
