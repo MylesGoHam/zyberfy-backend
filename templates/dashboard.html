@@ -95,6 +95,23 @@
       font-size: 0.95rem;
     }
 
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #fff;
+      background-color: #1e3a8a;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: #3744ad;
+    }
+
     .empty-message {
       font-size: 1rem;
       color: #6b7280;
@@ -111,6 +128,7 @@
       <button onclick="toggleDropdown()">☰</button>
       <div class="dropdown" id="dropdownMenu">
         <a href="/dashboard">Dashboard</a>
+        <a href="/automation">Automation</a>
         <a href="/logout">Logout</a>
       </div>
     </div>
@@ -119,20 +137,23 @@
   <div class="container">
     <div class="welcome">Welcome, {{ email }}</div>
 
-    <!-- Placeholder Proposals -->
+    <!-- Proposal Card #1 -->
     <div class="proposal-card">
       <h3>Luxury Yacht Charter</h3>
       <p><strong>Budget:</strong> $25,000</p>
       <p><strong>Status:</strong> Sent</p>
+      <a href="#" class="btn">View Proposal</a>
     </div>
 
+    <!-- Proposal Card #2 -->
     <div class="proposal-card">
       <h3>Private Jet Booking</h3>
       <p><strong>Budget:</strong> $14,500</p>
       <p><strong>Status:</strong> In Review</p>
+      <a href="#" class="btn">View Proposal</a>
     </div>
 
-    <!-- Uncomment this section if user has no proposals -->
+    <!-- Uncomment this block if no proposals -->
     <!--
     <div class="empty-message">
       No proposals found for your account yet.
@@ -146,7 +167,6 @@
       menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
 
-    // Close dropdown on click outside
     document.addEventListener("click", function (event) {
       const dropdown = document.getElementById("dropdownMenu");
       if (!event.target.closest(".menu")) {
