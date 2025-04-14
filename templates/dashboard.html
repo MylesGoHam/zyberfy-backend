@@ -1,93 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy | Admin Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zyberfy Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f8fafc;
       margin: 0;
-      padding: 40px;
+      padding: 0;
+      background-color: #f8fafc;
     }
 
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
+    .menu-btn {
+      font-size: 32px;
+      background: none;
+      border: none;
+      cursor: pointer;
       color: #1e40af;
-      margin-bottom: 20px;
+      transition: transform 0.2s ease;
     }
 
-    h1 {
+    .menu-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 180px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      border-radius: 8px;
+      padding: 10px 0;
+    }
+
+    .dropdown-content a {
       color: #1e40af;
-      font-size: 2rem;
-      text-align: center;
-    }
-
-    .proposals {
-      max-width: 900px;
-      margin: 40px auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
-
-    .proposal {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 1rem 0;
-    }
-
-    .proposal:last-child {
-      border-bottom: none;
-    }
-
-    .proposal h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1.1rem;
-      color: #1e40af;
-    }
-
-    .proposal p {
-      margin: 0.2rem 0;
-      color: #374151;
-    }
-
-    .logout {
-      text-align: center;
-      margin-top: 2rem;
-    }
-
-    .logout a {
+      padding: 10px 16px;
       text-decoration: none;
-      color: #ef4444;
+      display: block;
+      font-weight: 500;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f3f4f6;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .dashboard-container {
+      padding: 40px 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .title {
+      font-size: 28px;
       font-weight: bold;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 10px;
+    }
+
+    .card-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .export-buttons {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .export-buttons button {
+      background-color: #3b82f6;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-buttons button:hover {
+      background-color: #2563eb;
+    }
+
+    .top-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
     }
   </style>
 </head>
 <body>
-
-  <div class="logo">Zyberfy</div>
-  <h1>Admin Dashboard</h1>
-
-  <div class="proposals">
-    {% for proposal in proposals %}
-      <div class="proposal">
-        <h3>{{ proposal["Name"] }} - {{ proposal["Service"] }}</h3>
-        <p><strong>Budget:</strong> {{ proposal["Budget"] }}</p>
-        <p><strong>Location:</strong> {{ proposal["Location"] }}</p>
-        <p><strong>Email:</strong> {{ proposal["Email"] }}</p>
-        <p><strong>Submitted:</strong> {{ proposal["Timestamp"] }}</p>
+  <!-- Three-dot dropdown -->
+  <div class="top-right">
+    <div class="dropdown">
+      <button class="menu-btn">⋯</button>
+      <div class="dropdown-content">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/proposal-generator">Proposal Generator</a>
+        <a href="/onboarding">Client Onboarding</a>
+        <a href="/activity">Activity</a>
+        <a href="/settings">Settings</a>
+        <a href="/memberships">Memberships</a>
+        <a href="/logout">Logout</a>
       </div>
-    {% else %}
-      <p>No proposals yet.</p>
-    {% endfor %}
+    </div>
   </div>
 
-  <div class="logout">
-    <a href="/logout">Logout</a>
-  </div>
+  <div class="dashboard-container">
+    <div class="title">
+      Dashboard Overview
+    </div>
 
+    <div class="cards">
+      <div class="card">
+        <div class="card-title">Total Proposals</div>
+        <div class="card-value">{{ total_proposals }}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Total Clients</div>
+        <div class="card-value">{{ total_clients }}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Est. Revenue</div>
+        <div class="card-value">${{ est_revenue }}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Top Service</div>
+        <div class="card-value">{{ top_service if top_service else 'N/A' }}</div>
+      </div>
+    </div>
+
+    <div class="export-buttons">
+      <form action="/export-proposals" method="post">
+        <button type="submit">Export Proposals</button>
+      </form>
+      <form action="/export-clients" method="post">
+        <button type="submit">Export Clients</button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
