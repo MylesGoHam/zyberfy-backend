@@ -25,6 +25,43 @@ CLIENTS_FILENAME = "clients.csv"
 def home():
     return render_template("index.html")
 
+# ---------- CLIENT LOGIN ----------
+@app.route("/client_login", methods=["GET", "POST"])
+def client_login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        if not is_valid_email(email):
+            flash("Invalid email format.", "error")
+            return redirect(url_for("client_login"))
+        session["client_email"] = email
+        flash("Welcome back!", "success")
+        return redirect(url_for("client_dashboard"))
+    return render_template("client_login.html")
+
+# ---------- CLIENT DASHBOARD ----------
+@app.route("/client_dashboard")
+def client_dashboard():
+    email = session.get("client_email")
+    if not email:
+        flash("Please log in first.", "error")
+        return redirect(url_for("client_login"))
+
+    proposals = []
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+            for row in csv.DictReader(file):
+                if row.get("Email", "").strip().lower() == email.lower():
+                    proposals.append(row)
+
+    return render_template("client_dashboard.html", proposals=proposals, email=email)
+
+# ---------- CLIENT LOGOUT ----------
+@app.route("/client_logout")
+def client_logout():
+    session.pop("client_email", None)
+    flash("Logged out successfully.", "success")
+    return redirect(url_for("client_login"))
+
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
