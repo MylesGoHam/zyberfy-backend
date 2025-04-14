@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, request
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace with a secure secret key
@@ -6,7 +6,7 @@ app.secret_key = 'your_secret_key_here'  # Replace with a secure secret key
 # Dummy data functions for demonstration purposes.
 def get_current_client_email():
     # In a real application, retrieve the email from the session or database.
-    # For now, we default to a sample email if not set.
+    # Here we default to a sample email if not set.
     return session.get('client_email', 'client@example.com')
 
 def get_client_proposals(client_email):
@@ -28,24 +28,29 @@ def get_client_proposals(client_email):
         }
     ]
 
-# Landing page route for zyberfy.com
+# Landing page route
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Login route (Sign In)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Simulated login; in production you'd verify credentials.
-    # Here we simply set the client_email in the session to force a client login.
-    session['client_email'] = 'client@example.com'
-    return redirect(url_for('client_dashboard'))
+    if request.method == 'POST':
+        # In a real application, you would verify the credentials here.
+        # For demonstration, we simulate a successful login and store the client's email.
+        session['client_email'] = request.form.get('email', 'client@example.com')
+        return redirect(url_for('client_dashboard'))
+    return render_template('login.html')
 
+# Client Dashboard route
 @app.route('/dashboard')
 def client_dashboard():
     client_email = get_current_client_email()
     proposals = get_client_proposals(client_email)
     return render_template('client_dashboard.html', client_email=client_email, proposals=proposals)
 
+# Logout route
 @app.route('/client-logout')
 def client_logout():
     session.pop('client_email', None)
