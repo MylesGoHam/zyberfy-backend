@@ -3,207 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome to Zyberfy</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Zyberfy | Home</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
       background-color: #f8fafc;
-    }
-
-    nav {
-      background-color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-      position: relative;
-    }
-
-    .nav-logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #007bff;
-      text-decoration: none;
-    }
-
-    .menu-icon {
-      font-size: 1.75rem;
-      cursor: pointer;
-      user-select: none;
-      background: none;
-      border: none;
-    }
-
-    .dropdown {
-      display: block;
-      position: absolute;
-      top: 70px;
-      right: 2rem;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.25s ease;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .dropdown.show {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .dropdown a {
-      display: block;
-      padding: 12px 20px;
-      color: #333;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background-color 0.2s ease;
-    }
-
-    .dropdown a:hover {
-      background-color: #f0f4f8;
-    }
-
-    .hero {
-      max-width: 900px;
-      margin: 80px auto;
-      padding: 2rem;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 40px;
       text-align: center;
     }
 
-    .hero h1 {
-      font-size: 2.75rem;
-      color: #007bff;
-      margin-bottom: 1rem;
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #1e40af;
+      margin-bottom: 20px;
     }
 
-    .hero p {
-      font-size: 1.25rem;
-      color: #444;
-      margin-bottom: 2rem;
+    h1 {
+      color: #1e40af;
+      font-size: 2.5rem;
     }
 
-    .cta-btn {
-      background-color: #007bff;
+    .stats {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .stat {
+      margin: 20px 0;
+      font-size: 1.2rem;
+      color: #374151;
+    }
+
+    .stat strong {
+      color: #1e40af;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 0.75rem 2rem;
+      background-color: #3b82f6;
       color: white;
-      font-size: 1.1rem;
-      padding: 0.9rem 1.75rem;
+      font-weight: bold;
       border: none;
       border-radius: 8px;
       text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
     }
 
-    .cta-btn:hover {
-      background-color: #005fcc;
-    }
-
-    .how-section {
-      background-color: white;
-      padding: 4rem 2rem;
-      text-align: center;
-    }
-
-    .how-section h2 {
-      color: #007bff;
-      margin-bottom: 2rem;
-    }
-
-    .steps {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
-    }
-
-    .step {
-      background-color: #f9fbfd;
-      padding: 1.5rem;
-      border-radius: 12px;
-      max-width: 280px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
-    }
-
-    .step:hover {
-      transform: translateY(-4px);
-    }
-
-    .step h3 {
-      margin-bottom: 0.75rem;
-      color: #333;
-    }
-
-    .step p {
-      color: #555;
-    }
-
-    @media (max-width: 768px) {
-      .steps {
-        flex-direction: column;
-        align-items: center;
-      }
+    .btn:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="/" class="nav-logo">Zyberfy</a>
-  <button class="menu-icon" onclick="toggleMenu()">⋮</button>
-  <div class="dropdown" id="dropdownMenu">
-    <a href="/about">About</a>
-    <a href="/login">Login</a>
+  <div class="logo">Zyberfy</div>
+  <h1>AI-Powered Proposal Automation</h1>
+
+  <div class="stats">
+    <div class="stat">📄 <strong>{{ stats.total_proposals }}</strong> Proposals Generated</div>
+    <div class="stat">👥 <strong>{{ stats.total_clients }}</strong> Clients Onboarded</div>
+    <div class="stat">💰 Est. Revenue: <strong>${{ stats.estimated_revenue }}</strong></div>
+    <div class="stat">🔥 Top Service: <strong>{{ stats.most_common_service }}</strong></div>
+
+    <a href="/proposal" class="btn">Request a Proposal</a>
   </div>
-</nav>
-
-<div class="hero">
-  <h1>Luxury Proposals, Automated by <strong>AI</strong></h1>
-  <p>Effortlessly generate high-end client proposals tailored to your niche. Instant. Intelligent. Impressive.</p>
-  <a href="/proposal" class="cta-btn">Try It Now</a>
-</div>
-
-<div class="how-section">
-  <h2>How Zyberfy Works</h2>
-  <div class="steps">
-    <div class="step">
-      <h3>1. Fill Out the Form</h3>
-      <p>Tell us what service your client needs and the basic project details.</p>
-    </div>
-    <div class="step">
-      <h3>2. AI Crafts the Proposal</h3>
-      <p>Our AI instantly generates a tailored, luxury-grade proposal based on your input.</p>
-    </div>
-    <div class="step">
-      <h3>3. You Close the Deal</h3>
-      <p>Use the polished proposal to impress and convert high-value clients with ease.</p>
-    </div>
-  </div>
-</div>
-
-<script>
-  function toggleMenu() {
-    document.getElementById('dropdownMenu').classList.toggle('show');
-  }
-
-  window.addEventListener('click', function(e) {
-    const menu = document.getElementById('dropdownMenu');
-    const button = document.querySelector('.menu-icon');
-    if (!menu.contains(e.target) && !button.contains(e.target)) {
-      menu.classList.remove('show');
-    }
-  });
-</script>
 
 </body>
 </html>
