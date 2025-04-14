@@ -20,33 +20,10 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-
 # ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
 def home():
-    proposals, clients = [], []
-    if os.path.exists(CSV_FILENAME):
-        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
-            proposals = list(csv.DictReader(file))
-    if os.path.exists(CLIENTS_FILENAME):
-        with open(CLIENTS_FILENAME, newline='', encoding="utf-8") as file:
-            clients = list(csv.DictReader(file))
-
-    def extract_number(value):
-        digits = ''.join(c for c in value if c.isdigit())
-        return int(digits) if digits else 0
-
-    estimated_revenue = sum(extract_number(p.get("Budget", "")) for p in proposals)
-    service_counter = Counter(p.get("Service", "") for p in proposals)
-    stats = {
-        "total_proposals": len(proposals),
-        "total_clients": len(clients),
-        "estimated_revenue": estimated_revenue,
-        "most_common_service": service_counter.most_common(1)[0][0] if service_counter else "N/A"
-    }
-
-    return render_template("landing.html", stats=stats)
-
+    return render_template("index.html")
 
 # ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
@@ -95,10 +72,9 @@ www.zyberfy.com
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for("proposal"))
 
-    return render_template("index.html", show_branding=show_branding)
+    return render_template("proposal.html", show_branding=show_branding)
 
-
-# ---------- PUBLIC PROPOSAL ----------
+# ---------- PUBLIC PROPOSAL PAGE ----------
 @app.route("/proposal/<name_slug>")
 def view_proposal(name_slug):
     if os.path.exists(CSV_FILENAME):
@@ -107,7 +83,6 @@ def view_proposal(name_slug):
                 if row["Name"].strip().lower().replace(" ", "-") == name_slug:
                     return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
     return "Proposal not found."
-
 
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
@@ -135,7 +110,6 @@ Message: {message}"""
         return render_template("thank_you.html", name=name, proposal="Your onboarding was submitted successfully.")
 
     return render_template("onboarding.html", show_branding=show_branding)
-
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -172,7 +146,6 @@ def save_to_csv(filename, *args):
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
-
 
 # ---------- RUN ----------
 if __name__ == "__main__":
