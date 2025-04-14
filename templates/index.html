@@ -3,41 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy</title>
+  <title>Zyberfy | Luxury Proposal Automation</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 0;
       background-color: #f8fafc;
-      color: #1e3a8a;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .hero {
-      text-align: center;
-      padding: 80px 20px;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background-color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
-    .hero h1 {
-      font-size: 3rem;
-      margin-bottom: 20px;
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1e40af;
     }
 
-    .hero p {
-      font-size: 1.25rem;
-      max-width: 600px;
-      margin: 0 auto;
-      color: #374151;
-    }
-
-    .menu-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 999;
+    .top-right {
+      position: relative;
     }
 
     .menu-btn {
-      font-size: 32px;
+      font-size: 28px;
       background: none;
       border: none;
       cursor: pointer;
@@ -49,23 +44,29 @@
       transform: scale(1.2);
     }
 
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
     .dropdown-content {
       display: none;
       position: absolute;
       right: 0;
-      margin-top: 8px;
+      top: 40px;
       background-color: white;
       min-width: 160px;
       box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
       border-radius: 8px;
-      overflow: hidden;
+      padding: 10px 0;
     }
 
     .dropdown-content a {
       color: #1e40af;
-      padding: 12px 16px;
-      display: block;
+      padding: 10px 16px;
       text-decoration: none;
+      display: block;
       font-weight: 500;
     }
 
@@ -73,23 +74,82 @@
       background-color: #f3f4f6;
     }
 
-    .menu-container:hover .dropdown-content {
+    .dropdown:hover .dropdown-content {
       display: block;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 100px 20px 60px;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      color: #1e3a8a;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #4b5563;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .cta {
+      margin-top: 40px;
+    }
+
+    .cta a {
+      text-decoration: none;
+      background-color: #1e40af;
+      color: white;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .cta a:hover {
+      background-color: #1e3a8a;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .cta a {
+        display: block;
+        width: fit-content;
+        margin: 20px auto 0;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="menu-container">
-    <button class="menu-btn">⋯</button>
-    <div class="dropdown-content">
-      <a href="/login">Login</a>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">Zyberfy</div>
+    <div class="top-right">
+      <div class="dropdown">
+        <button class="menu-btn">⋯</button>
+        <div class="dropdown-content">
+          <a href="/login">Login</a>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Hero Section -->
   <div class="hero">
-    <h1>Welcome to Zyberfy</h1>
-    <p>AI-powered concierge tools for luxury service providers. Automate proposals, onboarding, and more with one click.</p>
+    <h1>Effortless Proposals for Luxury Services</h1>
+    <p>Zyberfy helps high-end concierge brands automate proposals with stunning AI-generated responses that impress every time.</p>
+    <div class="cta">
+      <a href="/login">Get Started</a>
+    </div>
   </div>
 
 </body>
