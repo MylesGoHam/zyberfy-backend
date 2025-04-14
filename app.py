@@ -20,6 +20,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
+# ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
 def home():
     proposals, clients = [], []
@@ -45,8 +46,10 @@ def home():
 
     return render_template("landing.html", stats=stats)
 
+# ---------- PROPOSAL ----------
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
+    show_branding = request.args.get("branding", "1") == "1"
     if request.method == "POST":
         try:
             name = request.form["name"]
@@ -82,33 +85,63 @@ www.zyberfy.com
 
             send_email(subject, content, user_email=email)
             save_to_csv(CSV_FILENAME, name, email, service, budget, location, special_requests, proposal_text)
-            return render_template("thank_you.html", name=name, proposal=proposal_text)
+            send_admin_alert("New Proposal Submission", f"{name} ({email}) for {service}")
+            share_url = f"{request.url_root}proposal/{slug_name}".rstrip("/")
+            return render_template("thank_you.html", name=name, proposal=proposal_text, share_url=share_url)
 
         except Exception as e:
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for("proposal"))
 
-    return render_template("index.html")
+    return render_template("proposal_form.html", show_branding=show_branding)
 
-@app.route("/dashboard")
-def dashboard():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    proposals = []
+# ---------- PUBLIC PROPOSAL PAGE ----------
+@app.route("/proposal/<name_slug>")
+def view_proposal(name_slug):
     if os.path.exists(CSV_FILENAME):
         with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
-            proposals = list(csv.DictReader(file))
-    return render_template("dashboard.html", proposals=proposals)
+            for row in csv.DictReader(file):
+                if row["Name"].strip().lower().replace(" ", "-") == name_slug:
+                    return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
+    return "Proposal not found."
 
+# ---------- ONBOARDING ----------
+@app.route("/onboarding", methods=["GET", "POST"])
+def onboarding():
+    show_branding = request.args.get("branding", "1") == "1"
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        company = request.form["company"]
+        phone = request.form["phone"]
+        message = request.form["message"]
+
+        if not is_valid_email(email):
+            flash("Invalid email format.", "error")
+            return redirect(url_for("onboarding"))
+
+        save_to_csv(CLIENTS_FILENAME, name, email, company, phone, message, "")
+        content = f"""Name: {name}
+Email: {email}
+Company: {company}
+Phone: {phone}
+Message: {message}"""
+        send_email(f"New Client Onboarding: {name}", content, user_email=email)
+        send_admin_alert("New Client Onboarding", f"{name} ({email}) from {company}")
+        return render_template("thank_you.html", name=name, proposal="Your onboarding was submitted successfully.")
+
+    return render_template("onboarding.html", show_branding=show_branding)
+
+# ---------- AUTH ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        if request.form["email"] == ADMIN_EMAIL and request.form["password"] == ADMIN_PASSWORD:
             session["logged_in"] = True
+            session["just_logged_in"] = True
             return redirect(url_for("dashboard"))
         flash("Incorrect login credentials", "error")
+        return redirect(url_for("login"))
     return render_template("login.html")
 
 @app.route("/logout")
@@ -117,23 +150,119 @@ def logout():
     flash("Logged out successfully.", "success")
     return redirect(url_for("login"))
 
+# ---------- EMBED GENERATOR ----------
+@app.route("/embed")
+def embed():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("embed.html", base_url=request.url_root.rstrip("/"))
+
+# ---------- DASHBOARD ----------
+@app.route("/dashboard")
+def dashboard():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    if session.get("just_logged_in"):
+        flash("Logged in successfully!", "login")
+        session.pop("just_logged_in")
+
+    proposals = []
+    clients = []
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+            proposals = list(csv.DictReader(file))
+    if os.path.exists(CLIENTS_FILENAME):
+        with open(CLIENTS_FILENAME, newline='', encoding="utf-8") as file:
+            clients = list(csv.DictReader(file))
+
+    def extract_number(value):
+        digits = ''.join(c for c in value if c.isdigit())
+        return int(digits) if digits else 0
+
+    return render_template("dashboard.html",
+        proposals=proposals,
+        clients=clients,
+        total_proposals=len(proposals),
+        total_clients=len(clients),
+        estimated_revenue=sum(extract_number(p.get("Budget", "")) for p in proposals),
+        most_popular_service=Counter(p.get("Service", "") for p in proposals).most_common(1)[0][0] if proposals else "N/A"
+    )
+
+# ---------- SETTINGS ----------
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        if request.form.get("new_password"):
+            os.environ["ADMIN_PASSWORD"] = request.form.get("new_password")
+            flash("Admin password updated successfully!", "success")
+        if request.form.get("clear_data") == "true":
+            for filename in [CSV_FILENAME, CLIENTS_FILENAME]:
+                if os.path.exists(filename):
+                    os.remove(filename)
+            flash("All data has been cleared.", "danger")
+        return redirect(url_for("settings"))
+
+    return render_template("settings.html", admin_email=ADMIN_EMAIL)
+
+# ---------- MEMBERSHIPS ----------
+@app.route("/memberships")
+def memberships():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("memberships.html")
+
+# ---------- EXPORT ----------
+@app.route("/download")
+def download():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return send_file(CSV_FILENAME, as_attachment=True) if os.path.exists(CSV_FILENAME) else redirect(url_for("dashboard"))
+
+@app.route("/download_clients")
+def download_clients():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return send_file(CLIENTS_FILENAME, as_attachment=True) if os.path.exists(CLIENTS_FILENAME) else redirect(url_for("dashboard"))
+
+# ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
     from_email = Email("hello@zyberfy.com")
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
     sg.send(Mail(from_email, To("mylescunningham0@gmail.com"), subject, Content("text/plain", content)))
+
     if user_email:
-        sg.send(Mail(from_email, To(user_email), "Your Proposal Request Was Received", Content("text/plain", "Thanks for your request! We’ll be in touch soon.")))
+        sg.send(Mail(
+            from_email,
+            To(user_email),
+            "Your Proposal Request Was Received",
+            Content("text/plain", "Thanks for your request! Our concierge team will be in touch shortly.\n\n-- The Zyberfy Team")
+        ))
+
+def send_admin_alert(subject, body):
+    try:
+        from_email = Email("hello@zyberfy.com", "Zyberfy AI")
+        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
+        sg.send(Mail(from_email, To("hello@zyberfy.com"), subject, Content("text/plain", body)))
+    except Exception as e:
+        print("Failed to send alert:", str(e))
 
 def save_to_csv(filename, *args):
     file_exists = os.path.isfile(filename)
     with open(filename, mode="a", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
+            if filename == CLIENTS_FILENAME:
+                writer.writerow(["Timestamp", "Name", "Email", "Company", "Phone", "Message", "Proposal"])
+            else:
+                writer.writerow(["Timestamp", "Name", "Email", "Service", "Budget", "Location", "Requests", "Proposal"])
         writer.writerow([datetime.now().isoformat(), *args])
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
+# ---------- RUN ----------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
