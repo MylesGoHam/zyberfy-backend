@@ -3,122 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy</title>
+  <title>Zyberfy – AI Proposals</title>
   <style>
     body {
-      background-color: #f8fafc;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9fafb;
     }
 
-    .top-bar {
+    header {
+      background: #ffffff;
+      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 30px;
-      background-color: white;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid #e5e7eb;
     }
 
     .logo {
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: bold;
       color: #1e40af;
     }
 
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .menu-btn {
-      font-size: 28px;
+    .menu-icon {
+      font-size: 1.6rem;
+      cursor: pointer;
       background: none;
       border: none;
-      cursor: pointer;
-      color: #1e40af;
     }
 
-    .dropdown-content {
-      display: none;
+    .dropdown {
       position: absolute;
-      right: 0;
-      top: 100%;
-      background-color: white;
-      min-width: 150px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      right: 32px;
+      top: 64px;
+      background: white;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
       border-radius: 8px;
-      z-index: 1000;
+      padding: 10px 0;
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 10;
     }
 
-    .dropdown-content a {
-      display: block;
-      padding: 10px 16px;
+    .dropdown a {
+      padding: 10px 20px;
       text-decoration: none;
-      color: #1e40af;
-      font-weight: 500;
+      color: #1f2937;
+      transition: background 0.2s ease;
     }
 
-    .dropdown-content a:hover {
-      background-color: #f3f4f6;
-    }
-
-    .dropdown:hover .dropdown-content {
-      display: block;
+    .dropdown a:hover {
+      background: #f3f4f6;
     }
 
     .hero {
+      max-width: 700px;
+      margin: 100px auto;
       text-align: center;
-      padding: 100px 20px;
-      max-width: 800px;
-      margin: auto;
+      padding: 2rem;
     }
 
     .hero h1 {
-      font-size: 3rem;
+      font-size: 2.5rem;
       color: #1e40af;
-      margin-bottom: 20px;
+      margin-bottom: 1rem;
     }
 
     .hero p {
-      font-size: 1.2rem;
-      color: #374151;
-      margin-bottom: 40px;
+      color: #4b5563;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
     }
 
-    .hero a {
-      background-color: #1e40af;
+    .cta-button {
+      background-color: #3b82f6;
       color: white;
-      padding: 12px 24px;
-      text-decoration: none;
       font-weight: 600;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      border: none;
       border-radius: 8px;
-      transition: background-color 0.2s ease;
+      text-decoration: none;
     }
 
-    .hero a:hover {
-      background-color: #1e3a8a;
+    .cta-button:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
 
-  <div class="top-bar">
+  <header>
     <div class="logo">Zyberfy</div>
-    <div class="dropdown">
-      <button class="menu-btn">⋯</button>
-      <div class="dropdown-content">
-        <a href="/login">Login</a>
-      </div>
+    <button class="menu-icon" onclick="toggleDropdown()">☰</button>
+    <div class="dropdown" id="dropdownMenu">
+      <a href="/login">Login</a>
     </div>
-  </div>
+  </header>
 
   <div class="hero">
     <h1>Effortless AI-Powered Proposals</h1>
     <p>Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
-    <a href="/proposal">Get Started</a>
+    <a href="/login" class="cta-button">Get Started</a>
   </div>
+
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    }
+
+    document.addEventListener("click", function(event) {
+      const dropdown = document.getElementById("dropdownMenu");
+      const button = document.querySelector(".menu-icon");
+      if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+        dropdown.style.display = "none";
+      }
+    });
+  </script>
 
 </body>
 </html>
