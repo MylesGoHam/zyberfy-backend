@@ -58,27 +58,35 @@ def automation():
         accept_msg = request.form.get("accept_msg")
         decline_msg = request.form.get("decline_msg")
 
-        conn.execute("""
-            INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(email) DO UPDATE SET
-                subject=excluded.subject,
-                greeting=excluded.greeting,
-                tone=excluded.tone,
-                footer=excluded.footer,
-                ai_training=excluded.ai_training,
-                accept_msg=excluded.accept_msg,
-                decline_msg=excluded.decline_msg;
-        """, (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg))
+        try:
+            conn.execute("""
+                INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    subject=excluded.subject,
+                    greeting=excluded.greeting,
+                    tone=excluded.tone,
+                    footer=excluded.footer,
+                    ai_training=excluded.ai_training,
+                    accept_msg=excluded.accept_msg,
+                    decline_msg=excluded.decline_msg;
+            """, (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg))
 
-        conn.commit()
+            conn.commit()
+            flash("Your automation settings have been saved!", "success")
+            return redirect(url_for("dashboard"))
+        except Exception as e:
+            flash("Error saving settings: " + str(e), "error")
+        finally:
+            conn.close()
+
+    try:
+        settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    except Exception as e:
+        flash("Error loading settings: " + str(e), "error")
+        settings = None
+    finally:
         conn.close()
-
-        flash("Your automation settings have been saved!", "success")
-        return redirect(url_for("dashboard"))
-
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-    conn.close()
 
     return render_template("automation.html", settings=settings)
 
@@ -115,7 +123,6 @@ def submit_proposal():
 
     proposal_text = generate_proposal(settings, form_data)
 
-    # ✅ Send proposal email to lead
     email_subject = settings['subject'] or "Your Proposal from Zyberfy"
     send_proposal_email(lead_email, email_subject, proposal_text)
 
@@ -130,7 +137,7 @@ def logout():
 
 # ---------- UTILS ----------
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
 
 # ---------- RUN ----------
 if __name__ == "__main__":
