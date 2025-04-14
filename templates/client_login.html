@@ -2,63 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In | Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Client Login | Zyberfy</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: #f8fafc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      background-color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
     }
-    .login-container {
-      background: #fff;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-    h2 {
-      margin-bottom: 20px;
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
       color: #1e40af;
+      padding: 20px 40px;
     }
-    input {
+
+    .container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e40af;
+      font-size: 1.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    input[type="email"] {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 0.8rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
       font-size: 1rem;
+      background-color: #f9fafb;
+      margin-bottom: 1.5rem;
     }
+
+    input:focus {
+      border-color: #3b82f6;
+      background-color: #fff;
+      outline: none;
+    }
+
     button {
       width: 100%;
-      padding: 12px;
-      background-color: #3b82f6;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
+      padding: 0.9rem;
+      background-color: #1e40af;
+      color: white;
+      font-weight: 600;
       font-size: 1rem;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
+
     button:hover {
-      background-color: #2563eb;
+      background-color: #1a369a;
+      transform: translateY(-2px);
+    }
+
+    .success-banner {
+      background-color: #e6ffed;
+      color: #155724;
+      padding: 12px 16px;
+      border-left: 5px solid #28a745;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <h2>Sign In</h2>
-    <form method="post" action="/login">
-      <input type="email" name="email" placeholder="Enter your email" required>
-      <!-- In a real application, include a password field -->
-      <button type="submit">Sign In</button>
+  <div class="logo">Zyberfy</div>
+
+  <div class="container">
+    <h1>Client Login</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="success-banner">
+          {% for category, message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/client_login">
+      <label for="email">Enter your email to log in</label>
+      <input type="email" id="email" name="email" required />
+      <button type="submit">Login</button>
     </form>
   </div>
 
