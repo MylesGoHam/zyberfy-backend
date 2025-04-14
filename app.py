@@ -93,7 +93,7 @@ www.zyberfy.com
             flash(f"An error occurred: {e}", "error")
             return redirect(url_for("proposal"))
 
-    return render_template("proposal_form.html", show_branding=show_branding)
+    return render_template("index.html", show_branding=show_branding)
 
 # ---------- PUBLIC PROPOSAL PAGE ----------
 @app.route("/proposal/<name_slug>")
