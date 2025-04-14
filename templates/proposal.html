@@ -1,0 +1,55 @@
+<!-- templates/proposal.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Proposal Inquiry | Zyberfy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Submit Your Proposal Inquiry</h1>
+    <p>Fill out the form below and receive a personalized response powered by AI.</p>
+
+    <form action="{{ url_for('submit_proposal') }}" method="POST">
+      <!-- Client Email (hidden if public) -->
+      <input type="hidden" name="client_email" value="{{ client_email }}">
+
+      <label for="lead_name">Your Name:</label>
+      <input type="text" name="lead_name" placeholder="John Doe" required>
+
+      <label for="lead_email">Your Email:</label>
+      <input type="email" name="lead_email" placeholder="john@example.com" required>
+
+      <label for="message">Describe Your Request:</label>
+      <textarea name="message" rows="5" placeholder="Tell us about what you're looking for..." required></textarea>
+
+      <label for="inquiry_type">Type of Inquiry:</label>
+      <select name="inquiry_type" id="inquiry_type" onchange="toggleOfferInput()">
+        <option value="inquiry">Just an Inquiry</option>
+        <option value="offer">Make an Offer</option>
+      </select>
+
+      <div id="offerInput" style="display: none; margin-top: 10px;">
+        <label for="offer_amount">Your Offer Amount ($):</label>
+        <input type="number" name="offer_amount" min="1" placeholder="e.g. 500">
+      </div>
+
+      <br><br>
+      <button type="submit" class="btn btn-primary">Submit Proposal</button>
+    </form>
+
+    <br>
+    <a href="/" class="btn btn-link">← Back to Home</a>
+  </div>
+
+  <script>
+    function toggleOfferInput() {
+      const inquiryType = document.getElementById('inquiry_type').value;
+      const offerInput = document.getElementById('offerInput');
+      offerInput.style.display = inquiryType === 'offer' ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
