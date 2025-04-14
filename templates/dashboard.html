@@ -2,178 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Client Dashboard | Zyberfy</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9fafb;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 32px;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #1e3a8a;
-    }
-
-    .menu {
-      position: relative;
-    }
-
-    .menu button {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .dropdown {
-      display: none;
-      position: absolute;
-      top: 36px;
-      right: 0;
-      background-color: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-      z-index: 999;
-    }
-
-    .dropdown a {
-      display: block;
-      padding: 12px 16px;
-      text-decoration: none;
-      color: #1f2937;
-      font-size: 0.95rem;
-    }
-
-    .dropdown a:hover {
-      background-color: #f3f4f6;
-    }
-
-    .container {
-      max-width: 780px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-
-    .welcome {
-      font-size: 1.25rem;
-      color: #111827;
-      margin-bottom: 24px;
-      font-weight: 500;
-    }
-
-    .proposal-card {
-      background-color: white;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e5e7eb;
-    }
-
-    .proposal-card h3 {
-      margin: 0 0 8px;
-      color: #1e3a8a;
-      font-size: 1.1rem;
-    }
-
-    .proposal-card p {
-      margin: 4px 0;
-      color: #374151;
-      font-size: 0.95rem;
-    }
-
-    .btn {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #fff;
-      background-color: #1e3a8a;
-      border: none;
-      border-radius: 6px;
-      text-decoration: none;
-    }
-
-    .btn:hover {
-      background-color: #3744ad;
-    }
-
-    .empty-message {
-      font-size: 1rem;
-      color: #6b7280;
-      text-align: center;
-      margin-top: 40px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800">
 
-  <header>
-    <div class="logo">Zyberfy</div>
-    <div class="menu">
-      <button onclick="toggleDropdown()">☰</button>
-      <div class="dropdown" id="dropdownMenu">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/automation">Automation</a>
-        <a href="/logout">Logout</a>
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-xl font-semibold text-blue-700">Zyberfy</div>
+      <div class="relative">
+        <button onclick="toggleDropdown()" class="text-2xl">☰</button>
+        <div id="dropdownMenu" class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
+          <a href="/dashboard" class="block px-4 py-2 text-sm hover:bg-gray-100">Dashboard</a>
+          <a href="/automation" class="block px-4 py-2 text-sm hover:bg-gray-100">Automation</a>
+          <a href="/logout" class="block px-4 py-2 text-sm hover:bg-gray-100">Logout</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <div class="container">
-    <div class="welcome">Welcome, {{ email }}</div>
+  <main class="max-w-4xl mx-auto px-6 py-10">
+    <h1 class="text-2xl font-semibold mb-6">Welcome, {{ email }}</h1>
 
-    <!-- Proposal Card #1 -->
-    <div class="proposal-card">
-      <h3>Luxury Yacht Charter</h3>
-      <p><strong>Budget:</strong> $25,000</p>
-      <p><strong>Status:</strong> Sent</p>
-      <a href="#" class="btn">View Proposal</a>
+    <!-- Proposal Card -->
+    <div class="bg-white rounded-xl p-6 shadow mb-6">
+      <h2 class="text-lg font-semibold text-blue-700">Luxury Yacht Charter</h2>
+      <p class="text-sm text-gray-600 mt-2"><strong>Budget:</strong> $25,000</p>
+      <p class="text-sm text-gray-600"><strong>Status:</strong> Sent</p>
+      <a href="#" class="inline-block mt-4 text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">View Proposal</a>
     </div>
 
-    <!-- Proposal Card #2 -->
-    <div class="proposal-card">
-      <h3>Private Jet Booking</h3>
-      <p><strong>Budget:</strong> $14,500</p>
-      <p><strong>Status:</strong> In Review</p>
-      <a href="#" class="btn">View Proposal</a>
+    <!-- Proposal Card -->
+    <div class="bg-white rounded-xl p-6 shadow mb-6">
+      <h2 class="text-lg font-semibold text-blue-700">Private Jet Booking</h2>
+      <p class="text-sm text-gray-600 mt-2"><strong>Budget:</strong> $14,500</p>
+      <p class="text-sm text-gray-600"><strong>Status:</strong> In Review</p>
+      <a href="#" class="inline-block mt-4 text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">View Proposal</a>
     </div>
 
-    <!-- Uncomment this block if no proposals -->
+    <!-- If empty -->
     <!--
-    <div class="empty-message">
+    <div class="text-center text-gray-500 mt-20">
       No proposals found for your account yet.
     </div>
     -->
-  </div>
+  </main>
 
   <script>
     function toggleDropdown() {
       const menu = document.getElementById("dropdownMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
+      menu.classList.toggle("hidden");
     }
 
     document.addEventListener("click", function (event) {
       const dropdown = document.getElementById("dropdownMenu");
-      if (!event.target.closest(".menu")) {
-        dropdown.style.display = "none";
+      if (!event.target.closest("header")) {
+        dropdown.classList.add("hidden");
       }
     });
   </script>
-
 </body>
 </html>
