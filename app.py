@@ -1,21 +1,15 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
-import sendgrid
-from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
 import os
 import re
-import csv
-from datetime import datetime
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-CSV_FILENAME = "proposals.csv"
 
-# ---------- INDEX ----------
+# ---------- INDEX (Landing Page) ----------
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
@@ -38,17 +32,9 @@ def login():
 def dashboard():
     email = session.get("client_email")
     if not email:
-        flash("Please log in to view your dashboard", "error")
+        flash("Please log in to access the dashboard.", "error")
         return redirect(url_for("login"))
-
-    proposals = []
-    if os.path.exists(CSV_FILENAME):
-        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
-            for row in csv.DictReader(file):
-                if row.get("Email", "").strip().lower() == email.strip().lower():
-                    proposals.append(row)
-
-    return render_template("dashboard.html", proposals=proposals, email=email)
+    return render_template("dashboard.html", email=email)
 
 # ---------- LOGOUT ----------
 @app.route("/logout")
