@@ -249,6 +249,33 @@ def client_logout():
     flash("Logged out successfully.", "success")
     return redirect(url_for("client_login"))
 
+# ---------- CLIENT RESEND PROPOSAL EMAIL ----------
+@app.route("/client/resend/<name_slug>")
+def client_resend(name_slug):
+    client_email = session.get("client_email")
+    if not client_email:
+        flash("Please log in", "error")
+        return redirect(url_for("client_login"))
+    proposal_data = None
+    if os.path.exists(CSV_FILENAME):
+        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
+            for row in csv.DictReader(file):
+                slug = row["Name"].strip().lower().replace(" ", "-")
+                if slug == name_slug and row.get("Email", "").strip().lower() == client_email.strip().lower():
+                    proposal_data = row
+                    break
+    if proposal_data is None:
+        flash("Proposal not found", "error")
+        return redirect(url_for("client_dashboard"))
+    subject = "Your Proposal Request from Zyberfy"
+    content = f"Dear {proposal_data['Name']},\n\nHere is your proposal:\n\n{proposal_data['Proposal']}\n\nBest regards,\nZyberfy Team"
+    try:
+        send_email(subject, content, user_email=client_email)
+        flash("Proposal email resent successfully.", "success")
+    except Exception as e:
+        flash(f"Failed to resend email: {e}", "error")
+    return redirect(url_for("client_dashboard"))
+
 # ---------- EXPORT ----------
 @app.route("/download")
 def download():
@@ -267,7 +294,6 @@ def send_email(subject, content, user_email=None):
     from_email = Email("hello@zyberfy.com")
     sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
     sg.send(Mail(from_email, To("mylescunningham0@gmail.com"), subject, Content("text/plain", content)))
-
     if user_email:
         sg.send(Mail(
             from_email,
