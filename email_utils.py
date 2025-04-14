@@ -10,11 +10,14 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@zyberfy.com")
 
 def send_proposal_email(to_email, subject, content, cc_client=False, client_email=None):
+    # Move .replace() to a separate line
+    formatted_html = content.replace('\n', '<br>')
+
     html_body = f"""
     <html>
       <body style="font-family: Arial, sans-serif; color: #333;">
         <div style="max-width: 640px; margin: auto; padding: 20px;">
-          {content.replace('\n', '<br>')}
+          {formatted_html}
         </div>
       </body>
     </html>
@@ -28,7 +31,6 @@ def send_proposal_email(to_email, subject, content, cc_client=False, client_emai
         html_content=html_body
     )
 
-    # Optional CC to client
     if cc_client and client_email:
         message.add_cc(client_email)
 
