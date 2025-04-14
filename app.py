@@ -20,6 +20,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
+
 # ---------- LANDING PAGE ----------
 @app.route("/", methods=["GET"])
 def home():
@@ -46,7 +47,8 @@ def home():
 
     return render_template("landing.html", stats=stats)
 
-# ---------- PROPOSAL ----------
+
+# ---------- PROPOSAL FORM ----------
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
     show_branding = request.args.get("branding", "1") == "1"
@@ -95,7 +97,8 @@ www.zyberfy.com
 
     return render_template("index.html", show_branding=show_branding)
 
-# ---------- PUBLIC PROPOSAL PAGE ----------
+
+# ---------- PUBLIC PROPOSAL ----------
 @app.route("/proposal/<name_slug>")
 def view_proposal(name_slug):
     if os.path.exists(CSV_FILENAME):
@@ -104,6 +107,7 @@ def view_proposal(name_slug):
                 if row["Name"].strip().lower().replace(" ", "-") == name_slug:
                     return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
     return "Proposal not found."
+
 
 # ---------- ONBOARDING ----------
 @app.route("/onboarding", methods=["GET", "POST"])
@@ -132,100 +136,6 @@ Message: {message}"""
 
     return render_template("onboarding.html", show_branding=show_branding)
 
-# ---------- AUTH ----------
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        if request.form["email"] == ADMIN_EMAIL and request.form["password"] == ADMIN_PASSWORD:
-            session["logged_in"] = True
-            session["just_logged_in"] = True
-            return redirect(url_for("dashboard"))
-        flash("Incorrect login credentials", "error")
-        return redirect(url_for("login"))
-    return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.pop("logged_in", None)
-    flash("Logged out successfully.", "success")
-    return redirect(url_for("login"))
-
-# ---------- EMBED GENERATOR ----------
-@app.route("/embed")
-def embed():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return render_template("embed.html", base_url=request.url_root.rstrip("/"))
-
-# ---------- DASHBOARD ----------
-@app.route("/dashboard")
-def dashboard():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    if session.get("just_logged_in"):
-        flash("Logged in successfully!", "login")
-        session.pop("just_logged_in")
-
-    proposals = []
-    clients = []
-    if os.path.exists(CSV_FILENAME):
-        with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
-            proposals = list(csv.DictReader(file))
-    if os.path.exists(CLIENTS_FILENAME):
-        with open(CLIENTS_FILENAME, newline='', encoding="utf-8") as file:
-            clients = list(csv.DictReader(file))
-
-    def extract_number(value):
-        digits = ''.join(c for c in value if c.isdigit())
-        return int(digits) if digits else 0
-
-    return render_template("dashboard.html",
-        proposals=proposals,
-        clients=clients,
-        total_proposals=len(proposals),
-        total_clients=len(clients),
-        estimated_revenue=sum(extract_number(p.get("Budget", "")) for p in proposals),
-        most_popular_service=Counter(p.get("Service", "") for p in proposals).most_common(1)[0][0] if proposals else "N/A"
-    )
-
-# ---------- SETTINGS ----------
-@app.route("/settings", methods=["GET", "POST"])
-def settings():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-
-    if request.method == "POST":
-        if request.form.get("new_password"):
-            os.environ["ADMIN_PASSWORD"] = request.form.get("new_password")
-            flash("Admin password updated successfully!", "success")
-        if request.form.get("clear_data") == "true":
-            for filename in [CSV_FILENAME, CLIENTS_FILENAME]:
-                if os.path.exists(filename):
-                    os.remove(filename)
-            flash("All data has been cleared.", "danger")
-        return redirect(url_for("settings"))
-
-    return render_template("settings.html", admin_email=ADMIN_EMAIL)
-
-# ---------- MEMBERSHIPS ----------
-@app.route("/memberships")
-def memberships():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return render_template("memberships.html")
-
-# ---------- EXPORT ----------
-@app.route("/download")
-def download():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return send_file(CSV_FILENAME, as_attachment=True) if os.path.exists(CSV_FILENAME) else redirect(url_for("dashboard"))
-
-@app.route("/download_clients")
-def download_clients():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return send_file(CLIENTS_FILENAME, as_attachment=True) if os.path.exists(CLIENTS_FILENAME) else redirect(url_for("dashboard"))
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
@@ -262,6 +172,7 @@ def save_to_csv(filename, *args):
 
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+
 
 # ---------- RUN ----------
 if __name__ == "__main__":
