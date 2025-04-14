@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Automation Settings – Zyberfy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Automation Settings</h1>
+        <p>Customize your AI tone and email preferences. These settings will be used in all automatic responses and proposals.</p>
+
+        <form action="{{ url_for('automation') }}" method="POST">
+            <label for="subject">Email Subject Template:</label>
+            <input type="text" name="subject" value="{{ settings['subject'] if settings else '' }}" placeholder="Your subject line..." required>
+
+            <label for="greeting">Greeting Style:</label>
+            <select name="greeting">
+                <option value="Hi" {% if settings and settings['greeting'] == 'Hi' %}selected{% endif %}>Hi</option>
+                <option value="Hello" {% if settings and settings['greeting'] == 'Hello' %}selected{% endif %}>Hello</option>
+                <option value="Dear" {% if settings and settings['greeting'] == 'Dear' %}selected{% endif %}>Dear</option>
+                <option value="Custom" {% if settings and settings['greeting'] == 'Custom' %}selected{% endif %}>Custom</option>
+            </select>
+
+            <label for="tone">Tone:</label>
+            <select name="tone">
+                <option value="Luxury" {% if settings and settings['tone'] == 'Luxury' %}selected{% endif %}>Luxury</option>
+                <option value="Friendly" {% if settings and settings['tone'] == 'Friendly' %}selected{% endif %}>Friendly</option>
+                <option value="Professional" {% if settings and settings['tone'] == 'Professional' %}selected{% endif %}>Professional</option>
+                <option value="Minimal" {% if settings and settings['tone'] == 'Minimal' %}selected{% endif %}>Minimal</option>
+                <option value="Custom" {% if settings and settings['tone'] == 'Custom' %}selected{% endif %}>Custom</option>
+            </select>
+
+            <label for="footer">Signature / Footer:</label>
+            <textarea name="footer" rows="3" placeholder="Warm regards, Sarah – Founder, Royal Escapes">{{ settings['footer'] if settings else '' }}</textarea>
+
+            <label for="ai_training">Talk to Your AI (Describe Your Style):</label>
+            <textarea name="ai_training" rows="4" placeholder="We speak to clients with warmth, elegance, and clarity. Keep language personal but professional.">{{ settings['ai_training'] if settings else '' }}</textarea>
+
+            <label for="accept_msg">Custom Accept Message (optional):</label>
+            <textarea name="accept_msg" rows="3">{{ settings['accept_msg'] if settings else '' }}</textarea>
+
+            <label for="decline_msg">Custom Decline Message (optional):</label>
+            <textarea name="decline_msg" rows="3">{{ settings['decline_msg'] if settings else '' }}</textarea>
+
+            <br><br>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+
+        <br>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-link">← Back to Dashboard</a>
+    </div>
+</body>
+</html>
