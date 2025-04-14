@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 from dotenv import load_dotenv
+from ai import generate_proposal
 import os
 import re
 from models import create_automation_table, get_db_connection
@@ -80,6 +81,37 @@ def automation():
     conn.close()
 
     return render_template("automation.html", settings=settings)
+
+# ---------- SUBMIT PROPOSAL ----------
+@app.route("/submit_proposal", methods=["POST"])
+def submit_proposal():
+    lead_name = request.form.get("lead_name")
+    lead_email = request.form.get("lead_email")
+    message = request.form.get("message")
+    client_email = request.form.get("client_email") or session.get("client_email")
+
+    if not client_email:
+        flash("Client information is missing.", "error")
+        return redirect(url_for("home"))
+
+    conn = get_db_connection()
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (client_email,)).fetchone()
+    conn.close()
+
+    if not settings:
+        flash("Client automation settings not found.", "error")
+        return redirect(url_for("home"))
+
+    form_data = {
+        "lead_name": lead_name,
+        "lead_email": lead_email,
+        "message": message
+    }
+
+    proposal_text = generate_proposal(settings, form_data)
+
+    # TODO: send email or show on screen
+    return render_template("thank_you.html", proposal=proposal_text)
 
 # ---------- LOGOUT ----------
 @app.route("/logout")
