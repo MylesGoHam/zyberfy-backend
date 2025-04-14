@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 from dotenv import load_dotenv
 import os
 import re
+from models import create_automation_table, get_db_connection
 
 # Load environment variables
 load_dotenv()
@@ -10,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
 
 # ---------- INDEX (Landing Page) ----------
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
     return render_template("index.html")
 
@@ -36,6 +37,50 @@ def dashboard():
         return redirect(url_for("login"))
     return render_template("dashboard.html", email=email)
 
+# ---------- AUTOMATION SETTINGS ----------
+@app.route("/automation", methods=["GET", "POST"])
+def automation():
+    email = session.get("client_email")
+    if not email:
+        flash("Please log in to access automation settings.", "error")
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    if request.method == "POST":
+        subject = request.form.get("subject")
+        greeting = request.form.get("greeting")
+        tone = request.form.get("tone")
+        footer = request.form.get("footer")
+        ai_training = request.form.get("ai_training")
+        accept_msg = request.form.get("accept_msg")
+        decline_msg = request.form.get("decline_msg")
+
+        conn.execute("""
+            INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                subject=excluded.subject,
+                greeting=excluded.greeting,
+                tone=excluded.tone,
+                footer=excluded.footer,
+                ai_training=excluded.ai_training,
+                accept_msg=excluded.accept_msg,
+                decline_msg=excluded.decline_msg;
+        """, (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg))
+
+        conn.commit()
+        conn.close()
+
+        flash("Your automation settings have been saved!", "success")
+        return redirect(url_for("dashboard"))
+
+    # GET: Fetch existing settings if available
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    return render_template("automation.html", settings=settings)
+
 # ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
@@ -49,4 +94,5 @@ def is_valid_email(email):
 
 # ---------- RUN ----------
 if __name__ == "__main__":
+    create_automation_table()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
