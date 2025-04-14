@@ -106,7 +106,7 @@
 
   <div class="container">
     <h1>Client Dashboard</h1>
-    <p class="subtext">Welcome, {{ email }}</p>
+    <p style="color: #000; font-weight: 500;">Welcome, {{ email.split('@')[0] | capitalize }}!</p>
     <p>No proposals found for your account yet.</p>
   </div>
 
