@@ -6,7 +6,6 @@ import os
 import re
 import csv
 from datetime import datetime
-from collections import Counter
 from email_assistant import generate_proposal
 
 # Load environment variables
@@ -20,7 +19,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# ---------- INDEX ----------
+# ---------- INDEX (Landing Page) ----------
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
@@ -35,16 +34,16 @@ def login():
             return redirect(url_for("login"))
         session["client_email"] = email
         flash("Welcome back!", "success")
-        return redirect(url_for("client_dashboard"))
+        return redirect(url_for("dashboard"))
     return render_template("login.html")
 
 # ---------- CLIENT DASHBOARD ----------
-@app.route("/client_dashboard")
-def client_dashboard():
+@app.route("/dashboard")
+def dashboard():
     email = session.get("client_email")
     if not email:
         flash("Please log in first.", "error")
-        return redirect(url_for("client_login"))
+        return redirect(url_for("login"))
 
     proposals = []
     if os.path.exists(CSV_FILENAME):
@@ -53,14 +52,14 @@ def client_dashboard():
                 if row.get("Email", "").strip().lower() == email.lower():
                     proposals.append(row)
 
-    return render_template("client_dashboard.html", proposals=proposals, email=email)
+    return render_template("dashboard.html", proposals=proposals, email=email)
 
 # ---------- CLIENT LOGOUT ----------
-@app.route("/client_logout")
-def client_logout():
+@app.route("/logout")
+def logout():
     session.pop("client_email", None)
     flash("Logged out successfully.", "success")
-    return redirect(url_for("client_login"))
+    return redirect(url_for("login"))
 
 # ---------- UTILS ----------
 def send_email(subject, content, user_email=None):
