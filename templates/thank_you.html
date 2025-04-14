@@ -2,60 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thank You | Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      background-color: #f8fafc;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    .logo {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #1e40af;
-      text-align: left;
-      padding: 20px 40px;
-    }
-
-    .container {
-      max-width: 640px;
-      margin: 80px auto;
-      background: white;
-      padding: 3rem;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-    }
-
-    h1 {
-      color: #1e40af;
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      color: #374151;
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
-
-    pre {
-      background-color: #f3f4f6;
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: left;
-      overflow-x: auto;
-      font-size: 0.95rem;
-      color: #111827;
-    }
-
     .share-box {
       margin-top: 2rem;
     }
-
     .share-box input {
       width: 100%;
       padding: 0.7rem;
@@ -65,24 +18,24 @@
     }
   </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <section class="min-h-screen flex flex-col items-center justify-center px-6">
+    {% if show_branding %}
+      <div class="text-blue-600 text-2xl font-bold mb-4">Zyberfy</div>
+    {% endif %}
 
-  {% if show_branding %}
-    <div class="logo">Zyberfy</div>
-  {% endif %}
+    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-xl text-center">
+      <h1 class="text-3xl font-semibold mb-2">Thank You, {{ name }}!</h1>
+      <p class="text-gray-600 mb-4">Your proposal has been generated. We'll follow up shortly — in the meantime, you can review it below.</p>
+      <pre class="bg-gray-100 text-sm p-4 rounded-md text-left overflow-x-auto mb-4">{{ proposal }}</pre>
 
-  <div class="container">
-    <h1>Thank You, {{ name }}!</h1>
-    <p>Your proposal has been generated. We'll follow up shortly — in the meantime, here’s a preview:</p>
-    <pre>{{ proposal }}</pre>
-
-    {% if share_url %}
-      <div class="share-box">
-        <p><strong>Share this link:</strong></p>
+      {% if share_url %}
+      <div class="share-box text-left">
+        <p class="text-sm font-medium mb-1">Share this link:</p>
         <input type="text" value="{{ share_url }}" readonly onclick="this.select()" />
       </div>
-    {% endif %}
-  </div>
-
+      {% endif %}
+    </div>
+  </section>
 </body>
 </html>
