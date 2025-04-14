@@ -8,6 +8,7 @@ import csv
 from datetime import datetime
 from collections import Counter
 from email_assistant import generate_proposal
+from io import BytesIO  # For in-memory file download
 
 # Load environment variables
 load_dotenv()
@@ -102,6 +103,14 @@ def view_proposal(name_slug):
         with open(CSV_FILENAME, newline='', encoding="utf-8") as file:
             for row in csv.DictReader(file):
                 if row["Name"].strip().lower().replace(" ", "-") == name_slug:
+                    # If "download" param is true, send as downloadable text file:
+                    if request.args.get("download") == "true":
+                        content_bytes = row["Proposal"].encode("utf-8")
+                        filename = f"{row['Name']}_proposal.txt"
+                        return send_file(BytesIO(content_bytes),
+                                         attachment_filename=filename,
+                                         as_attachment=True,
+                                         mimetype="text/plain")
                     return render_template("public_proposal.html", name=row["Name"], proposal=row["Proposal"])
     return "Proposal not found."
 
@@ -240,6 +249,9 @@ def client_dashboard():
             for row in csv.DictReader(file):
                 if row.get("Email", "").strip().lower() == client_email.strip().lower():
                     proposals.append(row)
+    # Sort proposals by timestamp (most recent first)
+    if proposals:
+        proposals.sort(key=lambda p: datetime.fromisoformat(p["Timestamp"]), reverse=True)
     return render_template("client_dashboard.html", proposals=proposals, client_email=client_email)
 
 # ---------- CLIENT LOGOUT ----------
