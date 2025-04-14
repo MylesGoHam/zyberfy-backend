@@ -7,20 +7,36 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = os.getenv("FROM_EMAIL")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@zyberfy.com")
 
-def send_proposal_email(to_email, subject, content):
+def send_proposal_email(to_email, subject, content, cc_client=False, client_email=None):
+    html_body = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif; color: #333;">
+        <div style="max-width: 640px; margin: auto; padding: 20px;">
+          {content.replace('\n', '<br>')}
+        </div>
+      </body>
+    </html>
+    """
+
     message = Mail(
         from_email=FROM_EMAIL,
         to_emails=to_email,
         subject=subject,
         plain_text_content=content,
-        html_content=f"<pre>{content}</pre>"
+        html_content=html_body
     )
+
+    # Optional CC to client
+    if cc_client and client_email:
+        message.add_cc(client_email)
+
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
+        print(f"✅ Email sent to {to_email} | Status: {response.status_code}")
         return response.status_code
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"❌ Error sending email: {e}")
         return None
