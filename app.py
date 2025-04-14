@@ -124,7 +124,13 @@ def submit_proposal():
     proposal_text = generate_proposal(settings, form_data)
 
     email_subject = settings['subject'] or "Your Proposal from Zyberfy"
-    send_proposal_email(lead_email, email_subject, proposal_text)
+    send_proposal_email(
+        to_email=lead_email,
+        subject=email_subject,
+        content=proposal_text,
+        cc_client=True,
+        client_email=client_email
+    )
 
     return render_template("thank_you.html", proposal=proposal_text)
 
@@ -137,7 +143,7 @@ def logout():
 
 # ---------- UTILS ----------
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
+    return email == "hello@zyberfy.com" or re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
 
 # ---------- RUN ----------
 if __name__ == "__main__":
