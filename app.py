@@ -39,7 +39,7 @@ def login():
 
 # ---------- CLIENT DASHBOARD ----------
 @app.route("/dashboard")
-def dashboard():
+def client_dashboard():
     email = session.get("client_email")
     if not email:
         flash("Please log in first.", "error")
