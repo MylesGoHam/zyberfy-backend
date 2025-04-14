@@ -9,7 +9,7 @@
       background-color: #f8fafc;
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 2rem;
+      padding: 20px;
     }
     .logo {
       font-size: 2rem;
@@ -18,45 +18,60 @@
       padding: 20px 40px;
     }
     .container {
-      max-width: 800px;
-      margin: 20px auto;
+      max-width: 900px;
+      margin: 0 auto;
       background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     h1 {
       text-align: center;
       color: #1e40af;
-      margin-bottom: 1.5rem;
+      margin-bottom: 20px;
     }
     .proposal-card {
       border: 1px solid #e5e7eb;
       border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1.25rem;
+      padding: 15px;
+      margin-bottom: 15px;
       background-color: #f9fafb;
     }
-    .proposal-card h2 {
+    .proposal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .proposal-header h2 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       color: #1e40af;
     }
-    .proposal-card p {
-      margin: 0.5rem 0;
+    .proposal-details {
+      margin-top: 10px;
       font-size: 0.95rem;
       color: #374151;
     }
-    .proposal-card a {
-      display: inline-block;
-      margin-top: 0.75rem;
+    .proposal-actions {
+      margin-top: 10px;
+    }
+    .proposal-actions a, .proposal-actions button {
+      margin-right: 10px;
       text-decoration: none;
-      color: #3b82f6;
-      font-weight: bold;
+      background-color: #3b82f6;
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 5px;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .proposal-actions a:hover, .proposal-actions button:hover {
+      background-color: #2563eb;
     }
     .logout {
       text-align: center;
-      margin-top: 2rem;
+      margin-top: 20px;
     }
     .logout a {
       text-decoration: none;
@@ -70,22 +85,32 @@
   {% if show_branding is not defined or show_branding %}
     <div class="logo">Zyberfy</div>
   {% endif %}
-
+  
   <div class="container">
     <h1>Welcome, {{ client_email }}</h1>
-    <h2>Your Proposals</h2>
     {% if proposals %}
       {% for proposal in proposals %}
         <div class="proposal-card">
-          <h2>{{ proposal["Name"] }}</h2>
-          <p><strong>Service:</strong> {{ proposal["Service"] }}</p>
-          <p><strong>Budget:</strong> {{ proposal["Budget"] }}</p>
-          <p><strong>Location:</strong> {{ proposal["Location"] }}</p>
-          <a href="/proposal/{{ proposal["Name"]|lower|replace(" ", "-") }}">View Full Proposal</a>
+          <div class="proposal-header">
+            <h2>{{ proposal["Name"] }}</h2>
+            <div class="proposal-date">
+              <small>{{ proposal["Timestamp"] }}</small>
+            </div>
+          </div>
+          <div class="proposal-details">
+            <p><strong>Service:</strong> {{ proposal["Service"] }}</p>
+            <p><strong>Budget:</strong> {{ proposal["Budget"] }}</p>
+            <p><strong>Location:</strong> {{ proposal["Location"] }}</p>
+          </div>
+          <div class="proposal-actions">
+            <a href="/proposal/{{ proposal["Name"]|lower|replace(" ", "-") }}" target="_blank">View Full Proposal</a>
+            <!-- "Download Proposal" button links to the public proposal page with a download flag (if implemented) -->
+            <a href="/proposal/{{ proposal["Name"]|lower|replace(" ", "-") }}?download=true" target="_blank" download>Download Proposal</a>
+          </div>
         </div>
       {% endfor %}
     {% else %}
-      <p>No proposals found.</p>
+      <p>No proposals found for your account.</p>
     {% endif %}
     <div class="logout">
       <a href="/client-logout">Logout</a>
