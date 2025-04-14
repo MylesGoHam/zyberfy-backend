@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
@@ -15,12 +15,10 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-ADMIN_EMAIL = "hello@zyberfy.com"
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password123")
 CSV_FILENAME = "proposals.csv"
 CLIENTS_FILENAME = "clients.csv"
 
-# ---------- LANDING PAGE ----------
+# ---------- INDEX (LANDING PAGE) ----------
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
