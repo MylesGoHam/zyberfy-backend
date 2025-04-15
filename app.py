@@ -12,12 +12,14 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
 
-# ---------- INDEX (Landing Page) ----------
+
+# ---------- INDEX ----------
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# ---------- CLIENT LOGIN ----------
+
+# ---------- LOGIN ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -30,7 +32,8 @@ def login():
         return redirect(url_for("dashboard"))
     return render_template("login.html")
 
-# ---------- CLIENT DASHBOARD ----------
+
+# ---------- DASHBOARD ----------
 @app.route("/dashboard")
 def dashboard():
     email = session.get("client_email")
@@ -38,6 +41,7 @@ def dashboard():
         flash("Please log in to access the dashboard.", "error")
         return redirect(url_for("login"))
     return render_template("dashboard.html", email=email)
+
 
 # ---------- AUTOMATION SETTINGS ----------
 @app.route("/automation", methods=["GET", "POST"])
@@ -59,8 +63,12 @@ def automation():
         decline_msg = request.form.get("decline_msg")
         proposal_mode = request.form.get("proposal_mode") or "concise"
 
+        # Save or update automation settings
         conn.execute("""
-            INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode)
+            INSERT INTO automation_settings (
+                email, subject, greeting, tone, footer, ai_training,
+                accept_msg, decline_msg, proposal_mode
+            )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 subject=excluded.subject,
@@ -71,62 +79,38 @@ def automation():
                 accept_msg=excluded.accept_msg,
                 decline_msg=excluded.decline_msg,
                 proposal_mode=excluded.proposal_mode;
-        """, (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode))
-
+        """, (email, subject, greeting, tone, footer, ai_training,
+              accept_msg, decline_msg, proposal_mode))
         conn.commit()
 
-        flash("Your automation settings have been saved!", "success")
-
+        # Optional test preview
         test_name = request.form.get("test_name")
         test_message = request.form.get("test_message")
         test_output = None
 
         if test_name and test_message:
             settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+            conn.close()
             form_data = {
                 "lead_name": test_name,
                 "lead_email": email,
-                "message": test_message,
+                "message": test_message
             }
-            test_output = generate_proposal(settings, form_data)
-            conn.close()
+            try:
+                test_output = generate_proposal(settings, form_data)
+            except Exception as e:
+                test_output = f"⚠️ Error generating proposal: {e}"
             return render_template("automation.html", settings=settings, test_output=test_output)
 
+        flash("Your automation settings have been saved!", "success")
+        settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
         conn.close()
-        return redirect(url_for("automation"))
+        return render_template("automation.html", settings=settings)
 
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
     return render_template("automation.html", settings=settings)
 
-# ---------- TEST PROPOSAL OUTPUT ----------
-@app.route("/test_proposal", methods=["POST"])
-def test_proposal():
-    email = session.get("client_email")
-    if not email:
-        flash("Please log in to test proposals.", "error")
-        return redirect(url_for("login"))
-
-    test_name = request.form.get("test_name")
-    test_message = request.form.get("test_message")
-
-    conn = get_db_connection()
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-    conn.close()
-
-    if not settings:
-        flash("Automation settings not found.", "error")
-        return redirect(url_for("automation"))
-
-    form_data = {
-        "lead_name": test_name or "John",
-        "lead_email": "demo@example.com",
-        "message": test_message or "Looking for a weekend charter to Monaco."
-    }
-
-    proposal = generate_proposal(settings, form_data)
-
-    return render_template("automation.html", settings=settings, test_output=proposal)
 
 # ---------- SUBMIT PROPOSAL ----------
 @app.route("/submit_proposal", methods=["POST"])
@@ -160,10 +144,11 @@ def submit_proposal():
         form_data["message"] += f"\n\nOffer Submitted: ${offer_amount}"
 
     proposal_text = generate_proposal(settings, form_data)
-    email_subject = settings['subject'] or "Your Proposal from Zyberfy"
+    email_subject = settings["subject"] or "Your Proposal from Zyberfy"
     send_proposal_email(lead_email, email_subject, proposal_text)
 
     return render_template("thank_you.html", proposal=proposal_text)
+
 
 # ---------- LOGOUT ----------
 @app.route("/logout")
@@ -172,9 +157,11 @@ def logout():
     flash("Logged out successfully.", "success")
     return redirect(url_for("login"))
 
+
 # ---------- UTILS ----------
 def is_valid_email(email):
     return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
+
 
 # ---------- RUN ----------
 if __name__ == "__main__":
