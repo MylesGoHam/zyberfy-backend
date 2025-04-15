@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-# Always use the same absolute path on Render
+# Correct database path regardless of working directory
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "zyberfy.db")
 
