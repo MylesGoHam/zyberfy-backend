@@ -1,24 +1,94 @@
+<!-- templates/automation.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Thank You | Zyberfy</title>
+  <title>Automation Settings – Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-  <div class="min-h-screen flex flex-col items-center justify-center p-6">
-    <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full text-center">
-      <h1 class="text-2xl font-bold text-blue-800 mb-4">🎉 Thank You!</h1>
-      <p class="text-gray-600 mb-6">Your request has been received. Below is your personalized proposal:</p>
+<body class="bg-gray-50 text-gray-800">
 
-      <div class="bg-gray-100 p-4 rounded-md text-left whitespace-pre-wrap font-mono text-sm text-gray-700 max-h-[400px] overflow-auto border border-gray-200">
-        {{ proposal }}
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-2">Automation Settings</h1>
+    <p class="mb-6 text-sm text-gray-600">Customize how your AI communicates with leads. All settings are used to generate automatic proposal emails.</p>
+
+    <form method="POST" action="{{ url_for('automation') }}" class="space-y-4 bg-white p-6 rounded-lg shadow">
+      <div>
+        <label class="block font-medium">Email Subject Template</label>
+        <input type="text" name="subject" value="{{ settings['subject'] if settings else '' }}" class="w-full mt-1 p-2 border rounded" placeholder="e.g. Your Proposal from Royal Escapes">
       </div>
 
-      <a href="/" class="inline-block mt-8 bg-blue-800 hover:bg-blue-900 text-white font-medium py-2 px-4 rounded transition duration-150">
-        Back to Homepage
-      </a>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-medium">Greeting Style</label>
+          <select name="greeting" class="w-full mt-1 p-2 border rounded">
+            <option value="Hi" {% if settings and settings['greeting'] == 'Hi' %}selected{% endif %}>Hi</option>
+            <option value="Hello" {% if settings and settings['greeting'] == 'Hello' %}selected{% endif %}>Hello</option>
+            <option value="Dear" {% if settings and settings['greeting'] == 'Dear' %}selected{% endif %}>Dear</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-medium">Tone</label>
+          <select name="tone" class="w-full mt-1 p-2 border rounded">
+            <option value="Luxury" {% if settings and settings['tone'] == 'Luxury' %}selected{% endif %}>Luxury</option>
+            <option value="Friendly" {% if settings and settings['tone'] == 'Friendly' %}selected{% endif %}>Friendly</option>
+            <option value="Professional" {% if settings and settings['tone'] == 'Professional' %}selected{% endif %}>Professional</option>
+            <option value="Minimal" {% if settings and settings['tone'] == 'Minimal' %}selected{% endif %}>Minimal</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-medium">Signature / Footer</label>
+        <textarea name="footer" rows="2" class="w-full mt-1 p-2 border rounded" placeholder="e.g. Warm regards, Sarah – Founder, Royal Escapes">{{ settings['footer'] if settings else '' }}</textarea>
+      </div>
+
+      <div>
+        <label class="block font-medium">Talk to Your AI (Describe Your Style)</label>
+        <textarea name="ai_training" rows="3" class="w-full mt-1 p-2 border rounded" placeholder="How should your AI sound?">{{ settings['ai_training'] if settings else '' }}</textarea>
+      </div>
+
+      <div>
+        <label class="block font-medium">Custom Accept Message (optional)</label>
+        <textarea name="accept_msg" rows="2" class="w-full mt-1 p-2 border rounded">{{ settings['accept_msg'] if settings else '' }}</textarea>
+      </div>
+
+      <div>
+        <label class="block font-medium">Custom Decline Message (optional)</label>
+        <textarea name="decline_msg" rows="2" class="w-full mt-1 p-2 border rounded">{{ settings['decline_msg'] if settings else '' }}</textarea>
+      </div>
+
+      <div class="flex items-center space-x-3 mt-4">
+        <label class="font-medium">Proposal Detail:</label>
+        <select name="proposal_mode" class="p-2 border rounded">
+          <option value="concise" {% if settings and settings['proposal_mode'] == 'concise' %}selected{% endif %}>Concise</option>
+          <option value="detailed" {% if settings and settings['proposal_mode'] == 'detailed' %}selected{% endif %}>Detailed</option>
+        </select>
+      </div>
+
+      <button type="submit" class="mt-6 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded">Save Settings</button>
+    </form>
+
+    <div class="mt-10">
+      <h2 class="text-lg font-semibold mb-2">🔍 Test Proposal Output</h2>
+      <form method="POST" action="{{ url_for('test_proposal') }}" class="space-y-4">
+        <input type="text" name="test_name" placeholder="Lead name" class="w-full p-2 border rounded">
+        <textarea name="test_message" rows="3" placeholder="Try a test message..." class="w-full p-2 border rounded"></textarea>
+        <button type="submit" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded">Run Test</button>
+      </form>
+
+      {% if test_output %}
+        <div class="mt-6 bg-gray-100 p-4 rounded border border-gray-300 whitespace-pre-wrap">
+          {{ test_output }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mt-8">
+      <a href="{{ url_for('dashboard') }}" class="text-blue-700 hover:underline text-sm">&larr; Back to Dashboard</a>
     </div>
   </div>
+
 </body>
 </html>
