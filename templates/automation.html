@@ -1,131 +1,24 @@
-<!-- templates/automation.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Automation Settings | Zyberfy</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9fafb;
-    }
-
-    .container {
-      max-width: 760px;
-      margin: 50px auto;
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    }
-
-    h1 {
-      font-size: 1.8rem;
-      color: #1e3a8a;
-      margin-bottom: 10px;
-    }
-
-    p.description {
-      color: #374151;
-      font-size: 1rem;
-      margin-bottom: 24px;
-    }
-
-    label {
-      display: block;
-      font-weight: 500;
-      margin-top: 18px;
-      margin-bottom: 6px;
-      color: #111827;
-    }
-
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background-color: #f9fafb;
-    }
-
-    textarea {
-      resize: vertical;
-    }
-
-    button {
-      margin-top: 28px;
-      background-color: #1e3a8a;
-      color: white;
-      padding: 12px 20px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #3744ad;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 30px;
-      color: #1e3a8a;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <title>Thank You | Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>Automation Settings</h1>
-    <p class="description">Customize your AI tone and email preferences. These settings will be used in all automatic responses and proposals.</p>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <div class="min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full text-center">
+      <h1 class="text-2xl font-bold text-blue-800 mb-4">🎉 Thank You!</h1>
+      <p class="text-gray-600 mb-6">Your request has been received. Below is your personalized proposal:</p>
 
-    <form method="POST" action="{{ url_for('automation') }}">
-      <label for="subject">Email Subject Template:</label>
-      <input type="text" name="subject" value="{{ settings['subject'] if settings else '' }}" placeholder="Your subject line...">
+      <div class="bg-gray-100 p-4 rounded-md text-left whitespace-pre-wrap font-mono text-sm text-gray-700 max-h-[400px] overflow-auto border border-gray-200">
+        {{ proposal }}
+      </div>
 
-      <label for="greeting">Greeting Style:</label>
-      <select name="greeting">
-        <option value="Hi" {% if settings and settings['greeting'] == 'Hi' %}selected{% endif %}>Hi</option>
-        <option value="Hello" {% if settings and settings['greeting'] == 'Hello' %}selected{% endif %}>Hello</option>
-        <option value="Dear" {% if settings and settings['greeting'] == 'Dear' %}selected{% endif %}>Dear</option>
-        <option value="Custom" {% if settings and settings['greeting'] == 'Custom' %}selected{% endif %}>Custom</option>
-      </select>
-
-      <label for="tone">Tone:</label>
-      <select name="tone">
-        <option value="Luxury" {% if settings and settings['tone'] == 'Luxury' %}selected{% endif %}>Luxury</option>
-        <option value="Friendly" {% if settings and settings['tone'] == 'Friendly' %}selected{% endif %}>Friendly</option>
-        <option value="Professional" {% if settings and settings['tone'] == 'Professional' %}selected{% endif %}>Professional</option>
-        <option value="Minimal" {% if settings and settings['tone'] == 'Minimal' %}selected{% endif %}>Minimal</option>
-        <option value="Custom" {% if settings and settings['tone'] == 'Custom' %}selected{% endif %}>Custom</option>
-      </select>
-
-      <label for="footer">Signature / Footer:</label>
-      <textarea name="footer" rows="3" placeholder="Warm regards, Sarah – Founder, Royal Escapes">{{ settings['footer'] if settings else '' }}</textarea>
-
-      <label for="ai_training">Talk to Your AI (Describe Your Style):</label>
-      <textarea name="ai_training" rows="4" placeholder="We speak to clients with warmth, elegance, and clarity. Keep language personal but professional.">{{ settings['ai_training'] if settings else '' }}</textarea>
-
-      <label for="accept_msg">Custom Accept Message (optional):</label>
-      <textarea name="accept_msg" rows="3" placeholder="Thank you for your offer! We're excited to begin...">{{ settings['accept_msg'] if settings else '' }}</textarea>
-
-      <label for="decline_msg">Custom Decline Message (optional):</label>
-      <textarea name="decline_msg" rows="3" placeholder="Thank you for your offer. At this time, we’re unable to move forward...">{{ settings['decline_msg'] if settings else '' }}</textarea>
-
-      <button type="submit">Save Settings</button>
-    </form>
-
-    <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+      <a href="/" class="inline-block mt-8 bg-blue-800 hover:bg-blue-900 text-white font-medium py-2 px-4 rounded transition duration-150">
+        Back to Homepage
+      </a>
+    </div>
   </div>
 </body>
 </html>
