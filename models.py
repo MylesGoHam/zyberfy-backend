@@ -4,9 +4,14 @@ import os
 # Correct database path regardless of working directory
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "zyberfy.db")
+print("📍 Using DB path:", DB_PATH)
+
+import os
+import sqlite3
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    db_path = os.environ.get("ZDB_PATH", "zyberfy.db")
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
