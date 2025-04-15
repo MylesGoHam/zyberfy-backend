@@ -19,7 +19,8 @@ def create_automation_table():
             footer TEXT,
             ai_training TEXT,
             accept_msg TEXT,
-            decline_msg TEXT
+            decline_msg TEXT,
+            proposal_mode TEXT DEFAULT 'concise'
         );
     """)
     conn.commit()
