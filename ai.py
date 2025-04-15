@@ -1,4 +1,3 @@
-# ai.py
 import openai
 import os
 from dotenv import load_dotenv
@@ -12,38 +11,30 @@ def generate_proposal(settings, form_data):
     tone = settings["tone"]
     footer = settings["footer"]
     ai_training = settings["ai_training"]
-        
-        lead_name = form_data.get("lead_name", "there").strip()
-        message = form_data.get("message", "").strip()
+    proposal_mode = settings["proposal_mode"]
 
-        # Check for embedded offer in message
-        offer_line = ""
-        if "Offer Submitted:" in message:
-            offer_amount = message.split("Offer Submitted:")[-1].strip()
-            offer_line = f"\n\nNote: The lead has made a preliminary offer of {offer_amount}. Acknowledge and address it appropriately."
+    detail_instruction = "Keep it brief and to the point." if proposal_mode == "concise" else "Feel free to elaborate with a persuasive tone."
 
-        prompt = f"""
-        You are a helpful assistant trained to write elegant, human-sounding proposal emails.
-        The client communicates in a tone that is: {tone}.
-        Write in this voice: {ai_training}
+    prompt = f"""
+You are a helpful assistant trained to write elegant and on-brand proposal emails.
 
-        Generate a full email with:
-        - Subject: {subject}
-        - Greeting: {greeting} {lead_name}
-        - Body: Based on this inquiry: {message}
-        - Footer: {footer}
-        {offer_line}
+- The client's tone is: {tone}
+- The assistant should write in this voice: {ai_training}
+- Proposal Mode: {proposal_mode} – {detail_instruction}
 
-        Make it sound warm, persuasive, and professionally written.
-        """
+Please generate a full email with:
+- Subject: {subject}
+- Greeting: {greeting} {form_data['lead_name']}
+- Body: Based on this inquiry: {form_data['message']}
+- Signature/Footer: {footer}
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.85
-        )
+Make it sound human, thoughtful, and professional.
+"""
 
-        return response["choices"][0]["message"]["content"]
+    response = openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.8
+    )
 
-    except Exception as e:
-        return f"⚠️ Error generating proposal: {str(e)}"
+    return response["choices"][0]["message"]["content"]
