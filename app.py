@@ -74,43 +74,29 @@ def automation():
         """, (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode))
 
         conn.commit()
-        conn.close()
+
+        test_name = request.form.get("test_name")
+        test_message = request.form.get("test_message")
+        test_output = None
+
+        if test_name and test_message:
+            settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+            form_data = {
+                "lead_name": test_name,
+                "lead_email": email,
+                "message": test_message,
+            }
+            test_output = generate_proposal(settings, form_data)
+            conn.close()
+            return render_template("automation.html", settings=settings, test_output=test_output)
 
         flash("Your automation settings have been saved!", "success")
+        conn.close()
         return redirect(url_for("automation"))
 
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
-
     return render_template("automation.html", settings=settings)
-
-# ---------- TEST PROPOSAL ----------
-@app.route("/test_proposal", methods=["POST"])
-def test_proposal():
-    email = session.get("client_email")
-    if not email:
-        flash("Please log in first.", "error")
-        return redirect(url_for("login"))
-
-    conn = get_db_connection()
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-    conn.close()
-
-    if not settings:
-        flash("Please complete your automation settings first.", "error")
-        return redirect(url_for("automation"))
-
-    test_name = request.form.get("test_name")
-    test_message = request.form.get("test_message")
-
-    form_data = {
-        "lead_name": test_name or "Test User",
-        "lead_email": "test@example.com",
-        "message": test_message or "I’m interested in your luxury services."
-    }
-
-    output = generate_proposal(settings, form_data)
-    return render_template("automation.html", settings=settings, test_output=output)
 
 # ---------- SUBMIT PROPOSAL ----------
 @app.route("/submit_proposal", methods=["POST"])
@@ -144,7 +130,6 @@ def submit_proposal():
         form_data["message"] += f"\n\nOffer Submitted: ${offer_amount}"
 
     proposal_text = generate_proposal(settings, form_data)
-
     email_subject = settings['subject'] or "Your Proposal from Zyberfy"
     send_proposal_email(lead_email, email_subject, proposal_text)
 
@@ -159,7 +144,7 @@ def logout():
 
 # ---------- UTILS ----------
 def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
+    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
 # ---------- RUN ----------
 if __name__ == "__main__":
