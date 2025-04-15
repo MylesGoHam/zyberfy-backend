@@ -75,6 +75,8 @@ def automation():
 
         conn.commit()
 
+        flash("Your automation settings have been saved!", "success")
+
         test_name = request.form.get("test_name")
         test_message = request.form.get("test_message")
         test_output = None
@@ -90,13 +92,41 @@ def automation():
             conn.close()
             return render_template("automation.html", settings=settings, test_output=test_output)
 
-        flash("Your automation settings have been saved!", "success")
         conn.close()
         return redirect(url_for("automation"))
 
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
     return render_template("automation.html", settings=settings)
+
+# ---------- TEST PROPOSAL OUTPUT ----------
+@app.route("/test_proposal", methods=["POST"])
+def test_proposal():
+    email = session.get("client_email")
+    if not email:
+        flash("Please log in to test proposals.", "error")
+        return redirect(url_for("login"))
+
+    test_name = request.form.get("test_name")
+    test_message = request.form.get("test_message")
+
+    conn = get_db_connection()
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    if not settings:
+        flash("Automation settings not found.", "error")
+        return redirect(url_for("automation"))
+
+    form_data = {
+        "lead_name": test_name or "John",
+        "lead_email": "demo@example.com",
+        "message": test_message or "Looking for a weekend charter to Monaco."
+    }
+
+    proposal = generate_proposal(settings, form_data)
+
+    return render_template("automation.html", settings=settings, test_output=proposal)
 
 # ---------- SUBMIT PROPOSAL ----------
 @app.route("/submit_proposal", methods=["POST"])
