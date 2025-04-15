@@ -1,7 +1,9 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "zyberfy.db")
+# Always use the same absolute path on Render
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "zyberfy.db")
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
