@@ -7,12 +7,11 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_proposal(settings, form_data):
-    try:
-        subject = settings.get("subject", "Your Proposal from Our Team")
-        greeting = settings.get("greeting", "Hi")
-        tone = settings.get("tone", "Professional")
-        footer = settings.get("footer", "Best regards,")
-        ai_training = settings.get("ai_training", "Write clearly and persuasively.")
+    subject = settings["subject"]
+    greeting = settings["greeting"]
+    tone = settings["tone"]
+    footer = settings["footer"]
+    ai_training = settings["ai_training"]
         
         lead_name = form_data.get("lead_name", "there").strip()
         message = form_data.get("message", "").strip()
