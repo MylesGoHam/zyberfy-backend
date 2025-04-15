@@ -1,9 +1,10 @@
 import sqlite3
+import os
 
-DB_NAME = "zyberfy.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "zyberfy.db")
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
