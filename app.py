@@ -134,6 +134,37 @@ def submit_proposal():
 
     return render_template("thank_you.html", proposal=proposal_text)
 
+# ---------- TEST PROPOSAL OUTPUT ----------
+@app.route("/test_proposal", methods=["POST"])
+def test_proposal():
+    email = session.get("client_email")
+    if not email:
+        flash("Please log in to test automation.", "error")
+        return redirect(url_for("login"))
+
+    # Fetch settings
+    conn = get_db_connection()
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    if not settings:
+        flash("Please complete your automation settings first.", "error")
+        return redirect(url_for("automation"))
+
+    # Dummy form input to test output
+    form_data = {
+        "lead_name": "Alex",
+        "lead_email": "alex@example.com",
+        "message": "I'm interested in booking a private yacht for 5 days in June. Can you help?"
+    }
+
+    # Generate preview
+    from ai import generate_proposal
+    preview = generate_proposal(settings, form_data)
+
+    flash("Preview generated below.", "success")
+    return render_template("automation.html", settings=settings, test_output=preview)
+
 # ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
@@ -143,7 +174,7 @@ def logout():
 
 # ---------- UTILS ----------
 def is_valid_email(email):
-    return email == "hello@zyberfy.com" or re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$)", email) is not None
+    return email == "hello@zyberfy.com" or re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
 
 # ---------- RUN ----------
 if __name__ == "__main__":
