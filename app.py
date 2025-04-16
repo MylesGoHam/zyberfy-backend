@@ -73,10 +73,20 @@ def automation():
     conn.close()
     return render_template('automation.html', settings=settings)
 
-@app.route('/test_proposal', methods=['GET', 'POST'])
+@app.route('/test_proposal', methods=['GET'])
 def test_proposal():
     if 'email' not in session:
         return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    email = session['email']
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    if not settings:
+        return "⚠️ No automation settings found. Please save them first."
+
+    return render_template('test_proposal.html', settings=settings)
 
     conn = get_db_connection()
     email = session['email']
