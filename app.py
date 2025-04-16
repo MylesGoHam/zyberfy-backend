@@ -38,45 +38,6 @@ def automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    try:
-        conn = get_db_connection()
-        email = session['email']
-
-        if request.method == 'POST':
-            data = {
-                'subject': request.form.get('subject'),
-                'greeting': request.form.get('greeting'),
-                'tone': request.form.get('tone'),
-                'footer': request.form.get('footer'),
-                'ai_training': request.form.get('ai_training'),
-                'accept_msg': request.form.get('accept_msg'),
-                'decline_msg': request.form.get('decline_msg'),
-                'proposal_mode': request.form.get('proposal_mode')
-            }
-
-            conn.execute("""
-                INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(email) DO UPDATE SET
-                    subject=excluded.subject,
-                    greeting=excluded.greeting,
-                    tone=excluded.tone,
-                    footer=excluded.footer,
-                    ai_training=excluded.ai_training,
-                    accept_msg=excluded.accept_msg,
-                    decline_msg=excluded.decline_msg,
-                    proposal_mode=excluded.proposal_mode;
-            """, (email, data['subject'], data['greeting'], data['tone'], data['footer'],
-                  data['ai_training'], data['accept_msg'], data['decline_msg'], data['proposal_mode']))
-            conn.commit()
-
-        settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-        conn.close()
-        return render_template('automation.html', settings=settings)
-
-    except Exception as e:
-        return f"⚠️ Error in /automation: {str(e)}", 500
-
     conn = get_db_connection()
     email = session['email']
 
@@ -111,6 +72,11 @@ def automation():
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
     return render_template('automation.html', settings=settings)
+
+@app.route('/test_proposal')
+def test_proposal():
+    # This is a temporary test route to stop the automation page from breaking
+    return "✅ Test proposal route is working!"
 
 @app.route('/logout')
 def logout():
