@@ -19,11 +19,10 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Price IDs
 PRICE_IDS = {
-    'starter': 'price_1REQ6RKpgIhBPea4EMSakXdq',
-    'pro': 'price_1REQ73KpgIhBPea4lcMQPz65',
-    'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'
+    'starter': 'price_NEW_299_ID',
+    'pro': 'price_NEW_599_ID',
+    'elite': 'price_NEW_1299_ID'
 }
 
 # Create required tables
