@@ -27,7 +27,7 @@
     }
 
     .menu-icon {
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       cursor: pointer;
       background: none;
       border: none;
@@ -105,12 +105,12 @@
   <!-- Header -->
   <header>
     <div class="logo">Zyberfy</div>
-    <div style="display: flex; align-items: center; gap: 20px;">
-      <a href="/login" style="font-weight: 600; color: #1e40af; text-decoration: none; font-size: 1rem;">Login</a>
-      <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-    </div>
-    <div id="dropdownMenu" class="dropdown">
-      <a href="/login">Login</a>
+    <div>
+      <button class="menu-icon" onclick="toggleDropdown()">⋯</button>
+      <div id="dropdownMenu" class="dropdown">
+        <a href="/login">Login</a>
+        <a href="/memberships">Memberships</a>
+      </div>
     </div>
   </header>
 
@@ -129,14 +129,14 @@
   <!-- Dropdown Script -->
   <script>
     function toggleDropdown() {
-      const menu = document.getElementById("dropdownMenu");
-      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+      const dropdown = document.getElementById("dropdownMenu");
+      dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
     }
 
     document.addEventListener("click", function(event) {
       const dropdown = document.getElementById("dropdownMenu");
-      const menuIcon = document.querySelector(".menu-icon");
-      if (!dropdown.contains(event.target) && !menuIcon.contains(event.target)) {
+      const button = document.querySelector(".menu-icon");
+      if (!dropdown.contains(event.target) && !button.contains(event.target)) {
         dropdown.style.display = "none";
       }
     });
