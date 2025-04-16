@@ -22,7 +22,7 @@
           <li>✓ Email automation</li>
         </ul>
         <form action="/create-checkout-session" method="POST">
-          <input type="hidden" name="plan" value="starter">
+          <input type="hidden" name="price_id" value="price_1RERprKpgIhBPea4U7zezbWd">
           <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Subscribe</button>
         </form>
       </div>
@@ -37,7 +37,7 @@
           <li>✓ Live chat + notifications</li>
         </ul>
         <form action="/create-checkout-session" method="POST">
-          <input type="hidden" name="plan" value="pro">
+          <input type="hidden" name="price_id" value="price_1RERpGKpgIhBPea4wZhu3gEC">
           <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Subscribe</button>
         </form>
       </div>
@@ -52,41 +52,40 @@
           <li>✓ White-glove onboarding</li>
         </ul>
         <form action="/create-checkout-session" method="POST">
-          <input type="hidden" name="plan" value="elite">
+          <input type="hidden" name="price_id" value="price_1REQ7RKpgIhBPea4NnXjzTMN">
           <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Subscribe</button>
         </form>
       </div>
 
     </div>
 
-    <!-- Feature comparison table (optional) -->
-    <div class="mt-16">
-      <h2 class="text-2xl font-bold mb-4 text-center">Feature Comparison</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left border border-gray-300 rounded">
-          <thead>
-            <tr class="bg-gray-200 text-gray-700">
-              <th class="p-3">Feature</th>
-              <th class="p-3">Starter</th>
-              <th class="p-3">Pro</th>
-              <th class="p-3">Elite</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white">
-            <tr><td class="p-3">AI proposal generation</td><td class="p-3">✓</td><td class="p-3">✓</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">Proposal test preview</td><td class="p-3">✓</td><td class="p-3">✓</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">Edit voice/tone anytime</td><td class="p-3">✗</td><td class="p-3">✓</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">Proposal analytics</td><td class="p-3">✗</td><td class="p-3">✓</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">SMS alerts</td><td class="p-3">✗</td><td class="p-3">✓</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">AI follow-up messages</td><td class="p-3">✗</td><td class="p-3">✗</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">Brand memory</td><td class="p-3">✗</td><td class="p-3">✗</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">White-label branding</td><td class="p-3">✗</td><td class="p-3">Limited</td><td class="p-3">✓</td></tr>
-            <tr><td class="p-3">Stripe offers</td><td class="p-3">1</td><td class="p-3">5</td><td class="p-3">Unlimited</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- Feature Comparison Chart -->
+    <div class="mt-20 overflow-x-auto">
+      <h2 class="text-2xl font-bold text-center mb-6">Feature Comparison</h2>
+      <table class="min-w-full border border-gray-300 text-center text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-3 border">Feature</th>
+            <th class="px-4 py-3 border">Starter</th>
+            <th class="px-4 py-3 border">Pro</th>
+            <th class="px-4 py-3 border">Elite</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr><td class="border px-4 py-2">AI proposal generation</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Proposal test preview</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Edit voice/tone anytime</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Proposal analytics</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">SMS alerts + reply via text</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI follow-up messages</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI memory / tone learning</td><td>✗</td><td>✗</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">White-label branding</td><td>✗</td><td>Limited</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Stripe offers (active at once)</td><td>1</td><td>5</td><td>Unlimited</td></tr>
+          <tr><td class="border px-4 py-2">Copy/QR/Share features</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI-generated bios/web copy</td><td>✗</td><td>✗</td><td>✓</td></tr>
+        </tbody>
+      </table>
     </div>
-
   </div>
 </body>
 </html>
