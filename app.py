@@ -1,74 +1,59 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
-from dotenv import load_dotenv
-from ai import generate_proposal
-from email_utils import send_proposal_email
 import os
-import re
-from models import create_automation_table, get_db_connection
-
-# Load environment variables
-load_dotenv()
+import sqlite3
+from flask import Flask, render_template, request, redirect, session, url_for
+from models import create_automation_table
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
+# Ensure automation_settings table exists on startup
+create_automation_table()
 
-# ---------- INDEX ----------
-@app.route("/")
+def get_db_connection():
+    conn = sqlite3.connect("zyberfy.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+@app.route('/')
 def home():
-    return render_template("index.html")
+    return render_template('index.html')
 
-
-# ---------- LOGIN ----------
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        email = request.form.get("email")
-        if not is_valid_email(email):
-            flash("Invalid email format.", "error")
-            return redirect(url_for("login"))
-        session["client_email"] = email
-        flash("Welcome back!", "success")
-        return redirect(url_for("dashboard"))
-    return render_template("login.html")
+    if request.method == 'POST':
+        email = request.form['email']
+        session['email'] = email
+        return redirect(url_for('dashboard'))
+    return render_template('login.html')
 
-
-# ---------- DASHBOARD ----------
-@app.route("/dashboard")
+@app.route('/dashboard')
 def dashboard():
-    email = session.get("client_email")
-    if not email:
-        flash("Please log in to access the dashboard.", "error")
-        return redirect(url_for("login"))
-    return render_template("dashboard.html", email=email)
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    return render_template('dashboard.html', email=session['email'])
 
-
-# ---------- AUTOMATION SETTINGS ----------
-@app.route("/automation", methods=["GET", "POST"])
+@app.route('/automation', methods=['GET', 'POST'])
 def automation():
-    email = session.get("client_email")
-    if not email:
-        flash("Please log in to access automation settings.", "error")
-        return redirect(url_for("login"))
+    if 'email' not in session:
+        return redirect(url_for('login'))
 
     conn = get_db_connection()
+    email = session['email']
 
-    if request.method == "POST":
-        subject = request.form.get("subject")
-        greeting = request.form.get("greeting")
-        tone = request.form.get("tone")
-        footer = request.form.get("footer")
-        ai_training = request.form.get("ai_training")
-        accept_msg = request.form.get("accept_msg")
-        decline_msg = request.form.get("decline_msg")
-        proposal_mode = request.form.get("proposal_mode") or "concise"
+    if request.method == 'POST':
+        data = {
+            'subject': request.form.get('subject'),
+            'greeting': request.form.get('greeting'),
+            'tone': request.form.get('tone'),
+            'footer': request.form.get('footer'),
+            'ai_training': request.form.get('ai_training'),
+            'accept_msg': request.form.get('accept_msg'),
+            'decline_msg': request.form.get('decline_msg'),
+            'proposal_mode': request.form.get('proposal_mode')
+        }
 
-        # Save or update automation settings
         conn.execute("""
-            INSERT INTO automation_settings (
-                email, subject, greeting, tone, footer, ai_training,
-                accept_msg, decline_msg, proposal_mode
-            )
+            INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 subject=excluded.subject,
@@ -79,91 +64,18 @@ def automation():
                 accept_msg=excluded.accept_msg,
                 decline_msg=excluded.decline_msg,
                 proposal_mode=excluded.proposal_mode;
-        """, (email, subject, greeting, tone, footer, ai_training,
-              accept_msg, decline_msg, proposal_mode))
+        """, (email, data['subject'], data['greeting'], data['tone'], data['footer'],
+              data['ai_training'], data['accept_msg'], data['decline_msg'], data['proposal_mode']))
         conn.commit()
-
-        # Optional test preview
-        test_name = request.form.get("test_name")
-        test_message = request.form.get("test_message")
-        test_output = None
-
-        if test_name and test_message:
-            settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-            conn.close()
-            form_data = {
-                "lead_name": test_name,
-                "lead_email": email,
-                "message": test_message
-            }
-            try:
-                test_output = generate_proposal(settings, form_data)
-            except Exception as e:
-                test_output = f"⚠️ Error generating proposal: {e}"
-            return render_template("automation.html", settings=settings, test_output=test_output)
-
-        flash("Your automation settings have been saved!", "success")
-        settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-        conn.close()
-        return render_template("automation.html", settings=settings)
 
     settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
     conn.close()
-    return render_template("automation.html", settings=settings)
+    return render_template('automation.html', settings=settings)
 
-
-# ---------- SUBMIT PROPOSAL ----------
-@app.route("/submit_proposal", methods=["POST"])
-def submit_proposal():
-    lead_name = request.form.get("lead_name")
-    lead_email = request.form.get("lead_email")
-    message = request.form.get("message")
-    inquiry_type = request.form.get("inquiry_type")
-    offer_amount = request.form.get("offer_amount")
-    client_email = request.form.get("client_email") or session.get("client_email")
-
-    if not client_email:
-        flash("Client information is missing.", "error")
-        return redirect(url_for("home"))
-
-    conn = get_db_connection()
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (client_email,)).fetchone()
-    conn.close()
-
-    if not settings:
-        flash("Client automation settings not found.", "error")
-        return redirect(url_for("home"))
-
-    form_data = {
-        "lead_name": lead_name,
-        "lead_email": lead_email,
-        "message": message
-    }
-
-    if inquiry_type == "offer" and offer_amount:
-        form_data["message"] += f"\n\nOffer Submitted: ${offer_amount}"
-
-    proposal_text = generate_proposal(settings, form_data)
-    email_subject = settings["subject"] or "Your Proposal from Zyberfy"
-    send_proposal_email(lead_email, email_subject, proposal_text)
-
-    return render_template("thank_you.html", proposal=proposal_text)
-
-
-# ---------- LOGOUT ----------
-@app.route("/logout")
+@app.route('/logout')
 def logout():
-    session.pop("client_email", None)
-    flash("Logged out successfully.", "success")
-    return redirect(url_for("login"))
+    session.clear()
+    return redirect(url_for('login'))
 
-
-# ---------- UTILS ----------
-def is_valid_email(email):
-    return re.match(r"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)", email) is not None
-
-
-# ---------- RUN ----------
-if __name__ == "__main__":
-    create_automation_table()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
