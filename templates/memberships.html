@@ -1,62 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Memberships – Zyberfy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans">
-  <div class="text-center mt-16">
-    <h1 class="text-4xl font-bold text-gray-900">Choose Your Membership</h1>
-    <p class="text-gray-600 mt-2">Unlock the full power of AI proposal automation</p>
+<section class="bg-white py-16 px-6 lg:px-32">
+  <h2 class="text-3xl font-semibold text-center text-gray-800 mb-8">Feature Comparison</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm border-collapse border border-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="border border-gray-200 px-4 py-3 font-medium text-gray-700">Feature</th>
+          <th class="border border-gray-200 px-4 py-3 font-medium text-center text-gray-700">Starter</th>
+          <th class="border border-gray-200 px-4 py-3 font-medium text-center text-gray-700">Pro</th>
+          <th class="border border-gray-200 px-4 py-3 font-medium text-center text-gray-700">Elite</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        <tr>
+          <td class="border px-4 py-3">AI proposal generation</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border px-4 py-3">Proposal test preview</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-3">Edit voice/tone anytime</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border px-4 py-3">Proposal analytics</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-3">SMS alerts + reply via text</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border px-4 py-3">AI follow-up messages</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-3">AI memory / tone learning</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border px-4 py-3">White-label branding</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">Limited</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-3">Stripe offers (active at once)</td>
+          <td class="border px-4 py-3 text-center">1</td>
+          <td class="border px-4 py-3 text-center">5</td>
+          <td class="border px-4 py-3 text-center">Unlimited</td>
+        </tr>
+        <tr class="bg-gray-50">
+          <td class="border px-4 py-3">Copy/QR/Share features</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-3">AI-generated bios/web copy</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✘</td>
+          <td class="border px-4 py-3 text-center">✔</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-
-  <div class="flex justify-center flex-wrap gap-6 mt-12 px-4">
-    <!-- Starter Plan -->
-    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
-      <h2 class="text-xl font-semibold text-gray-900">Starter</h2>
-      <p class="text-3xl font-bold mt-2">$297</p>
-      <ul class="text-sm text-gray-600 mt-4 space-y-2">
-        <li>Up to 10 AI-generated proposals/mo</li>
-        <li>Basic customization (tone, footer)</li>
-        <li>Email automation tools</li>
-        <li>1 brand voice</li>
-      </ul>
-      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
-    </div>
-
-    <!-- Pro Plan -->
-    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
-      <h2 class="text-xl font-semibold text-gray-900">Pro</h2>
-      <p class="text-3xl font-bold mt-2">$597</p>
-      <ul class="text-sm text-gray-600 mt-4 space-y-2">
-        <li>Up to 30 AI-generated proposals/mo</li>
-        <li>Full tone & brand customization</li>
-        <li>Client onboarding tools</li>
-        <li>Proposal performance analytics</li>
-        <li>2 brand voices</li>
-      </ul>
-      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
-    </div>
-
-    <!-- Elite Plan -->
-    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
-      <h2 class="text-xl font-semibold text-gray-900">Elite</h2>
-      <p class="text-3xl font-bold mt-2">$1297</p>
-      <ul class="text-sm text-gray-600 mt-4 space-y-2">
-        <li>Unlimited proposals/mo</li>
-        <li>Full white-glove customization</li>
-        <li>Team & client dashboard access</li>
-        <li>SMS & real-time lead alerts</li>
-        <li>Priority support & AI tone memory</li>
-      </ul>
-      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
-    </div>
-  </div>
-
-  <div class="text-center mt-10 text-sm text-gray-500">
-    Need help deciding? <a href="/contact" class="text-blue-600 font-medium">Contact us</a>
-  </div>
-</body>
-</html>
+</section>
