@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import openai
 from flask import Flask, render_template, request, redirect, session, url_for
 from models import create_automation_table
 
@@ -86,7 +87,31 @@ def test_proposal():
     if not settings:
         return "⚠️ No automation settings found. Please save them first."
 
-    return render_template('test_proposal.html', settings=settings)
+    prompt = f"""
+Generate a sample email proposal using the following settings:
+- Subject: {settings['subject']}
+- Greeting: {settings['greeting']}
+- Tone: {settings['tone']}
+- Signature/Footer: {settings['footer']}
+- Voice/Style Guidance: {settings['ai_training']}
+- Use {'a concise' if settings['proposal_mode'] == 'concise' else 'a detailed'} format.
+
+This is for a lead who just filled out a proposal form. Be persuasive, friendly, and aligned with the tone.
+"""
+
+    try:
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400,
+            temperature=0.8
+        )
+        generated_email = response['choices'][0]['message']['content']
+    except Exception as e:
+        return f"❌ OpenAI error: {e}"
+
+    return render_template("test_proposal.html", settings=settings, generated_email=generated_email)
 
 @app.route('/logout')
 def logout():
