@@ -1,11 +1,20 @@
 import os
 import sqlite3
-import openai
 from flask import Flask, render_template, request, redirect, session, url_for
+from dotenv import load_dotenv
+import stripe
+import openai
 from models import create_automation_table
 
+# Load environment variables
+load_dotenv()
+
+# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
+
+# Set Stripe secret key
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 # Ensure automation_settings table exists on startup
 create_automation_table()
@@ -79,12 +88,40 @@ def subscribe():
     plan = request.form.get('plan')
     return f"🛠️ Stripe subscription logic coming soon for plan: {plan}"
 
+@app.route('/billing')
+def billing():
+    return render_template('billing.html')
+
 @app.route('/memberships')
 def memberships():
     plans = [
-        {"id": "starter", "name": "Starter", "description": "Up to 10 AI proposals per month", "price": 297},
-        {"id": "growth", "name": "Growth", "description": "Up to 30 AI proposals per month", "price": 597},
-        {"id": "elite", "name": "Elite", "description": "Unlimited proposals & concierge support", "price": 1297},
+        {
+            'name': 'Starter',
+            'price': '$297/mo',
+            'features': [
+                'Up to 10 AI Proposals/month',
+                'Basic Email Automation',
+                'Email Support'
+            ]
+        },
+        {
+            'name': 'Pro',
+            'price': '$597/mo',
+            'features': [
+                'Up to 30 AI Proposals/month',
+                'Advanced Automation Settings',
+                'Priority Support'
+            ]
+        },
+        {
+            'name': 'Elite',
+            'price': '$1297/mo',
+            'features': [
+                'Unlimited Proposals',
+                'Full White-Glove Setup',
+                'Dedicated Account Manager'
+            ]
+        }
     ]
     return render_template('memberships.html', plans=plans)
 
