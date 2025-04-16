@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from dotenv import load_dotenv
 import os
 import sqlite3
@@ -9,14 +9,24 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
+# Stripe API Key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
+# Stripe Price IDs
+PRICE_IDS = {
+    'starter': 'price_1REQ6RKpgIhBPea4EMSakXdq',
+    'pro': 'price_1REQ73KpgIhBPea4lcMQPz65',
+    'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'
+}
+
+# DB Connection
 def get_db_connection():
     db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -46,27 +56,31 @@ def memberships():
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    price_id = request.form.get('price_id')
-    if not price_id:
-        return "Missing price ID", 400
+    data = request.get_json()
+    plan = data.get('plan')
+
+    if plan not in PRICE_IDS:
+        return jsonify({'error': 'Invalid plan'}), 400
 
     try:
-        checkout_session = stripe.checkout.Session.create(
-            success_url=url_for('dashboard', _external=True) + '?success=true',
-            cancel_url=url_for('memberships', _external=True) + '?canceled=true',
+        session_obj = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            mode='subscription',
             line_items=[{
-                'price': price_id,
+                'price': PRICE_IDS[plan],
                 'quantity': 1,
             }],
+            mode='subscription',
+            success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('memberships', _external=True),
             metadata={
-                "user_email": session.get('email', 'guest')
+                'plan': plan,
+                'user_email': session.get('email', 'guest')
             }
         )
-        return redirect(checkout_session.url, code=303)
+        return jsonify({'url': session_obj.url})
     except Exception as e:
-        return f"Checkout failed: {e}", 500
+        return jsonify(error=str(e)), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/success')
+def success():
+    return render_template('success.html')  # You can create a proper thank you page
