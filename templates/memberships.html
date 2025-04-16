@@ -1,119 +1,63 @@
-<!-- templates/memberships.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Memberships | Zyberfy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Zyberfy – Membership Plans</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-900">
+  <div class="max-w-7xl mx-auto py-16 px-6">
+    <h1 class="text-4xl font-bold text-center text-blue-800 mb-4">Choose Your Plan</h1>
+    <p class="text-center text-gray-600 mb-12">Upgrade your business with effortless automation and AI-powered proposals.</p>
 
-    <div class="text-center py-12">
-        <h1 class="text-3xl font-bold">Choose the Perfect Plan</h1>
-        <p class="text-gray-600 mt-2">From solo founders to elite concierge brands, pick the plan that suits you best.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Starter Plan -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+        <h2 class="text-xl font-semibold text-blue-700 mb-2">Starter</h2>
+        <p class="text-3xl font-bold text-blue-900 mb-4">$299<span class="text-sm font-normal text-gray-500">/mo</span></p>
+        <ul class="text-left space-y-2 mb-6 text-sm text-gray-700">
+          <li>✓ Up to 10 AI-generated proposals</li>
+          <li>✓ Email Automation</li>
+          <li>✓ Standard Support</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST">
+          <input type="hidden" name="price_id" value="price_1RERprKpgIhBPea4U7zezbWd">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl transition">Subscribe for $299/mo</button>
+        </form>
+      </div>
+
+      <!-- Pro Plan -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg text-center border-2 border-blue-600 scale-105">
+        <h2 class="text-xl font-semibold text-blue-700 mb-2">Pro</h2>
+        <p class="text-3xl font-bold text-blue-900 mb-4">$599<span class="text-sm font-normal text-gray-500">/mo</span></p>
+        <ul class="text-left space-y-2 mb-6 text-sm text-gray-700">
+          <li>✓ Up to 30 AI-generated proposals</li>
+          <li>✓ Analytics Dashboard</li>
+          <li>✓ Priority Support + Live Chat</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST">
+          <input type="hidden" name="price_id" value="price_1RERpGKpgIhBPea4wZhu3gEC">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl transition">Subscribe for $599/mo</button>
+        </form>
+      </div>
+
+      <!-- Elite Plan -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+        <h2 class="text-xl font-semibold text-blue-700 mb-2">Elite</h2>
+        <p class="text-3xl font-bold text-blue-900 mb-4">$1299<span class="text-sm font-normal text-gray-500">/mo</span></p>
+        <ul class="text-left space-y-2 mb-6 text-sm text-gray-700">
+          <li>✓ Unlimited AI proposals</li>
+          <li>✓ White-Glove Setup</li>
+          <li>✓ Dedicated Account Manager</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST">
+          <input type="hidden" name="price_id" value="price_1REQ7RKpgIhBPea4NnXjzTMN">
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl transition">Subscribe for $1299/mo</button>
+        </form>
+      </div>
+
     </div>
-
-    <!-- Pricing Cards -->
-    <div class="flex flex-col md:flex-row justify-center items-center gap-8 px-6">
-        <!-- Starter -->
-        <div class="bg-white rounded-xl shadow-md p-6 w-full max-w-sm text-center">
-            <h3 class="text-xl font-semibold mb-1">Starter</h3>
-            <p class="text-3xl font-bold text-blue-600 mb-4">$297</p>
-            <ul class="text-left mb-6 space-y-2 text-sm">
-                <li>✓ 10 AI-generated proposals/month</li>
-                <li>✓ Personal tone settings</li>
-                <li>✓ Email automation</li>
-            </ul>
-            <form method="POST" action="/create-checkout-session">
-                <input type="hidden" name="price_id" value="price_1REQ6RKpgIhBPea4EMSakXdq">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
-                    Subscribe
-                </button>
-            </form>
-        </div>
-
-        <!-- Pro -->
-        <div class="bg-white rounded-xl shadow-md p-6 w-full max-w-sm text-center border-2 border-blue-600">
-            <h3 class="text-xl font-semibold mb-1">Pro</h3>
-            <p class="text-3xl font-bold text-blue-600 mb-4">$597</p>
-            <ul class="text-left mb-6 space-y-2 text-sm">
-                <li>✓ 30 AI proposals/month</li>
-                <li>✓ Analytics dashboard</li>
-                <li>✓ Live chat + notifications</li>
-            </ul>
-            <form method="POST" action="/create-checkout-session">
-                <input type="hidden" name="price_id" value="price_1REQ73KpgIhBPea4lcMQPz65">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
-                    Subscribe
-                </button>
-            </form>
-        </div>
-
-        <!-- Elite -->
-        <div class="bg-white rounded-xl shadow-md p-6 w-full max-w-sm text-center">
-            <h3 class="text-xl font-semibold mb-1">Elite</h3>
-            <p class="text-3xl font-bold text-blue-600 mb-4">$1297</p>
-            <ul class="text-left mb-6 space-y-2 text-sm">
-                <li>✓ Unlimited proposals</li>
-                <li>✓ AI memory & brand training</li>
-                <li>✓ White-glove onboarding</li>
-            </ul>
-            <form method="POST" action="/create-checkout-session">
-                <input type="hidden" name="price_id" value="price_1REQ7RKpgIhBPea4NnXjzTMN">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
-                    Subscribe
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Feature Comparison Table -->
-    <div class="max-w-5xl mx-auto my-16 px-4">
-        <h2 class="text-2xl font-bold mb-4 text-center">Feature Comparison</h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white rounded-lg shadow overflow-hidden">
-                <thead class="bg-gray-200 text-sm text-gray-700">
-                    <tr>
-                        <th class="text-left px-6 py-3">Feature</th>
-                        <th class="text-center px-6 py-3">Starter</th>
-                        <th class="text-center px-6 py-3">Pro</th>
-                        <th class="text-center px-6 py-3">Elite</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm">
-                    {% set features = [
-                        ["AI proposal generation", True, True, True],
-                        ["Proposal test preview", True, True, True],
-                        ["Edit voice/tone anytime", False, False, True],
-                        ["Proposal analytics", False, True, True],
-                        ["SMS alerts + reply via text", False, True, True],
-                        ["AI follow-up messages", False, True, True],
-                        ["AI memory / tone learning", False, False, True],
-                        ["White-label branding", False, "Limited", True],
-                        ["Stripe offers (active at once)", "1", "5", "Unlimited"],
-                        ["Copy/QR/Share features", True, True, True],
-                        ["AI-generated bios/web copy", False, False, True],
-                    ] %}
-                    {% for row in features %}
-                        <tr class="border-t">
-                            <td class="px-6 py-3">{{ row[0] }}</td>
-                            {% for val in row[1:] %}
-                                <td class="text-center px-6 py-3">
-                                    {% if val == True %}
-                                        ✓
-                                    {% elif val == False %}
-                                        ✕
-                                    {% else %}
-                                        {{ val }}
-                                    {% endif %}
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+  </div>
 </body>
 </html>
