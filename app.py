@@ -73,10 +73,32 @@ def automation():
     conn.close()
     return render_template('automation.html', settings=settings)
 
-@app.route('/test_proposal')
+@app.route('/test_proposal', methods=['GET', 'POST'])
 def test_proposal():
-    # This is a temporary test route to stop the automation page from breaking
-    return "✅ Test proposal route is working!"
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    email = session['email']
+    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    if not settings:
+        return "⚠️ No automation settings found. Please save them first."
+
+    sample_output = f"""
+    {settings['greeting']} – Here’s your proposal!
+
+    Subject: {settings['subject']}
+    Tone: {settings['tone']}
+    Signature: {settings['footer']}
+    AI Style: {settings['ai_training']}
+    Accept Msg: {settings['accept_msg']}
+    Decline Msg: {settings['decline_msg']}
+    Mode: {settings['proposal_mode']}
+    """
+
+    return f"<pre>{sample_output}</pre>"
 
 @app.route('/logout')
 def logout():
