@@ -8,6 +8,9 @@ from models import create_automation_table, create_subscriptions_table, get_db_c
 # Load environment variables
 load_dotenv()
 
+# Debug check to make sure key loads properly
+print("Stripe Key Loaded:", os.getenv("STRIPE_SECRET_KEY"))  # TEMP: Debug
+
 # Initialize Flask
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
