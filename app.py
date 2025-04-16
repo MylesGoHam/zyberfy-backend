@@ -74,6 +74,15 @@ def automation():
     conn.close()
     return render_template('automation.html', settings=settings)
 
+@app.route('/memberships')
+def memberships():
+    plans = [
+        {"id": "starter", "name": "Starter", "description": "Up to 10 AI proposals per month", "price": 297},
+        {"id": "growth", "name": "Growth", "description": "Up to 30 AI proposals per month", "price": 597},
+        {"id": "elite", "name": "Elite", "description": "Unlimited proposals & concierge support", "price": 1297},
+    ]
+    return render_template('memberships.html', plans=plans)
+
 @app.route('/test_proposal', methods=['GET'])
 def test_proposal():
     if 'email' not in session:
