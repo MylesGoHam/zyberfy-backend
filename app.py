@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 import stripe
+from models import create_automation_table, create_subscriptions_table, get_db_connection
 
 load_dotenv()
 
@@ -13,18 +14,16 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Pricing plan Stripe IDs
+# Create necessary tables
+create_automation_table()
+create_subscriptions_table()
+
+# Stripe plan price IDs
 PRICE_IDS = {
     'starter': 'price_1REQ6RKpgIhBPea4EMSakXdq',
     'pro': 'price_1REQ73KpgIhBPea4lcMQPz65',
     'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'
 }
-
-def get_db_connection():
-    db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 @app.route('/')
 def home():
@@ -42,7 +41,16 @@ def login():
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', email=session['email'])
+
+    conn = get_db_connection()
+    subscription = conn.execute("SELECT stripe_subscription_id FROM subscriptions WHERE email = ?", (session['email'],)).fetchone()
+    conn.close()
+
+    plan_status = "Free"
+    if subscription:
+        plan_status = "Active Subscription"
+
+    return render_template('dashboard.html', email=session['email'], plan_status=plan_status)
 
 @app.route('/logout')
 def logout():
@@ -77,7 +85,7 @@ def create_checkout_session():
     except Exception as e:
         return f"Checkout failed: {e}", 500
 
-@app.route("/webhook", methods=["POST"])
+@app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
@@ -93,10 +101,15 @@ def stripe_webhook():
         session_obj = event["data"]["object"]
         customer_email = session_obj.get("customer_email")
         subscription_id = session_obj.get("subscription")
-        price_id = session_obj.get("items", {}).get("data", [{}])[0].get("price", {}).get("id", "unknown")
 
-        # TODO: Save subscription info to DB here
-        print(f"✅ Checkout complete: {customer_email} subscribed to {price_id} (sub_id: {subscription_id})")
+        if customer_email and subscription_id:
+            conn = get_db_connection()
+            conn.execute(
+                "INSERT INTO subscriptions (email, stripe_subscription_id) VALUES (?, ?) ON CONFLICT(email) DO UPDATE SET stripe_subscription_id = ?",
+                (customer_email, subscription_id, subscription_id)
+            )
+            conn.commit()
+            conn.close()
 
     return jsonify(success=True)
 
