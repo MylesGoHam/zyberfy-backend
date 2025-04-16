@@ -9,24 +9,22 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
-# Stripe API Key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-# Stripe Price IDs
+# Add your actual price IDs here
 PRICE_IDS = {
     'starter': 'price_1REQ6RKpgIhBPea4EMSakXdq',
     'pro': 'price_1REQ73KpgIhBPea4lcMQPz65',
     'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'
 }
 
-# DB Connection
+# DB connection function
 def get_db_connection():
     db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
-# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -43,7 +41,12 @@ def login():
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', email=session['email'])
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (session['email'],)).fetchone()
+    conn.close()
+
+    return render_template('dashboard.html', email=session['email'], membership=user['membership'] if user else 'None')
 
 @app.route('/logout')
 def logout():
@@ -56,31 +59,58 @@ def memberships():
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    data = request.get_json()
-    plan = data.get('plan')
-
-    if plan not in PRICE_IDS:
-        return jsonify({'error': 'Invalid plan'}), 400
+    price_id = request.form.get('price_id')
+    if not price_id:
+        return "Missing price ID", 400
 
     try:
-        session_obj = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price': PRICE_IDS[plan],
-                'quantity': 1,
-            }],
-            mode='subscription',
+        checkout_session = stripe.checkout.Session.create(
             success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=url_for('memberships', _external=True),
+            payment_method_types=['card'],
+            mode='subscription',
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
             metadata={
-                'plan': plan,
-                'user_email': session.get('email', 'guest')
+                "user_email": session.get('email', 'guest')
             }
         )
-        return jsonify({'url': session_obj.url})
+        return redirect(checkout_session.url, code=303)
     except Exception as e:
-        return jsonify(error=str(e)), 500
+        return f"Checkout failed: {e}", 500
 
 @app.route('/success')
 def success():
-    return render_template('success.html')  # You can create a proper thank you page
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return "Session ID missing.", 400
+
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        customer_email = checkout_session.metadata.get('user_email')
+        price_id = checkout_session['display_items'][0]['price']['id'] if 'display_items' in checkout_session else checkout_session['line_items']['data'][0]['price']['id']
+
+        membership = next((tier for tier, id in PRICE_IDS.items() if id == price_id), None)
+
+        if customer_email and membership:
+            conn = get_db_connection()
+            conn.execute("""
+                INSERT INTO users (email, membership)
+                VALUES (?, ?)
+                ON CONFLICT(email) DO UPDATE SET membership=excluded.membership
+            """, (customer_email, membership))
+            conn.commit()
+            conn.close()
+
+            session['email'] = customer_email
+
+            return redirect(url_for('dashboard'))
+        else:
+            return "Could not determine membership tier.", 400
+    except Exception as e:
+        return f"Stripe session error: {e}", 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
