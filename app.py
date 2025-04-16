@@ -12,18 +12,18 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
-# Stripe config
+# Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Updated Stripe Price IDs
+# Price IDs from .env
 PRICE_IDS = {
-    'starter': 'price_1RERprKpgIhBPea4U7zezbWd',  # $299
-    'pro': 'price_1RERpGKpgIhBPea4wZhu3gEC',      # $599
-    'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'     # $1299
+    'starter': os.getenv("STRIPE_STARTER_PRICE_ID"),
+    'pro': os.getenv("STRIPE_PRO_PRICE_ID"),
+    'elite': os.getenv("STRIPE_ELITE_PRICE_ID"),
 }
 
-# Create required tables
+# Create tables
 create_automation_table()
 create_subscriptions_table()
 
@@ -65,13 +65,15 @@ def logout():
 
 @app.route('/memberships')
 def memberships():
-    return render_template('memberships.html', price_ids=PRICE_IDS)
+    return render_template('memberships.html')
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    price_id = request.form.get('price_id')
+    plan = request.form.get('plan')
+    price_id = PRICE_IDS.get(plan)
+
     if not price_id:
-        return "Missing price ID", 400
+        return "Invalid or missing plan", 400
 
     try:
         checkout_session = stripe.checkout.Session.create(
