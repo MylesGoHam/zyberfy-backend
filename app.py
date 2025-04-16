@@ -74,6 +74,11 @@ def automation():
     conn.close()
     return render_template('automation.html', settings=settings)
 
+@app.route('/subscribe', methods=['POST'])
+def subscribe():
+    plan = request.form.get('plan')
+    return f"🛠️ Stripe subscription logic coming soon for plan: {plan}"
+
 @app.route('/memberships')
 def memberships():
     plans = [
