@@ -1,39 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Memberships - Zyberfy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memberships – Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="max-w-6xl mx-auto py-12 px-4">
-        <h1 class="text-4xl font-bold text-center mb-4">Choose Your Membership</h1>
-        <p class="text-center text-gray-600 mb-10">Unlock the full power of AI proposal automation</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {% for plan in plans %}
-            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-2xl font-semibold mb-2 text-center">{{ plan.name }}</h2>
-                    <p class="text-center text-3xl font-bold mb-4">{{ plan.price }}</p>
-                    <ul class="space-y-2 text-sm mb-6">
-                        {% for feature in plan.features %}
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span> {{ feature }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="text-center">
-                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">
-                        Coming Soon
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="mt-10 text-center text-sm text-gray-500">
-            Need help deciding? <a href="/contact" class="underline">Contact us</a>
-        </div>
+<body class="bg-gray-100 font-sans">
+  <div class="text-center mt-16">
+    <h1 class="text-4xl font-bold text-gray-900">Choose Your Membership</h1>
+    <p class="text-gray-600 mt-2">Unlock the full power of AI proposal automation</p>
+  </div>
+
+  <div class="flex justify-center flex-wrap gap-6 mt-12 px-4">
+    <!-- Starter Plan -->
+    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
+      <h2 class="text-xl font-semibold text-gray-900">Starter</h2>
+      <p class="text-3xl font-bold mt-2">$297</p>
+      <ul class="text-sm text-gray-600 mt-4 space-y-2">
+        <li>Up to 10 AI-generated proposals/mo</li>
+        <li>Basic customization (tone, footer)</li>
+        <li>Email automation tools</li>
+        <li>1 brand voice</li>
+      </ul>
+      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
     </div>
+
+    <!-- Pro Plan -->
+    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
+      <h2 class="text-xl font-semibold text-gray-900">Pro</h2>
+      <p class="text-3xl font-bold mt-2">$597</p>
+      <ul class="text-sm text-gray-600 mt-4 space-y-2">
+        <li>Up to 30 AI-generated proposals/mo</li>
+        <li>Full tone & brand customization</li>
+        <li>Client onboarding tools</li>
+        <li>Proposal performance analytics</li>
+        <li>2 brand voices</li>
+      </ul>
+      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
+    </div>
+
+    <!-- Elite Plan -->
+    <div class="bg-white p-6 rounded-xl shadow-md w-72 text-center">
+      <h2 class="text-xl font-semibold text-gray-900">Elite</h2>
+      <p class="text-3xl font-bold mt-2">$1297</p>
+      <ul class="text-sm text-gray-600 mt-4 space-y-2">
+        <li>Unlimited proposals/mo</li>
+        <li>Full white-glove customization</li>
+        <li>Team & client dashboard access</li>
+        <li>SMS & real-time lead alerts</li>
+        <li>Priority support & AI tone memory</li>
+      </ul>
+      <button class="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-not-allowed">Coming Soon</button>
+    </div>
+  </div>
+
+  <div class="text-center mt-10 text-sm text-gray-500">
+    Need help deciding? <a href="/contact" class="text-blue-600 font-medium">Contact us</a>
+  </div>
 </body>
 </html>
