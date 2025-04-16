@@ -1,21 +1,15 @@
-import os
-import sqlite3
 from flask import Flask, render_template, request, redirect, session, url_for
 from dotenv import load_dotenv
+import os
+import sqlite3
 import stripe
-import openai
-from models import create_automation_table
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
-# Stripe Setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
-# Ensure automation_settings table exists
-create_automation_table()
 
 def get_db_connection():
     db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
@@ -41,140 +35,38 @@ def dashboard():
         return redirect(url_for('login'))
     return render_template('dashboard.html', email=session['email'])
 
-@app.route('/automation', methods=['GET', 'POST'])
-def automation():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    email = session['email']
-
-    if request.method == 'POST':
-        data = {
-            'subject': request.form.get('subject'),
-            'greeting': request.form.get('greeting'),
-            'tone': request.form.get('tone'),
-            'footer': request.form.get('footer'),
-            'ai_training': request.form.get('ai_training'),
-            'accept_msg': request.form.get('accept_msg'),
-            'decline_msg': request.form.get('decline_msg'),
-            'proposal_mode': request.form.get('proposal_mode')
-        }
-
-        conn.execute("""
-            INSERT INTO automation_settings (email, subject, greeting, tone, footer, ai_training, accept_msg, decline_msg, proposal_mode)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(email) DO UPDATE SET
-                subject=excluded.subject,
-                greeting=excluded.greeting,
-                tone=excluded.tone,
-                footer=excluded.footer,
-                ai_training=excluded.ai_training,
-                accept_msg=excluded.accept_msg,
-                decline_msg=excluded.decline_msg,
-                proposal_mode=excluded.proposal_mode;
-        """, (email, data['subject'], data['greeting'], data['tone'], data['footer'],
-              data['ai_training'], data['accept_msg'], data['decline_msg'], data['proposal_mode']))
-        conn.commit()
-
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-    conn.close()
-    return render_template('automation.html', settings=settings)
-
-@app.route('/test_proposal', methods=['GET'])
-def test_proposal():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    email = session['email']
-    settings = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (email,)).fetchone()
-    conn.close()
-
-    if not settings:
-        return "\u26a0\ufe0f No automation settings found. Please save them first."
-
-    prompt = f"""
-Generate a sample email proposal using the following settings:
-- Subject: {settings['subject']}
-- Greeting: {settings['greeting']}
-- Tone: {settings['tone']}
-- Signature/Footer: {settings['footer']}
-- Voice/Style Guidance: {settings['ai_training']}
-- Use {'a concise' if settings['proposal_mode'] == 'concise' else 'a detailed'} format.
-
-This is for a lead who just filled out a proposal form. Be persuasive, friendly, and aligned with the tone.
-"""
-
-    try:
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=400,
-            temperature=0.8
-        )
-        generated_email = response['choices'][0]['message']['content']
-    except Exception as e:
-        return f"\u274c OpenAI error: {e}"
-
-    return render_template("test_proposal.html", settings=settings, generated_email=generated_email)
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route('/memberships')
 def memberships():
     return render_template('memberships.html')
 
-@app.route('/billing')
-def billing():
-    return render_template('billing.html')
+@app.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    price_id = request.form.get('price_id')
+    if not price_id:
+        return "Missing price ID", 400
 
-# Stripe Checkout routes
-@app.route('/subscribe_starter', methods=['POST'])
-def subscribe_starter():
-    session_data = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price': 'price_1REQ6RKpgIhBPea4EMSakXdq',
-            'quantity': 1
-        }],
-        mode='subscription',
-        success_url=url_for('dashboard', _external=True),
-        cancel_url=url_for('billing', _external=True)
-    )
-    return redirect(session_data.url)
-
-@app.route('/subscribe_pro', methods=['POST'])
-def subscribe_pro():
-    session_data = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price': 'price_1REQ73KpgIhBPea4lcMQPz65',
-            'quantity': 1
-        }],
-        mode='subscription',
-        success_url=url_for('dashboard', _external=True),
-        cancel_url=url_for('billing', _external=True)
-    )
-    return redirect(session_data.url)
-
-@app.route('/subscribe_elite', methods=['POST'])
-def subscribe_elite():
-    session_data = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price': 'price_1REQ7RKpgIhBPea4NnXjzTMN',
-            'quantity': 1
-        }],
-        mode='subscription',
-        success_url=url_for('dashboard', _external=True),
-        cancel_url=url_for('billing', _external=True)
-    )
-    return redirect(session_data.url)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            success_url=url_for('dashboard', _external=True) + '?success=true',
+            cancel_url=url_for('memberships', _external=True) + '?canceled=true',
+            payment_method_types=['card'],
+            mode='subscription',
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            metadata={
+                "user_email": session.get('email', 'guest')
+            }
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        return f"Checkout failed: {e}", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
