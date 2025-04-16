@@ -8,9 +8,6 @@ from models import create_automation_table, create_subscriptions_table, get_db_c
 # Load environment variables
 load_dotenv()
 
-# Debug check to make sure key loads properly
-print("Stripe Key Loaded:", os.getenv("STRIPE_SECRET_KEY"))  # TEMP: Debug
-
 # Initialize Flask
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
@@ -19,10 +16,11 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
+# Updated Stripe Price IDs
 PRICE_IDS = {
-    'starter': 'price_NEW_299_ID',
-    'pro': 'price_NEW_599_ID',
-    'elite': 'price_NEW_1299_ID'
+    'starter': 'price_1RERprKpgIhBPea4U7zezbWd',  # $299
+    'pro': 'price_1RERpGKpgIhBPea4wZhu3gEC',      # $599
+    'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'     # $1299
 }
 
 # Create required tables
