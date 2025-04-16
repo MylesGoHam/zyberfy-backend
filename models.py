@@ -1,17 +1,12 @@
-import sqlite3
 import os
+import sqlite3
 
-# Correct database path regardless of working directory
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "zyberfy.db")
+# Use the environment variable if set, otherwise default to local path
+DB_PATH = os.getenv("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
 print("📍 Using DB path:", DB_PATH)
 
-import os
-import sqlite3
-
 def get_db_connection():
-    db_path = os.environ.get("ZDB_PATH", "zyberfy.db")
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
