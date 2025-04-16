@@ -1,12 +1,10 @@
 import os
 import sqlite3
 
-# Use the environment variable if set, otherwise default to local path
-DB_PATH = os.getenv("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
-print("📍 Using DB path:", DB_PATH)
-
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
+    print("📍 Using DB path:", db_path)  # Optional: helps debug
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
