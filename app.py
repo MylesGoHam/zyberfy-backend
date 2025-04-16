@@ -6,17 +6,15 @@ import stripe
 import openai
 from models import create_automation_table
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
-# Set Stripe secret key
+# Stripe Setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-# Ensure automation_settings table exists on startup
+# Ensure automation_settings table exists
 create_automation_table()
 
 def get_db_connection():
@@ -83,48 +81,6 @@ def automation():
     conn.close()
     return render_template('automation.html', settings=settings)
 
-@app.route('/subscribe', methods=['POST'])
-def subscribe():
-    plan = request.form.get('plan')
-    return f"🛠️ Stripe subscription logic coming soon for plan: {plan}"
-
-@app.route('/billing')
-def billing():
-    return render_template('billing.html')
-
-@app.route('/memberships')
-def memberships():
-    plans = [
-        {
-            'name': 'Starter',
-            'price': '$297/mo',
-            'features': [
-                'Up to 10 AI Proposals/month',
-                'Basic Email Automation',
-                'Email Support'
-            ]
-        },
-        {
-            'name': 'Pro',
-            'price': '$597/mo',
-            'features': [
-                'Up to 30 AI Proposals/month',
-                'Advanced Automation Settings',
-                'Priority Support'
-            ]
-        },
-        {
-            'name': 'Elite',
-            'price': '$1297/mo',
-            'features': [
-                'Unlimited Proposals',
-                'Full White-Glove Setup',
-                'Dedicated Account Manager'
-            ]
-        }
-    ]
-    return render_template('memberships.html', plans=plans)
-
 @app.route('/test_proposal', methods=['GET'])
 def test_proposal():
     if 'email' not in session:
@@ -136,7 +92,7 @@ def test_proposal():
     conn.close()
 
     if not settings:
-        return "⚠️ No automation settings found. Please save them first."
+        return "\u26a0\ufe0f No automation settings found. Please save them first."
 
     prompt = f"""
 Generate a sample email proposal using the following settings:
@@ -160,9 +116,60 @@ This is for a lead who just filled out a proposal form. Be persuasive, friendly,
         )
         generated_email = response['choices'][0]['message']['content']
     except Exception as e:
-        return f"❌ OpenAI error: {e}"
+        return f"\u274c OpenAI error: {e}"
 
     return render_template("test_proposal.html", settings=settings, generated_email=generated_email)
+
+@app.route('/memberships')
+def memberships():
+    return render_template('memberships.html')
+
+@app.route('/billing')
+def billing():
+    return render_template('billing.html')
+
+# Stripe Checkout routes
+@app.route('/subscribe_starter', methods=['POST'])
+def subscribe_starter():
+    session_data = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price': 'price_1REQ6RKpgIhBPea4EMSakXdq',
+            'quantity': 1
+        }],
+        mode='subscription',
+        success_url=url_for('dashboard', _external=True),
+        cancel_url=url_for('billing', _external=True)
+    )
+    return redirect(session_data.url)
+
+@app.route('/subscribe_pro', methods=['POST'])
+def subscribe_pro():
+    session_data = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price': 'price_1REQ73KpgIhBPea4lcMQPz65',
+            'quantity': 1
+        }],
+        mode='subscription',
+        success_url=url_for('dashboard', _external=True),
+        cancel_url=url_for('billing', _external=True)
+    )
+    return redirect(session_data.url)
+
+@app.route('/subscribe_elite', methods=['POST'])
+def subscribe_elite():
+    session_data = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price': 'price_1REQ7RKpgIhBPea4NnXjzTMN',
+            'quantity': 1
+        }],
+        mode='subscription',
+        success_url=url_for('dashboard', _external=True),
+        cancel_url=url_for('billing', _external=True)
+    )
+    return redirect(session_data.url)
 
 @app.route('/logout')
 def logout():
