@@ -4,140 +4,93 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zyberfy – AI Proposals</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9fafb;
-    }
-
-    header {
-      background: #ffffff;
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #1e40af;
-    }
-
-    .menu-icon {
-      font-size: 1.8rem;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
-
-    .dropdown {
-      position: absolute;
-      right: 32px;
-      top: 64px;
-      background: white;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      padding: 10px 0;
-      display: none;
-      flex-direction: column;
-      min-width: 160px;
-      z-index: 10;
-    }
-
-    .dropdown a {
-      padding: 10px 20px;
-      text-decoration: none;
-      color: #1f2937;
-      transition: background 0.2s ease;
-    }
-
-    .dropdown a:hover {
-      background: #f3f4f6;
-    }
-
-    .hero {
-      max-width: 700px;
-      margin: 100px auto;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .hero h1 {
-      font-size: 2.5rem;
-      color: #1e40af;
-      margin-bottom: 1rem;
-    }
-
-    .hero p {
-      color: #4b5563;
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
-
-    .cta-button {
-      background-color: #3b82f6;
-      color: white;
-      font-weight: 600;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-    }
-
-    .cta-button:hover {
-      background-color: #2563eb;
-    }
-
-    footer {
-      text-align: center;
-      padding: 40px 20px 20px;
-      font-size: 0.95rem;
-      color: #6b7280;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-50 font-sans">
 
   <!-- Header -->
-  <header>
-    <div class="logo">Zyberfy</div>
-    <div>
-      <button class="menu-icon" onclick="toggleDropdown()">⋯</button>
-      <div id="dropdownMenu" class="dropdown">
-        <a href="/login">Login</a>
-        <a href="/memberships">Memberships</a>
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+    <div class="text-2xl font-bold text-blue-800">Zyberfy</div>
+    <div class="relative">
+      <button class="text-2xl" onclick="toggleDropdown()">⋯</button>
+      <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg flex-col z-50">
+        <a href="/login" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Login</a>
+        <a href="/memberships" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Memberships</a>
       </div>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <div class="hero">
-    <h1 class="hero-title">Close Faster, Work Less</h1>
-    <p>Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
-    <a href="/login" class="cta-button">Get Started</a>
-  </div>
+  <section class="text-center py-20 px-6">
+    <h1 class="text-4xl md:text-5xl font-bold text-blue-800 mb-4">Close Faster, Work Less</h1>
+    <p class="text-gray-600 text-lg max-w-xl mx-auto mb-8">Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
+    <a href="/login" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg">Get Started</a>
+  </section>
+
+  <!-- Plans Preview -->
+  <section class="bg-gray-100 py-20 px-6 text-center">
+    <h2 class="text-3xl font-bold text-blue-800 mb-4">Plans & Pricing</h2>
+    <p class="text-gray-600 mb-12">Choose a plan that fits your business — from solo founders to elite concierge brands.</p>
+
+    <div class="flex flex-wrap justify-center gap-8">
+      <!-- Starter Plan -->
+      <div class="bg-white rounded-xl shadow-md p-8 w-72 text-left">
+        <h3 class="text-xl font-semibold mb-2">Starter</h3>
+        <p class="text-3xl font-bold text-blue-800 mb-4">$297</p>
+        <ul class="text-sm text-gray-600 space-y-2">
+          <li>✓ 10 AI-generated proposals/month</li>
+          <li>✓ Personal tone settings</li>
+          <li>✓ Email automation</li>
+        </ul>
+      </div>
+
+      <!-- Pro Plan -->
+      <div class="bg-white rounded-xl shadow-md p-8 w-72 text-left border-2 border-blue-500">
+        <h3 class="text-xl font-semibold mb-2">Pro</h3>
+        <p class="text-3xl font-bold text-blue-800 mb-4">$597</p>
+        <ul class="text-sm text-gray-600 space-y-2">
+          <li>✓ 30 AI proposals/month</li>
+          <li>✓ Analytics dashboard</li>
+          <li>✓ Live chat + notifications</li>
+        </ul>
+      </div>
+
+      <!-- Elite Plan -->
+      <div class="bg-white rounded-xl shadow-md p-8 w-72 text-left">
+        <h3 class="text-xl font-semibold mb-2">Elite</h3>
+        <p class="text-3xl font-bold text-blue-800 mb-4">$1297</p>
+        <ul class="text-sm text-gray-600 space-y-2">
+          <li>✓ Unlimited proposals</li>
+          <li>✓ AI memory & brand training</li>
+          <li>✓ White-glove onboarding</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <a href="/memberships" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg">
+        View Full Plans
+      </a>
+    </div>
+  </section>
 
   <!-- Footer -->
-  <footer>
-    &copy; 2025 <strong style="color: #1e40af;">Zyberfy</strong>. All rights reserved.
+  <footer class="text-center py-10 text-sm text-gray-500">
+    &copy; 2025 <span class="text-blue-800 font-semibold">Zyberfy</span>. All rights reserved.
   </footer>
 
   <!-- Dropdown Script -->
   <script>
     function toggleDropdown() {
-      const dropdown = document.getElementById("dropdownMenu");
-      dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("hidden");
     }
 
     document.addEventListener("click", function(event) {
       const dropdown = document.getElementById("dropdownMenu");
-      const button = document.querySelector(".menu-icon");
+      const button = document.querySelector(".text-2xl");
       if (!dropdown.contains(event.target) && !button.contains(event.target)) {
-        dropdown.style.display = "none";
+        dropdown.classList.add("hidden");
       }
     });
   </script>
