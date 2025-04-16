@@ -5,8 +5,10 @@ import sqlite3
 import stripe
 from models import create_automation_table, create_subscriptions_table, get_db_connection
 
+# Load environment variables
 load_dotenv()
 
+# Initialize Flask
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 
@@ -14,17 +16,18 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Create necessary tables
-create_automation_table()
-create_subscriptions_table()
-
-# Stripe plan price IDs
+# Price IDs
 PRICE_IDS = {
     'starter': 'price_1REQ6RKpgIhBPea4EMSakXdq',
     'pro': 'price_1REQ73KpgIhBPea4lcMQPz65',
     'elite': 'price_1REQ7RKpgIhBPea4NnXjzTMN'
 }
 
+# Create required tables
+create_automation_table()
+create_subscriptions_table()
+
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -43,7 +46,10 @@ def dashboard():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    subscription = conn.execute("SELECT stripe_subscription_id FROM subscriptions WHERE email = ?", (session['email'],)).fetchone()
+    subscription = conn.execute(
+        "SELECT stripe_subscription_id FROM subscriptions WHERE email = ?", 
+        (session['email'],)
+    ).fetchone()
     conn.close()
 
     plan_status = "Free"
@@ -59,7 +65,7 @@ def logout():
 
 @app.route('/memberships')
 def memberships():
-    return render_template('memberships.html')
+    return render_template('memberships.html', price_ids=PRICE_IDS)
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -105,7 +111,11 @@ def stripe_webhook():
         if customer_email and subscription_id:
             conn = get_db_connection()
             conn.execute(
-                "INSERT INTO subscriptions (email, stripe_subscription_id) VALUES (?, ?) ON CONFLICT(email) DO UPDATE SET stripe_subscription_id = ?",
+                """
+                INSERT INTO subscriptions (email, stripe_subscription_id) 
+                VALUES (?, ?) 
+                ON CONFLICT(email) DO UPDATE SET stripe_subscription_id = ?
+                """,
                 (customer_email, subscription_id, subscription_id)
             )
             conn.commit()
