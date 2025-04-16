@@ -10,7 +10,8 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 create_automation_table()
 
 def get_db_connection():
-    conn = sqlite3.connect("zyberfy.db")
+    db_path = os.environ.get("ZDB_PATH", os.path.join(os.path.abspath(os.path.dirname(__file__)), "zyberfy.db"))
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
