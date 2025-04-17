@@ -8,13 +8,16 @@ def get_db_connection():
 
 # Create automation_settings table
 def create_automation_table():
-    conn = get_db_connection()
+    conn = sqlite3.connect('database.db')
     conn.execute('''
         CREATE TABLE IF NOT EXISTS automation_settings (
             email TEXT PRIMARY KEY,
             tone TEXT,
             style TEXT,
-            additional_notes TEXT
+            follow_up TEXT,
+            auto_response TEXT,
+            additional_notes TEXT,
+            custom_message TEXT
         )
     ''')
     conn.commit()
