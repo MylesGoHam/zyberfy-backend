@@ -1,55 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Automation Setup | Zyberfy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800">
 
-  <div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-3xl font-bold text-center mb-8">Automation Settings</h1>
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-xl font-semibold text-blue-700">Zyberfy</div>
+      <a href="/dashboard" class="text-blue-600 hover:underline">Back to Dashboard</a>
+    </div>
+  </header>
 
-    <form action="/save-automation" method="POST" class="bg-white shadow-md rounded-lg p-8 space-y-6">
+  <main class="max-w-3xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold mb-6 text-center">Automation Settings</h1>
 
+    <form action="/save-automation" method="POST" class="bg-white p-8 rounded-xl shadow space-y-6">
       <div>
-        <label class="block font-semibold mb-2" for="subject">Email Subject Line</label>
-        <input type="text" id="subject" name="subject" class="w-full border border-gray-300 rounded-lg p-3" placeholder="Enter your subject..." required>
+        <label for="tone" class="block font-semibold mb-2">Preferred Email Tone</label>
+        <input type="text" id="tone" name="tone" placeholder="e.g., Friendly, Formal, Luxury" required
+          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div>
-        <label class="block font-semibold mb-2" for="greeting">Greeting</label>
-        <input type="text" id="greeting" name="greeting" class="w-full border border-gray-300 rounded-lg p-3" placeholder="e.g., Dear valued guest..." required>
+        <label for="style" class="block font-semibold mb-2">Writing Style</label>
+        <input type="text" id="style" name="style" placeholder="e.g., Elegant, Direct, Persuasive" required
+          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div>
-        <label class="block font-semibold mb-2" for="tone">Preferred Tone</label>
-        <select id="tone" name="tone" class="w-full border border-gray-300 rounded-lg p-3" required>
-          <option value="formal">Formal</option>
-          <option value="friendly">Friendly</option>
-          <option value="luxury">Luxury</option>
-          <option value="adventurous">Adventurous</option>
-          <option value="custom">Custom (Train AI below)</option>
-        </select>
+        <label for="additional_notes" class="block font-semibold mb-2">Special Instructions (Optional)</label>
+        <textarea id="additional_notes" name="additional_notes" placeholder="Tell us anything extra you want the AI to know..."
+          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"></textarea>
       </div>
 
-      <div>
-        <label class="block font-semibold mb-2" for="footer">Email Footer Signature</label>
-        <input type="text" id="footer" name="footer" class="w-full border border-gray-300 rounded-lg p-3" placeholder="Best regards, Your Company Name" required>
-      </div>
-
-      <div>
-        <label class="block font-semibold mb-2" for="ai_training">Describe Your Brand Voice (Optional)</label>
-        <textarea id="ai_training" name="ai_training" rows="4" class="w-full border border-gray-300 rounded-lg p-3" placeholder="Describe how you want your AI to sound (optional)..."></textarea>
-      </div>
-
-      <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
-        Save Automation Settings
-      </button>
+      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Save Automation</button>
     </form>
-
-  </div>
+  </main>
 
 </body>
 </html>
