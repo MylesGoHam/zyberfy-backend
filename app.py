@@ -104,31 +104,30 @@ def save_automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # Fetch the fields from the form
     tone = request.form.get('tone')
     style = request.form.get('style')
-    proposal_length = request.form.get('proposal_length')
-    greeting = request.form.get('greeting')
-    closing = request.form.get('closing')
+    follow_up = request.form.get('follow_up')
+    auto_response = request.form.get('auto_response')
     additional_notes = request.form.get('additional_notes')
+    custom_message = request.form.get('custom_message')
 
-    # Save them into the database
     conn = get_db_connection()
     conn.execute("""
-        INSERT INTO automation_settings (email, tone, style, proposal_length, greeting, closing, additional_notes)
+        INSERT INTO automation_settings 
+            (email, tone, style, follow_up, auto_response, additional_notes, custom_message)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
             tone = excluded.tone,
             style = excluded.style,
-            proposal_length = excluded.proposal_length,
-            greeting = excluded.greeting,
-            closing = excluded.closing,
-            additional_notes = excluded.additional_notes
-    """, (session['email'], tone, style, proposal_length, greeting, closing, additional_notes))
+            follow_up = excluded.follow_up,
+            auto_response = excluded.auto_response,
+            additional_notes = excluded.additional_notes,
+            custom_message = excluded.custom_message
+    """, (session['email'], tone, style, follow_up, auto_response, additional_notes, custom_message))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('automation'))
 
 
 @app.route('/create-checkout-session', methods=['POST'])
