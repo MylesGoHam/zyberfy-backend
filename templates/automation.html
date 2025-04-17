@@ -1,65 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Automation Settings | Zyberfy</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
-
-  <div class="max-w-3xl mx-auto px-6 py-12">
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto px-6 py-12">
     <h1 class="text-3xl font-bold text-center mb-8">Automation Settings</h1>
 
-    {% if saved %}
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-        Settings saved successfully.
-      </div>
-    {% endif %}
+    <form action="/save-automation" method="POST" class="bg-white p-8 rounded-lg shadow">
 
-    <form action="/save-automation" method="POST" class="space-y-6">
-
-      <div>
-        <label for="tone" class="block font-semibold mb-1">Preferred Tone</label>
-        <input id="tone" name="tone" type="text" placeholder="e.g., Luxury, Friendly, Bold" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-      </div>
-
-      <div>
-        <label for="style" class="block font-semibold mb-1">Writing Style</label>
-        <input id="style" name="style" type="text" placeholder="e.g., Short and direct, Warm and inviting" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-      </div>
-
-      <div>
-        <label for="greeting" class="block font-semibold mb-1">Preferred Greeting</label>
-        <input id="greeting" name="greeting" type="text" placeholder="e.g., Dear John, Hi there, Hello," class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-      </div>
-
-      <div>
-        <label for="signoff" class="block font-semibold mb-1">Preferred Sign-Off</label>
-        <input id="signoff" name="signoff" type="text" placeholder="e.g., Best regards, Warmly, Sincerely," class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-      </div>
-
-      <div>
-        <label for="proposal_length" class="block font-semibold mb-1">Preferred Proposal Length</label>
-        <select id="proposal_length" name="proposal_length" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
-          <option value="">Select a length</option>
-          <option value="Short">Short</option>
-          <option value="Medium">Medium</option>
-          <option value="Detailed">Detailed</option>
+      <div class="mb-6">
+        <label for="tone" class="block text-sm font-medium mb-2">Preferred Tone</label>
+        <select name="tone" id="tone" class="w-full border-gray-300 rounded-md">
+          <option value="Friendly">Friendly</option>
+          <option value="Professional">Professional</option>
+          <option value="Luxury">Luxury</option>
+          <option value="Assertive">Assertive</option>
         </select>
       </div>
 
-      <div>
-        <label for="additional_notes" class="block font-semibold mb-1">Additional Notes (Optional)</label>
-        <textarea id="additional_notes" name="additional_notes" placeholder="Anything extra you want our AI to know..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+      <div class="mb-6">
+        <label for="style" class="block text-sm font-medium mb-2">Writing Style</label>
+        <select name="style" id="style" class="w-full border-gray-300 rounded-md">
+          <option value="Concise">Concise</option>
+          <option value="Detailed">Detailed</option>
+          <option value="Elegant">Elegant</option>
+          <option value="High-Energy">High-Energy</option>
+        </select>
       </div>
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-        Save Settings
-      </button>
+      <div class="mb-6">
+        <label for="length" class="block text-sm font-medium mb-2">Proposal Length</label>
+        <select name="length" id="length" class="w-full border-gray-300 rounded-md">
+          <option value="Short">Short (2-3 paragraphs)</option>
+          <option value="Medium">Medium (4-6 paragraphs)</option>
+          <option value="Long">Long (7+ paragraphs)</option>
+        </select>
+      </div>
+
+      <div class="mb-6">
+        <label for="greeting" class="block text-sm font-medium mb-2">Greeting</label>
+        <select name="greeting" id="greeting" class="w-full border-gray-300 rounded-md">
+          <option value="Hi">Hi</option>
+          <option value="Hello">Hello</option>
+          <option value="Dear">Dear</option>
+        </select>
+      </div>
+
+      <div class="mb-6">
+        <label for="closing" class="block text-sm font-medium mb-2">Closing</label>
+        <select name="closing" id="closing" class="w-full border-gray-300 rounded-md">
+          <option value="Best regards">Best regards</option>
+          <option value="Sincerely">Sincerely</option>
+          <option value="Warmly">Warmly</option>
+          <option value="Thanks">Thanks</option>
+        </select>
+      </div>
+
+      <div class="mb-6">
+        <label for="additional_notes" class="block text-sm font-medium mb-2">Additional Notes (Optional)</label>
+        <textarea name="additional_notes" id="additional_notes" rows="4" class="w-full border-gray-300 rounded-md" placeholder="Anything special you want the AI to know..."></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition">Save Settings</button>
 
     </form>
-  </div>
 
+  </div>
 </body>
 </html>
