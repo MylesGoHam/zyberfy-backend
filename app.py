@@ -67,6 +67,14 @@ def logout():
 def memberships():
     return render_template('memberships.html')
 
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@app.route('/thank_you')
+def thank_you():
+    return render_template('thank_you.html')
+
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     plan = request.form.get('plan')
@@ -77,7 +85,7 @@ def create_checkout_session():
 
     try:
         checkout_session = stripe.checkout.Session.create(
-            success_url=url_for('dashboard', _external=True) + '?success=true',
+            success_url=url_for('thank_you', _external=True),
             cancel_url=url_for('memberships', _external=True) + '?canceled=true',
             payment_method_types=['card'],
             mode='subscription',
