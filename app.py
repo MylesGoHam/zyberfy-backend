@@ -93,28 +93,29 @@ def save_automation():
 
     tone = request.form.get('tone')
     style = request.form.get('style')
-    follow_up = request.form.get('follow_up')
-    auto_response = request.form.get('auto_response')
     additional_notes = request.form.get('additional_notes')
-    custom_message = request.form.get('custom_message')
+    greeting = request.form.get('greeting')
+    subject_line = request.form.get('subject_line')
+    acceptance_message = request.form.get('acceptance_message')
+    decline_message = request.form.get('decline_message')
 
     conn = get_db_connection()
     conn.execute("""
-        INSERT INTO automation_settings 
-            (email, tone, style, follow_up, auto_response, additional_notes, custom_message)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO automation_settings (email, tone, style, additional_notes, greeting, subject_line, acceptance_message, decline_message)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
             tone = excluded.tone,
             style = excluded.style,
-            follow_up = excluded.follow_up,
-            auto_response = excluded.auto_response,
             additional_notes = excluded.additional_notes,
-            custom_message = excluded.custom_message
-    """, (session['email'], tone, style, follow_up, auto_response, additional_notes, custom_message))
+            greeting = excluded.greeting,
+            subject_line = excluded.subject_line,
+            acceptance_message = excluded.acceptance_message,
+            decline_message = excluded.decline_message
+    """, (session['email'], tone, style, additional_notes, greeting, subject_line, acceptance_message, decline_message))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('automation', saved='true'))
+    return redirect(url_for('automation', saved=True))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -161,14 +162,11 @@ def stripe_webhook():
 
         if customer_email and subscription_id:
             conn = get_db_connection()
-            conn.execute(
-                """
+            conn.execute("""
                 INSERT INTO subscriptions (email, stripe_subscription_id) 
                 VALUES (?, ?) 
                 ON CONFLICT(email) DO UPDATE SET stripe_subscription_id = ?
-                """,
-                (customer_email, subscription_id, subscription_id)
-            )
+            """, (customer_email, subscription_id, subscription_id))
             conn.commit()
             conn.close()
 
