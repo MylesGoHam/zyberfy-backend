@@ -79,6 +79,29 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    tone = request.form.get('tone')
+    style = request.form.get('style')
+    additional_notes = request.form.get('additional_notes')
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO automation_settings (email, tone, style, additional_notes)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET
+            tone = excluded.tone,
+            style = excluded.style,
+            additional_notes = excluded.additional_notes
+    """, (session['email'], tone, style, additional_notes))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('dashboard'))
+
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     plan = request.form.get('plan')
