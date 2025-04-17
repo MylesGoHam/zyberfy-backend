@@ -86,36 +86,53 @@ def automation():
     saved = request.args.get('saved')
     return render_template('automation.html', saved=saved)
 
+# Updated /save-automation route in app.py
+
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
+    # Capture form data
     tone = request.form.get('tone')
     style = request.form.get('style')
     additional_notes = request.form.get('additional_notes')
-    greeting = request.form.get('greeting')
-    subject_line = request.form.get('subject_line')
+    enable_follow_up = request.form.get('enable_follow_up')
+    number_of_followups = request.form.get('number_of_followups')
+    followup_delay = request.form.get('followup_delay')
+    followup_style = request.form.get('followup_style')
+    minimum_offer = request.form.get('minimum_offer')
     acceptance_message = request.form.get('acceptance_message')
     decline_message = request.form.get('decline_message')
 
     conn = get_db_connection()
     conn.execute("""
-        INSERT INTO automation_settings (email, tone, style, additional_notes, greeting, subject_line, acceptance_message, decline_message)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO automation_settings (
+            email, tone, style, additional_notes,
+            enable_follow_up, number_of_followups, followup_delay, followup_style,
+            minimum_offer, acceptance_message, decline_message
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
             tone = excluded.tone,
             style = excluded.style,
             additional_notes = excluded.additional_notes,
-            greeting = excluded.greeting,
-            subject_line = excluded.subject_line,
+            enable_follow_up = excluded.enable_follow_up,
+            number_of_followups = excluded.number_of_followups,
+            followup_delay = excluded.followup_delay,
+            followup_style = excluded.followup_style,
+            minimum_offer = excluded.minimum_offer,
             acceptance_message = excluded.acceptance_message,
             decline_message = excluded.decline_message
-    """, (session['email'], tone, style, additional_notes, greeting, subject_line, acceptance_message, decline_message))
+    """, (
+        session['email'], tone, style, additional_notes,
+        enable_follow_up, number_of_followups, followup_delay, followup_style,
+        minimum_offer, acceptance_message, decline_message
+    ))
     conn.commit()
     conn.close()
 
-    return redirect(url_for('automation', saved=True))
+    return redirect(url_for('automation'))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
