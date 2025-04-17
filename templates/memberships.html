@@ -4,93 +4,118 @@
   <meta charset="UTF-8">
   <title>Memberships</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script>
-    function toggleButton(plan) {
-      const checkbox = document.getElementById(`terms-${plan}`);
-      const button = document.getElementById(`submit-${plan}`);
-      button.disabled = !checkbox.checked;
-    }
-  </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
+  <div class="max-w-7xl mx-auto px-4 py-16">
+    <h1 class="text-4xl font-bold text-center mb-6">Choose the Perfect Plan</h1>
+    <p class="text-center text-lg mb-12">From solo founders to elite concierge brands, pick the plan that suits you best.</p>
 
-<div class="max-w-7xl mx-auto px-4 py-16">
-  <h1 class="text-4xl font-bold text-center mb-6">Choose the Perfect Plan</h1>
-  <p class="text-center text-lg mb-12">From solo founders to elite concierge brands, pick the plan that suits you best.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- STARTER -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
+        <h2 class="text-xl font-semibold mb-2">Starter</h2>
+        <p class="text-3xl font-bold text-blue-600 mb-4">$297</p>
+        <ul class="text-left space-y-2 mb-6">
+          <li>✓ 10 AI-generated proposals/month</li>
+          <li>✓ Personal tone settings</li>
+          <li>✓ Email automation</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST" onsubmit="return validateForm(this);">
+          <input type="hidden" name="plan" value="starter">
+          <div class="flex items-center mb-4 justify-center">
+            <input id="terms-starter" name="terms" type="checkbox" required class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+            <label for="terms-starter" class="ml-2 text-sm text-gray-700">
+              I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>
+            </label>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 hover:scale-105 transition duration-300">Subscribe</button>
+        </form>
+      </div>
 
-    <!-- STARTER -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
-      <h2 class="text-xl font-semibold mb-2">Starter</h2>
-      <p class="text-3xl font-bold text-blue-600 mb-4">$297</p>
-      <ul class="text-left space-y-2 mb-6">
-        <li>✓ 10 AI-generated proposals/month</li>
-        <li>✓ Personal tone settings</li>
-        <li>✓ Email automation</li>
-      </ul>
-      <form action="/create-checkout-session" method="POST">
-        <input type="hidden" name="plan" value="starter">
-        <div class="mb-4">
-          <input type="checkbox" id="terms-starter" onclick="toggleButton('starter')" class="mr-2">
-          <label for="terms-starter" class="text-sm">
-            I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>.
-          </label>
-        </div>
-        <button id="submit-starter" type="submit" disabled class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-          Subscribe
-        </button>
-      </form>
+      <!-- PRO -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg border-2 border-blue-600 hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
+        <h2 class="text-xl font-semibold mb-2">Pro</h2>
+        <p class="text-3xl font-bold text-blue-600 mb-4">$597</p>
+        <ul class="text-left space-y-2 mb-6">
+          <li>✓ 30 AI proposals/month</li>
+          <li>✓ Analytics dashboard</li>
+          <li>✓ Live chat + notifications</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST" onsubmit="return validateForm(this);">
+          <input type="hidden" name="plan" value="pro">
+          <div class="flex items-center mb-4 justify-center">
+            <input id="terms-pro" name="terms" type="checkbox" required class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+            <label for="terms-pro" class="ml-2 text-sm text-gray-700">
+              I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>
+            </label>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 hover:scale-105 transition duration-300">Subscribe</button>
+        </form>
+      </div>
+
+      <!-- ELITE -->
+      <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
+        <h2 class="text-xl font-semibold mb-2">Elite</h2>
+        <p class="text-3xl font-bold text-blue-600 mb-4">$1297</p>
+        <ul class="text-left space-y-2 mb-6">
+          <li>✓ Unlimited proposals</li>
+          <li>✓ AI memory & brand training</li>
+          <li>✓ White-glove onboarding</li>
+        </ul>
+        <form action="/create-checkout-session" method="POST" onsubmit="return validateForm(this);">
+          <input type="hidden" name="plan" value="elite">
+          <div class="flex items-center mb-4 justify-center">
+            <input id="terms-elite" name="terms" type="checkbox" required class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+            <label for="terms-elite" class="ml-2 text-sm text-gray-700">
+              I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>
+            </label>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 hover:scale-105 transition duration-300">Subscribe</button>
+        </form>
+      </div>
+
     </div>
 
-    <!-- PRO -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg border-2 border-blue-600 hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
-      <h2 class="text-xl font-semibold mb-2">Pro</h2>
-      <p class="text-3xl font-bold text-blue-600 mb-4">$597</p>
-      <ul class="text-left space-y-2 mb-6">
-        <li>✓ 30 AI proposals/month</li>
-        <li>✓ Analytics dashboard</li>
-        <li>✓ Live chat + notifications</li>
-      </ul>
-      <form action="/create-checkout-session" method="POST">
-        <input type="hidden" name="plan" value="pro">
-        <div class="mb-4">
-          <input type="checkbox" id="terms-pro" onclick="toggleButton('pro')" class="mr-2">
-          <label for="terms-pro" class="text-sm">
-            I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>.
-          </label>
-        </div>
-        <button id="submit-pro" type="submit" disabled class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-          Subscribe
-        </button>
-      </form>
+    <!-- Feature Comparison Table -->
+    <div class="mt-20 overflow-x-auto">
+      <h2 class="text-2xl font-bold text-center mb-6">Feature Comparison</h2>
+      <table class="min-w-full border border-gray-300 text-center text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-3 border">Feature</th>
+            <th class="px-4 py-3 border">Starter</th>
+            <th class="px-4 py-3 border">Pro</th>
+            <th class="px-4 py-3 border">Elite</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr><td class="border px-4 py-2">AI proposal generation</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Proposal test preview</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Edit voice/tone anytime</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Proposal analytics</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">SMS alerts + reply via text</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI follow-up messages</td><td>✗</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI memory / tone learning</td><td>✗</td><td>✗</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">White-label branding</td><td>✗</td><td>Limited</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">Stripe offers (active at once)</td><td>1</td><td>5</td><td>Unlimited</td></tr>
+          <tr><td class="border px-4 py-2">Copy/QR/Share features</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td class="border px-4 py-2">AI-generated bios/web copy</td><td>✗</td><td>✗</td><td>✓</td></tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- ELITE -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition duration-300 text-center">
-      <h2 class="text-xl font-semibold mb-2">Elite</h2>
-      <p class="text-3xl font-bold text-blue-600 mb-4">$1297</p>
-      <ul class="text-left space-y-2 mb-6">
-        <li>✓ Unlimited proposals</li>
-        <li>✓ AI memory & brand training</li>
-        <li>✓ White-glove onboarding</li>
-      </ul>
-      <form action="/create-checkout-session" method="POST">
-        <input type="hidden" name="plan" value="elite">
-        <div class="mb-4">
-          <input type="checkbox" id="terms-elite" onclick="toggleButton('elite')" class="mr-2">
-          <label for="terms-elite" class="text-sm">
-            I agree to the <a href="/terms" class="text-blue-600 underline">Terms & Conditions</a>.
-          </label>
-        </div>
-        <button id="submit-elite" type="submit" disabled class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-          Subscribe
-        </button>
-      </form>
-    </div>
-
   </div>
-</div>
+
+<script>
+  function validateForm(form) {
+    const terms = form.querySelector('input[name="terms"]');
+    if (!terms.checked) {
+      alert("You must agree to the Terms & Conditions before subscribing.");
+      return false;
+    }
+    return true;
+  }
+</script>
 
 </body>
 </html>
