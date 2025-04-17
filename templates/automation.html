@@ -1,33 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Automation Settings | Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <div class="max-w-4xl mx-auto py-12 px-6">
-    <h1 class="text-3xl font-bold mb-8 text-center">Automation Settings</h1>
+  <div class="max-w-3xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-center mb-8">Automation Settings</h1>
 
-    <form method="POST" action="/save-automation" class="space-y-6">
+    {% if saved %}
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+        Settings saved successfully.
+      </div>
+    {% endif %}
+
+    <form action="/save-automation" method="POST" class="space-y-6">
 
       <div>
-        <label for="tone" class="block mb-2 font-semibold">Preferred Tone</label>
-        <input type="text" id="tone" name="tone" value="{{ tone }}" placeholder="e.g., Luxury, Friendly, Bold" class="w-full p-3 rounded border border-gray-300" required>
+        <label for="tone" class="block font-semibold mb-1">Preferred Tone</label>
+        <input id="tone" name="tone" type="text" placeholder="e.g., Luxury, Friendly, Bold" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
       </div>
 
       <div>
-        <label for="style" class="block mb-2 font-semibold">Writing Style</label>
-        <input type="text" id="style" name="style" value="{{ style }}" placeholder="e.g., Short and direct, Warm and inviting" class="w-full p-3 rounded border border-gray-300" required>
+        <label for="style" class="block font-semibold mb-1">Writing Style</label>
+        <input id="style" name="style" type="text" placeholder="e.g., Short and direct, Warm and inviting" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
       </div>
 
       <div>
-        <label for="additional_notes" class="block mb-2 font-semibold">Additional Notes (Optional)</label>
-        <textarea id="additional_notes" name="additional_notes" placeholder="Anything extra you want our AI to know..." class="w-full p-3 rounded border border-gray-300" rows="4">{{ additional_notes }}</textarea>
+        <label for="greeting" class="block font-semibold mb-1">Preferred Greeting</label>
+        <input id="greeting" name="greeting" type="text" placeholder="e.g., Dear John, Hi there, Hello," class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
       </div>
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">Save Settings</button>
+      <div>
+        <label for="signoff" class="block font-semibold mb-1">Preferred Sign-Off</label>
+        <input id="signoff" name="signoff" type="text" placeholder="e.g., Best regards, Warmly, Sincerely," class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+      </div>
+
+      <div>
+        <label for="proposal_length" class="block font-semibold mb-1">Preferred Proposal Length</label>
+        <select id="proposal_length" name="proposal_length" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+          <option value="">Select a length</option>
+          <option value="Short">Short</option>
+          <option value="Medium">Medium</option>
+          <option value="Detailed">Detailed</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="additional_notes" class="block font-semibold mb-1">Additional Notes (Optional)</label>
+        <textarea id="additional_notes" name="additional_notes" placeholder="Anything extra you want our AI to know..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+        Save Settings
+      </button>
+
     </form>
   </div>
 
