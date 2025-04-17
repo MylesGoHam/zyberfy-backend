@@ -2,44 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Automation Setup | Zyberfy</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automation Settings | Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <div class="text-xl font-semibold text-blue-700">Zyberfy</div>
-      <a href="/dashboard" class="text-blue-600 hover:underline">Back to Dashboard</a>
-    </div>
-  </header>
+  <div class="max-w-4xl mx-auto py-12 px-6">
+    <h1 class="text-3xl font-bold mb-8 text-center">Automation Settings</h1>
 
-  <main class="max-w-3xl mx-auto px-6 py-12">
-    <h1 class="text-3xl font-bold mb-6 text-center">Automation Settings</h1>
+    <form method="POST" action="/save-automation" class="space-y-6">
 
-    <form action="/save-automation" method="POST" class="bg-white p-8 rounded-xl shadow space-y-6">
       <div>
-        <label for="tone" class="block font-semibold mb-2">Preferred Email Tone</label>
-        <input type="text" id="tone" name="tone" placeholder="e.g., Friendly, Formal, Luxury" required
-          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500" />
+        <label for="tone" class="block mb-2 font-semibold">Preferred Tone</label>
+        <input type="text" id="tone" name="tone" value="{{ tone }}" placeholder="e.g., Luxury, Friendly, Bold" class="w-full p-3 rounded border border-gray-300" required>
       </div>
 
       <div>
-        <label for="style" class="block font-semibold mb-2">Writing Style</label>
-        <input type="text" id="style" name="style" placeholder="e.g., Elegant, Direct, Persuasive" required
-          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500" />
+        <label for="style" class="block mb-2 font-semibold">Writing Style</label>
+        <input type="text" id="style" name="style" value="{{ style }}" placeholder="e.g., Short and direct, Warm and inviting" class="w-full p-3 rounded border border-gray-300" required>
       </div>
 
       <div>
-        <label for="additional_notes" class="block font-semibold mb-2">Special Instructions (Optional)</label>
-        <textarea id="additional_notes" name="additional_notes" placeholder="Tell us anything extra you want the AI to know..."
-          class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"></textarea>
+        <label for="additional_notes" class="block mb-2 font-semibold">Additional Notes (Optional)</label>
+        <textarea id="additional_notes" name="additional_notes" placeholder="Anything extra you want our AI to know..." class="w-full p-3 rounded border border-gray-300" rows="4">{{ additional_notes }}</textarea>
       </div>
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Save Automation</button>
+      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">Save Settings</button>
     </form>
-  </main>
+  </div>
 
 </body>
 </html>
