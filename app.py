@@ -97,28 +97,39 @@ def automation():
 
     return render_template('automation.html', tone=tone, style=style, additional_notes=additional_notes)
 
+# UPDATED `/save-automation` route
+
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
+    # Fetch the fields from the form
     tone = request.form.get('tone')
     style = request.form.get('style')
+    proposal_length = request.form.get('proposal_length')
+    greeting = request.form.get('greeting')
+    closing = request.form.get('closing')
     additional_notes = request.form.get('additional_notes')
 
+    # Save them into the database
     conn = get_db_connection()
     conn.execute("""
-        INSERT INTO automation_settings (email, tone, style, additional_notes)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO automation_settings (email, tone, style, proposal_length, greeting, closing, additional_notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
             tone = excluded.tone,
             style = excluded.style,
+            proposal_length = excluded.proposal_length,
+            greeting = excluded.greeting,
+            closing = excluded.closing,
             additional_notes = excluded.additional_notes
-    """, (session['email'], tone, style, additional_notes))
+    """, (session['email'], tone, style, proposal_length, greeting, closing, additional_notes))
     conn.commit()
     conn.close()
 
     return redirect(url_for('dashboard'))
+
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
