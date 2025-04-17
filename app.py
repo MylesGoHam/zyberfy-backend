@@ -27,7 +27,7 @@ PRICE_IDS = {
 create_automation_table()
 create_subscriptions_table()
 
-# Routes (NOW it's safe to start routes after app is created)
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -83,21 +83,8 @@ def logout():
 def automation():
     if 'email' not in session:
         return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", 
-        (session['email'],)
-    ).fetchone()
-    conn.close()
-
-    tone = automation['tone'] if automation else ''
-    style = automation['style'] if automation else ''
-    additional_notes = automation['additional_notes'] if automation else ''
-
-    return render_template('automation.html', tone=tone, style=style, additional_notes=additional_notes)
-
-# UPDATED `/save-automation` route
+    saved = request.args.get('saved')
+    return render_template('automation.html', saved=saved)
 
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
@@ -127,8 +114,7 @@ def save_automation():
     conn.commit()
     conn.close()
 
-    return redirect(url_for('automation'))
-
+    return redirect(url_for('automation', saved='true'))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -188,6 +174,5 @@ def stripe_webhook():
 
     return jsonify(success=True)
 
-# Only for local testing
 if __name__ == '__main__':
     app.run(debug=True)
