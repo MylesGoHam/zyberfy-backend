@@ -62,9 +62,9 @@ def onboarding():
             conn.commit()
             conn.close()
             return redirect(url_for('dashboard'))
-
+        
         return redirect(url_for('login'))
-
+    
     return render_template('onboarding.html')
 
 @app.route('/dashboard')
@@ -74,7 +74,7 @@ def dashboard():
 
     conn = get_db_connection()
     user_info = conn.execute(
-        "SELECT first_name, stripe_subscription_id FROM subscriptions WHERE email = ?", 
+        "SELECT stripe_subscription_id, first_name FROM subscriptions WHERE email = ?", 
         (session['email'],)
     ).fetchone()
 
@@ -85,19 +85,22 @@ def dashboard():
 
     conn.close()
 
-    first_name = user_info['first_name'] if user_info else None
     automation_complete = bool(automation)
 
     plan_status = "Free"
-    if user_info and user_info['stripe_subscription_id']:
-        plan_status = "Active Subscription"
+    first_name = "User"
 
-    return render_template(
-        'dashboard.html', 
+    if user_info:
+        if user_info["stripe_subscription_id"]:
+            plan_status = "Active Subscription"
+        if user_info["first_name"]:
+            first_name = user_info["first_name"]
+
+    return render_template('dashboard.html', 
         email=session['email'], 
-        first_name=first_name,
-        plan_status=plan_status,
-        automation_complete=automation_complete
+        plan_status=plan_status, 
+        automation_complete=automation_complete, 
+        first_name=first_name
     )
 
 @app.route('/memberships')
