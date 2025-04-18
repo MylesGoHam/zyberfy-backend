@@ -91,6 +91,51 @@ def dashboard():
 
     return render_template('dashboard.html', email=session['email'], plan_status=plan_status, automation_complete=automation_complete, first_name=first_name)
 
+@app.route('/generate-proposal', methods=['POST'])
+def generate_proposal():
+    if 'email' not in session:
+        return jsonify(success=False, proposal="Please log in first."), 401
+
+    conn = get_db_connection()
+    automation = conn.execute(
+        "SELECT * FROM automation_settings WHERE email = ?", 
+        (session['email'],)
+    ).fetchone()
+    conn.close()
+
+    if not automation:
+        return jsonify(success=False, proposal="No automation settings found."), 400
+
+    tone = automation['tone'] or "Professional"
+    style = automation['style'] or "Detailed"
+    notes = automation['additional_notes'] or ""
+
+    # Construct the prompt for OpenAI
+    prompt = f"""Write a sample business proposal email.
+- Tone: {tone}
+- Style: {style}
+- Notes: {notes if notes else "No extra notes"}
+
+Make sure the proposal sounds realistic, professional, and helpful.
+"""
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert email writer specializing in personalized business proposals."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+
+        proposal_text = response['choices'][0]['message']['content'].strip()
+
+        return jsonify(success=True, proposal=proposal_text)
+    except Exception as e:
+        return jsonify(success=False, proposal=f"Error generating proposal: {str(e)}")
+
 # Memberships
 @app.route('/memberships')
 def memberships():
