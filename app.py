@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 import stripe
+import openai
 from models import create_automation_table, create_subscriptions_table, get_db_connection
 
 # Load environment variables
@@ -16,7 +17,10 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Price IDs from .env
+# OpenAI setup
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Price IDs
 PRICE_IDS = {
     'starter': os.getenv("STRIPE_STARTER_PRICE_ID"),
     'pro': os.getenv("STRIPE_PRO_PRICE_ID"),
@@ -51,14 +55,11 @@ def onboarding():
 
         if email:
             conn = get_db_connection()
-            conn.execute(
-                """
+            conn.execute("""
                 UPDATE subscriptions
                 SET first_name = ?, last_name = ?, business_name = ?, business_type = ?
                 WHERE email = ?
-                """,
-                (first_name, last_name, business_name, business_type, email)
-            )
+            """, (first_name, last_name, business_name, business_type, email))
             conn.commit()
             conn.close()
             return redirect(url_for('dashboard'))
@@ -74,7 +75,7 @@ def dashboard():
 
     conn = get_db_connection()
     subscription = conn.execute(
-        "SELECT stripe_subscription_id FROM subscriptions WHERE email = ?", 
+        "SELECT * FROM subscriptions WHERE email = ?", 
         (session['email'],)
     ).fetchone()
 
@@ -87,19 +88,10 @@ def dashboard():
 
     automation_complete = bool(automation)
 
-    plan_status = "Free"
-    if subscription:
-        plan_status = "Active Subscription"
+    # Get first name if available
+    first_name = subscription['first_name'] if subscription and 'first_name' in subscription.keys() else None
 
-    saved = request.args.get('saved')
-
-    return render_template(
-        'dashboard.html',
-        email=session['email'],
-        plan_status=plan_status,
-        automation_complete=automation_complete,
-        saved=saved
-    )
+    return render_template('dashboard.html', email=session['email'], first_name=first_name, automation_complete=automation_complete)
 
 @app.route('/memberships')
 def memberships():
@@ -164,7 +156,7 @@ def save_automation():
     conn.commit()
     conn.close()
 
-    return redirect(url_for('dashboard', saved='true'))
+    return redirect(url_for('automation', saved='true'))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
