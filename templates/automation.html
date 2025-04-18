@@ -1,116 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Automation Settings | Zyberfy</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <div class="text-xl font-semibold text-blue-700">Zyberfy</div>
-      <div class="relative">
-        <a href="/dashboard" class="text-blue-600 font-medium hover:underline">← Back to Dashboard</a>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-3xl mx-auto px-6 py-10">
+  <div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Automation Settings</h1>
 
     {% if saved %}
-    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-8">
-      <p class="font-semibold">Settings Saved!</p>
-      <p>Your automation preferences have been updated successfully.</p>
-    </div>
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+        <strong class="font-bold">Settings saved successfully!</strong>
+      </div>
     {% endif %}
 
-    <h1 class="text-3xl font-bold mb-6">Automation Settings</h1>
-    <p class="mb-10 text-gray-600">
-      Customize how Zyberfy generates and handles your proposals automatically. These settings will control tone, voice, follow-ups, and offers.
-    </p>
+    <form method="POST" action="/save-automation" class="space-y-8">
 
-    <form action="/save-automation" method="POST" class="space-y-8">
-
-      <!-- Voice and Style Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg">
-        <h2 class="text-xl font-semibold mb-4 text-blue-700">Voice & Style</h2>
-        
-        <div class="mb-4">
-          <label for="tone" class="block text-sm font-medium mb-1">Tone</label>
-          <input type="text" id="tone" name="tone" value="{{ settings['tone'] if settings else '' }}" required class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
-
-        <div class="mb-4">
-          <label for="style" class="block text-sm font-medium mb-1">Writing Style</label>
-          <input type="text" id="style" name="style" value="{{ settings['style'] if settings else '' }}" required class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
-
-        <div class="mb-4">
-          <label for="additional_notes" class="block text-sm font-medium mb-1">Additional Notes</label>
-          <textarea id="additional_notes" name="additional_notes" class="w-full border-gray-300 rounded-lg shadow-sm">{{ settings['additional_notes'] if settings else '' }}</textarea>
-        </div>
+      <!-- Tone & Style -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Tone and Style</h2>
+        <select name="tone" class="w-full border rounded p-2 mb-3">
+          <option value="Formal">Formal</option>
+          <option value="Friendly">Friendly</option>
+          <option value="Assertive">Assertive</option>
+        </select>
+        <select name="style" class="w-full border rounded p-2">
+          <option value="Concise">Concise</option>
+          <option value="Detailed">Detailed</option>
+        </select>
       </div>
 
-      <!-- Follow-up Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg">
-        <h2 class="text-xl font-semibold mb-4 text-blue-700">Follow-up Automation</h2>
-
-        <div class="mb-4">
-          <label for="enable_follow_up" class="block text-sm font-medium mb-1">Enable Follow-ups?</label>
-          <select id="enable_follow_up" name="enable_follow_up" class="w-full border-gray-300 rounded-lg shadow-sm">
-            <option value="yes" {% if settings and settings['enable_follow_up'] == 'yes' %}selected{% endif %}>Yes</option>
-            <option value="no" {% if settings and settings['enable_follow_up'] == 'no' %}selected{% endif %}>No</option>
-          </select>
-        </div>
-
-        <div class="mb-4">
-          <label for="number_of_followups" class="block text-sm font-medium mb-1">Number of Follow-ups</label>
-          <input type="number" id="number_of_followups" name="number_of_followups" value="{{ settings['number_of_followups'] if settings else '' }}" min="0" class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
-
-        <div class="mb-4">
-          <label for="followup_delay" class="block text-sm font-medium mb-1">Days Between Follow-ups</label>
-          <input type="number" id="followup_delay" name="followup_delay" value="{{ settings['followup_delay'] if settings else '' }}" min="1" class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
-
-        <div class="mb-4">
-          <label for="followup_style" class="block text-sm font-medium mb-1">Follow-up Style</label>
-          <input type="text" id="followup_style" name="followup_style" value="{{ settings['followup_style'] if settings else '' }}" class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
+      <!-- Offer Management -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Offer Management</h2>
+        <input name="minimum_offer" type="number" placeholder="Minimum Acceptable Offer ($)" class="w-full border rounded p-2 mb-3" />
+        <input name="acceptance_message" type="text" placeholder="Custom Acceptance Message" class="w-full border rounded p-2 mb-3" />
+        <input name="decline_message" type="text" placeholder="Custom Decline Message" class="w-full border rounded p-2" />
       </div>
 
-      <!-- Offer & Response Section -->
-      <div class="bg-white p-6 rounded-2xl shadow-lg">
-        <h2 class="text-xl font-semibold mb-4 text-blue-700">Offer Handling</h2>
-
-        <div class="mb-4">
-          <label for="minimum_offer" class="block text-sm font-medium mb-1">Minimum Acceptable Offer ($)</label>
-          <input type="number" id="minimum_offer" name="minimum_offer" value="{{ settings['minimum_offer'] if settings else '' }}" class="w-full border-gray-300 rounded-lg shadow-sm">
-        </div>
-
-        <div class="mb-4">
-          <label for="acceptance_message" class="block text-sm font-medium mb-1">Custom Acceptance Message</label>
-          <textarea id="acceptance_message" name="acceptance_message" class="w-full border-gray-300 rounded-lg shadow-sm">{{ settings['acceptance_message'] if settings else '' }}</textarea>
-        </div>
-
-        <div class="mb-4">
-          <label for="decline_message" class="block text-sm font-medium mb-1">Custom Decline Message</label>
-          <textarea id="decline_message" name="decline_message" class="w-full border-gray-300 rounded-lg shadow-sm">{{ settings['decline_message'] if settings else '' }}</textarea>
-        </div>
+      <!-- Follow-Ups -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Follow-Up Settings</h2>
+        <select name="enable_follow_up" class="w-full border rounded p-2 mb-3">
+          <option value="Yes">Enable Follow-Ups</option>
+          <option value="No">Disable Follow-Ups</option>
+        </select>
+        <input name="number_of_followups" type="number" placeholder="Number of Follow-Ups" class="w-full border rounded p-2 mb-3" />
+        <input name="followup_delay" type="number" placeholder="Days Between Follow-Ups" class="w-full border rounded p-2 mb-3" />
+        <select name="followup_style" class="w-full border rounded p-2">
+          <option value="Friendly Reminder">Friendly Reminder</option>
+          <option value="Urgent Reminder">Urgent Reminder</option>
+        </select>
       </div>
 
-      <!-- Save Button -->
+      <!-- Additional Notes -->
+      <div>
+        <h2 class="text-xl font-semibold mb-4">Additional Notes to AI</h2>
+        <textarea name="additional_notes" rows="4" placeholder="Anything you want AI to know..." class="w-full border rounded p-2"></textarea>
+      </div>
+
+      <!-- Submit -->
       <div class="text-center">
-        <button type="submit" class="mt-8 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+        <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded hover:bg-blue-700 transition">
           Save Settings
         </button>
       </div>
 
     </form>
-
-  </main>
+  </div>
 
 </body>
 </html>
