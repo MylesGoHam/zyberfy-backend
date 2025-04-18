@@ -62,7 +62,9 @@ def onboarding():
             conn.commit()
             conn.close()
             return redirect(url_for('dashboard'))
+        
         return redirect(url_for('login'))
+    
     return render_template('onboarding.html')
 
 @app.route('/dashboard')
@@ -72,12 +74,12 @@ def dashboard():
 
     conn = get_db_connection()
     subscription = conn.execute(
-        "SELECT stripe_subscription_id, first_name FROM subscriptions WHERE email = ?",
+        "SELECT stripe_subscription_id FROM subscriptions WHERE email = ?", 
         (session['email'],)
     ).fetchone()
 
     automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?",
+        "SELECT * FROM automation_settings WHERE email = ?", 
         (session['email'],)
     ).fetchone()
 
@@ -86,12 +88,18 @@ def dashboard():
     automation_complete = bool(automation)
 
     plan_status = "Free"
-    if subscription and subscription['stripe_subscription_id']:
+    if subscription:
         plan_status = "Active Subscription"
 
-    first_name = subscription['first_name'] if subscription else None
+    saved = request.args.get('saved')
 
-    return render_template('dashboard.html', email=session['email'], plan_status=plan_status, automation_complete=automation_complete, first_name=first_name)
+    return render_template(
+        'dashboard.html',
+        email=session['email'],
+        plan_status=plan_status,
+        automation_complete=automation_complete,
+        saved=saved
+    )
 
 @app.route('/memberships')
 def memberships():
@@ -130,24 +138,25 @@ def save_automation():
     decline_message = request.form.get('decline_message')
 
     conn = get_db_connection()
-    conn.execute('''
+    conn.execute("""
         INSERT INTO automation_settings (
             email, tone, style, additional_notes,
             enable_follow_up, number_of_followups, followup_delay, followup_style,
             minimum_offer, acceptance_message, decline_message
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
-            tone=excluded.tone,
-            style=excluded.style,
-            additional_notes=excluded.additional_notes,
-            enable_follow_up=excluded.enable_follow_up,
-            number_of_followups=excluded.number_of_followups,
-            followup_delay=excluded.followup_delay,
-            followup_style=excluded.followup_style,
-            minimum_offer=excluded.minimum_offer,
-            acceptance_message=excluded.acceptance_message,
-            decline_message=excluded.decline_message
-    ''', (
+            tone = excluded.tone,
+            style = excluded.style,
+            additional_notes = excluded.additional_notes,
+            enable_follow_up = excluded.enable_follow_up,
+            number_of_followups = excluded.number_of_followups,
+            followup_delay = excluded.followup_delay,
+            followup_style = excluded.followup_style,
+            minimum_offer = excluded.minimum_offer,
+            acceptance_message = excluded.acceptance_message,
+            decline_message = excluded.decline_message
+    """, (
         session['email'], tone, style, additional_notes,
         enable_follow_up, number_of_followups, followup_delay, followup_style,
         minimum_offer, acceptance_message, decline_message
@@ -155,7 +164,7 @@ def save_automation():
     conn.commit()
     conn.close()
 
-    return redirect(url_for('automation', saved='true'))
+    return redirect(url_for('dashboard', saved='true'))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -202,11 +211,11 @@ def stripe_webhook():
 
         if customer_email and subscription_id:
             conn = get_db_connection()
-            conn.execute('''
+            conn.execute("""
                 INSERT INTO subscriptions (email, stripe_subscription_id) 
                 VALUES (?, ?) 
                 ON CONFLICT(email) DO UPDATE SET stripe_subscription_id = ?
-            ''', (customer_email, subscription_id, subscription_id))
+            """, (customer_email, subscription_id, subscription_id))
             conn.commit()
             conn.close()
 
