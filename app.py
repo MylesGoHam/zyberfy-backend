@@ -4,7 +4,7 @@ import os
 import sqlite3
 import stripe
 import openai
-from models import create_automation_table, create_subscriptions_table, get_db_connection
+from models import create_automation_table, get_db_connection
 
 # Load environment variables
 load_dotenv()
