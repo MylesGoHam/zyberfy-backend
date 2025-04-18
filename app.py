@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 import stripe
-import openai
 from models import create_automation_table, create_subscriptions_table, get_db_connection
 
 # Load environment variables
@@ -17,10 +16,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# OpenAI setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Price IDs
+# Price IDs from .env
 PRICE_IDS = {
     'starter': os.getenv("STRIPE_STARTER_PRICE_ID"),
     'pro': os.getenv("STRIPE_PRO_PRICE_ID"),
@@ -55,17 +51,20 @@ def onboarding():
 
         if email:
             conn = get_db_connection()
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE subscriptions
                 SET first_name = ?, last_name = ?, business_name = ?, business_type = ?
                 WHERE email = ?
-            """, (first_name, last_name, business_name, business_type, email))
+                """,
+                (first_name, last_name, business_name, business_type, email)
+            )
             conn.commit()
             conn.close()
             return redirect(url_for('dashboard'))
-        
+
         return redirect(url_for('login'))
-    
+
     return render_template('onboarding.html')
 
 @app.route('/dashboard')
@@ -74,8 +73,8 @@ def dashboard():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    subscription = conn.execute(
-        "SELECT * FROM subscriptions WHERE email = ?", 
+    user_info = conn.execute(
+        "SELECT first_name, stripe_subscription_id FROM subscriptions WHERE email = ?", 
         (session['email'],)
     ).fetchone()
 
@@ -86,12 +85,20 @@ def dashboard():
 
     conn.close()
 
+    first_name = user_info['first_name'] if user_info else None
     automation_complete = bool(automation)
 
-    # Get first name if available
-    first_name = subscription['first_name'] if subscription and 'first_name' in subscription.keys() else None
+    plan_status = "Free"
+    if user_info and user_info['stripe_subscription_id']:
+        plan_status = "Active Subscription"
 
-    return render_template('dashboard.html', email=session['email'], first_name=first_name, automation_complete=automation_complete)
+    return render_template(
+        'dashboard.html', 
+        email=session['email'], 
+        first_name=first_name,
+        plan_status=plan_status,
+        automation_complete=automation_complete
+    )
 
 @app.route('/memberships')
 def memberships():
