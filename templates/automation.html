@@ -1,75 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Automation Settings | Zyberfy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <title>Automation Settings | Zyberfy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
+    <div class="max-w-4xl mx-auto px-6 py-12">
+        <h1 class="text-3xl font-bold text-center mb-6">Automation Settings</h1>
+        <p class="text-center text-gray-600 mb-10">These settings control how your automated email proposals will look and feel. Fill them out to customize your AI's behavior!</p>
 
-  <div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Automation Settings</h1>
+        <form action="{{ url_for('save_automation') }}" method="POST" class="space-y-8">
 
-    {% if saved %}
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-        <strong class="font-bold">Settings saved successfully!</strong>
-      </div>
-    {% endif %}
+            <!-- Automation Settings -->
+            <div class="bg-white shadow-md rounded-2xl p-8">
+                <h2 class="text-2xl font-semibold mb-6">Automation Settings</h2>
 
-    <form method="POST" action="/save-automation" class="space-y-8">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Tone of Voice</label>
+                        <select name="tone" class="w-full border rounded-lg px-4 py-2">
+                            <option>Luxury</option>
+                            <option>Friendly</option>
+                            <option>Bold</option>
+                            <option>Professional</option>
+                            <option>Warm and Inviting</option>
+                            <option>Fun and Energetic</option>
+                            <option>Sophisticated</option>
+                            <option>Direct</option>
+                            <option>Creative</option>
+                            <option>Persuasive</option>
+                            <option>Elegant</option>
+                            <option>Formal</option>
+                            <option>Informal</option>
+                            <option>Assertive</option>
+                            <option>Caring</option>
+                            <option>High-End Exclusive</option>
+                        </select>
+                    </div>
 
-      <!-- Tone & Style -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4">Tone and Style</h2>
-        <select name="tone" class="w-full border rounded p-2 mb-3">
-          <option value="Formal">Formal</option>
-          <option value="Friendly">Friendly</option>
-          <option value="Assertive">Assertive</option>
-        </select>
-        <select name="style" class="w-full border rounded p-2">
-          <option value="Concise">Concise</option>
-          <option value="Detailed">Detailed</option>
-        </select>
-      </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Email Style</label>
+                        <select name="style" class="w-full border rounded-lg px-4 py-2">
+                            <option>Short and Direct</option>
+                            <option>Detailed and Warm</option>
+                            <option>Luxury and Formal</option>
+                            <option>Friendly and Inviting</option>
+                        </select>
+                    </div>
 
-      <!-- Offer Management -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4">Offer Management</h2>
-        <input name="minimum_offer" type="number" placeholder="Minimum Acceptable Offer ($)" class="w-full border rounded p-2 mb-3" />
-        <input name="acceptance_message" type="text" placeholder="Custom Acceptance Message" class="w-full border rounded p-2 mb-3" />
-        <input name="decline_message" type="text" placeholder="Custom Decline Message" class="w-full border rounded p-2" />
-      </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Additional Notes (Optional)</label>
+                        <textarea name="additional_notes" class="w-full border rounded-lg px-4 py-2" placeholder="Anything specific you want the AI to remember..."></textarea>
+                    </div>
+                </div>
+            </div>
 
-      <!-- Follow-Ups -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4">Follow-Up Settings</h2>
-        <select name="enable_follow_up" class="w-full border rounded p-2 mb-3">
-          <option value="Yes">Enable Follow-Ups</option>
-          <option value="No">Disable Follow-Ups</option>
-        </select>
-        <input name="number_of_followups" type="number" placeholder="Number of Follow-Ups" class="w-full border rounded p-2 mb-3" />
-        <input name="followup_delay" type="number" placeholder="Days Between Follow-Ups" class="w-full border rounded p-2 mb-3" />
-        <select name="followup_style" class="w-full border rounded p-2">
-          <option value="Friendly Reminder">Friendly Reminder</option>
-          <option value="Urgent Reminder">Urgent Reminder</option>
-        </select>
-      </div>
+            <!-- Lead Follow-Up Settings -->
+            <div class="bg-white shadow-md rounded-2xl p-8">
+                <h2 class="text-2xl font-semibold mb-6">Lead Follow-Up Settings</h2>
 
-      <!-- Additional Notes -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4">Additional Notes to AI</h2>
-        <textarea name="additional_notes" rows="4" placeholder="Anything you want AI to know..." class="w-full border rounded p-2"></textarea>
-      </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Enable Auto Follow-Up?</label>
+                        <select name="enable_follow_up" class="w-full border rounded-lg px-4 py-2">
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
+                    </div>
 
-      <!-- Submit -->
-      <div class="text-center">
-        <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded hover:bg-blue-700 transition">
-          Save Settings
-        </button>
-      </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Number of Follow-Ups</label>
+                        <select name="number_of_followups" class="w-full border rounded-lg px-4 py-2">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                        </select>
+                    </div>
 
-    </form>
-  </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Follow-Up Delay</label>
+                        <select name="followup_delay" class="w-full border rounded-lg px-4 py-2">
+                            <option>1 day</option>
+                            <option>2 days</option>
+                            <option>3 days</option>
+                            <option>1 week</option>
+                        </select>
+                    </div>
 
+                    <div>
+                        <label class="block font-semibold mb-1">Follow-Up Style</label>
+                        <select name="followup_style" class="w-full border rounded-lg px-4 py-2">
+                            <option>Soft Reminder</option>
+                            <option>Professional Follow-Up</option>
+                            <option>Urgent Follow-Up</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offer Response Settings -->
+            <div class="bg-white shadow-md rounded-2xl p-8">
+                <h2 class="text-2xl font-semibold mb-6">Offer Response Settings</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-semibold mb-1">Minimum Acceptable Offer ($)</label>
+                        <input type="text" name="minimum_offer" class="w-full border rounded-lg px-4 py-2" placeholder="Enter minimum acceptable offer...">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Custom Acceptance Message</label>
+                        <textarea name="acceptance_message" class="w-full border rounded-lg px-4 py-2" placeholder="Thanks for your offer. We accept!"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Custom Decline Message</label>
+                        <textarea name="decline_message" class="w-full border rounded-lg px-4 py-2" placeholder="Unfortunately, we cannot accept your offer..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="flex justify-center">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full shadow-md transition">Save Settings</button>
+            </div>
+
+        </form>
+    </div>
 </body>
 </html>
