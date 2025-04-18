@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 import stripe
+import openai
 from models import create_automation_table, create_subscriptions_table, get_db_connection
 
 # Load environment variables
@@ -11,6 +12,9 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
+
+# Connect to OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
