@@ -166,49 +166,23 @@ def save_automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    try:
-        tone = request.form.get('tone')
-        style = request.form.get('style')
-        additional_notes = request.form.get('additional_notes')
-        enable_follow_up = request.form.get('enable_follow_up')
-        number_of_followups = request.form.get('number_of_followups')
-        followup_delay = request.form.get('followup_delay')
-        followup_style = request.form.get('followup_style')
-        minimum_offer = request.form.get('minimum_offer')
-        acceptance_message = request.form.get('acceptance_message')
-        decline_message = request.form.get('decline_message')
+    tone = request.form.get('tone')
+    style = request.form.get('style')
+    additional_notes = request.form.get('additional_notes')
 
-        conn = get_db_connection()
-        conn.execute("""
-            INSERT INTO automation_settings (
-                email, tone, style, additional_notes,
-                enable_follow_up, number_of_followups, followup_delay, followup_style,
-                minimum_offer, acceptance_message, decline_message
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(email) DO UPDATE SET
-                tone = excluded.tone,
-                style = excluded.style,
-                additional_notes = excluded.additional_notes,
-                enable_follow_up = excluded.enable_follow_up,
-                number_of_followups = excluded.number_of_followups,
-                followup_delay = excluded.followup_delay,
-                followup_style = excluded.followup_style,
-                minimum_offer = excluded.minimum_offer,
-                acceptance_message = excluded.acceptance_message,
-                decline_message = excluded.decline_message
-        """, (
-            session['email'], tone, style, additional_notes,
-            enable_follow_up, number_of_followups, followup_delay, followup_style,
-            minimum_offer, acceptance_message, decline_message
-        ))
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO automation_settings (email, tone, style, additional_notes)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET
+            tone = excluded.tone,
+            style = excluded.style,
+            additional_notes = excluded.additional_notes
+    """, (session['email'], tone, style, additional_notes))
+    conn.commit()
+    conn.close()
 
-        return jsonify(success=True)
-
-    except Exception as e:
-        return jsonify(success=False, error=str(e)), 500
+    return redirect(url_for('automation', saved='true'))
 
 # Create Checkout Session
 @app.route('/create-checkout-session', methods=['POST'])
