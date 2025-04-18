@@ -1,117 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automation Settings</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automation Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start py-10">
 
-    <h1 class="text-3xl font-bold mb-8">Automation Settings</h1>
+  <h1 class="text-3xl font-bold mb-8">Automation Settings</h1>
 
-    <form action="/save-automation" method="POST" class="w-full max-w-2xl space-y-10">
+  <form action="/save-automation" method="POST" class="w-full max-w-2xl space-y-10">
 
-        <!-- Automation Settings Section -->
-        <div class="bg-white p-6 rounded-2xl shadow-md">
-            <h2 class="text-2xl font-semibold mb-4">Automation Settings</h2>
+    <!-- Automation Settings Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">Automation Settings</h2>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Tone of Voice</label>
-                <select name="tone" class="w-full p-3 border rounded-lg">
-                    <option>Luxury</option>
-                    <option>Friendly</option>
-                    <option>Bold</option>
-                    <option>Professional</option>
-                    <option>Formal</option>
-                    <option>Casual</option>
-                    <option>Inspirational</option>
-                    <option>Direct</option>
-                    <option>Soft</option>
-                </select>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Tone of Voice</label>
+        <select name="tone" class="w-full p-3 border rounded-lg">
+          <option>Luxury</option>
+          <option>Friendly</option>
+          <option>Bold</option>
+          <option>Professional</option>
+          <option>Formal</option>
+          <option>Casual</option>
+          <option>Inspirational</option>
+          <option>Direct</option>
+          <option>Soft</option>
+        </select>
+      </div>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Email Style</label>
-                <select name="style" class="w-full p-3 border rounded-lg">
-                    <option>Short and Direct</option>
-                    <option>Detailed</option>
-                    <option>Warm and Inviting</option>
-                    <option>Persuasive</option>
-                </select>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Email Style</label>
+        <select name="style" class="w-full p-3 border rounded-lg">
+          <option>Short and Direct</option>
+          <option>Detailed</option>
+          <option>Warm and Inviting</option>
+          <option>Persuasive</option>
+        </select>
+      </div>
 
-            <div>
-                <label class="block mb-1 font-medium">Additional Notes (Optional)</label>
-                <textarea name="additional_notes" placeholder="Anything extra you want the AI to remember..." class="w-full p-3 border rounded-lg"></textarea>
-            </div>
-        </div>
+      <div>
+        <label class="block mb-1 font-medium">Additional Notes (Optional)</label>
+        <textarea name="additional_notes" placeholder="Anything extra you want the AI to remember..." class="w-full p-3 border rounded-lg"></textarea>
+      </div>
+    </div>
 
-        <!-- Lead Follow-Up Settings Section -->
-        <div class="bg-white p-6 rounded-2xl shadow-md">
-            <h2 class="text-2xl font-semibold mb-4">Lead Follow-Up Settings</h2>
+    <!-- Lead Follow-Up Settings Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">Lead Follow-Up Settings</h2>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Enable Auto Follow-Up?</label>
-                <select name="enable_follow_up" class="w-full p-3 border rounded-lg">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Enable Auto Follow-Up?</label>
+        <select name="enable_follow_up" class="w-full p-3 border rounded-lg">
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+      </div>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Number of Follow-Ups</label>
-                <select name="number_of_followups" class="w-full p-3 border rounded-lg">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Number of Follow-Ups</label>
+        <select name="number_of_followups" class="w-full p-3 border rounded-lg">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </div>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Follow-Up Delay</label>
-                <select name="followup_delay" class="w-full p-3 border rounded-lg">
-                    <option>1 day</option>
-                    <option>3 days</option>
-                    <option>1 week</option>
-                    <option>2 weeks</option>
-                </select>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Follow-Up Delay</label>
+        <select name="followup_delay" class="w-full p-3 border rounded-lg">
+          <option>1 day</option>
+          <option>3 days</option>
+          <option>1 week</option>
+          <option>2 weeks</option>
+        </select>
+      </div>
 
-            <div>
-                <label class="block mb-1 font-medium">Follow-Up Style</label>
-                <select name="followup_style" class="w-full p-3 border rounded-lg">
-                    <option>Soft Reminder</option>
-                    <option>Professional Follow-Up</option>
-                    <option>Urgent Follow-Up</option>
-                </select>
-            </div>
-        </div>
+      <div>
+        <label class="block mb-1 font-medium">Follow-Up Style</label>
+        <select name="followup_style" class="w-full p-3 border rounded-lg">
+          <option>Soft Reminder</option>
+          <option>Professional Follow-Up</option>
+          <option>Urgent Follow-Up</option>
+        </select>
+      </div>
+    </div>
 
-        <!-- Offer Response Settings Section -->
-        <div class="bg-white p-6 rounded-2xl shadow-md">
-            <h2 class="text-2xl font-semibold mb-4">Offer Response Settings</h2>
+    <!-- Offer Response Settings Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">Offer Response Settings</h2>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Minimum Acceptable Offer ($)</label>
-                <input type="number" min="0" name="minimum_offer" placeholder="Enter minimum acceptable offer..." class="w-full p-3 border rounded-lg" required>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Minimum Acceptable Offer ($)</label>
+        <input type="number" min="0" name="minimum_offer" placeholder="Enter minimum acceptable offer..." class="w-full p-3 border rounded-lg" required>
+      </div>
 
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Custom Acceptance Message</label>
-                <textarea name="acceptance_message" placeholder="Thanks for your offer. We accept!" class="w-full p-3 border rounded-lg"></textarea>
-            </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-medium">Custom Acceptance Message</label>
+        <textarea name="acceptance_message" placeholder="Thanks for your offer. We accept!" class="w-full p-3 border rounded-lg"></textarea>
+      </div>
 
-            <div>
-                <label class="block mb-1 font-medium">Custom Decline Message</label>
-                <textarea name="decline_message" placeholder="Unfortunately, we cannot accept your offer..." class="w-full p-3 border rounded-lg"></textarea>
-            </div>
-        </div>
+      <div>
+        <label class="block mb-1 font-medium">Custom Decline Message</label>
+        <textarea name="decline_message" placeholder="Unfortunately, we cannot accept your offer..." class="w-full p-3 border rounded-lg"></textarea>
+      </div>
+    </div>
 
-        <div class="flex justify-center">
-            <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-10 rounded-full hover:bg-blue-700 transition">Save Settings</button>
-        </div>
-    </form>
+    <div class="flex justify-center">
+      <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-10 rounded-full hover:bg-blue-700 transition">Save Settings</button>
+    </div>
+  </form>
+
+  <!-- Proposal Generator Button + Result -->
+  <div class="flex justify-center mt-8">
+    <button 
+      type="button"
+      onclick="generateProposal()"
+      class="bg-green-600 text-white font-semibold py-3 px-10 rounded-full hover:bg-green-700 transition">
+      Test Proposal Output
+    </button>
+  </div>
+
+  <div id="proposalResult" class="mt-8 p-6 bg-white rounded-xl shadow-lg text-gray-800 hidden"></div>
+
+  <script>
+    async function generateProposal() {
+      const resultDiv = document.getElementById('proposalResult');
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = "Generating proposal...";
+  
+      try {
+        const response = await fetch('/generate-proposal', { method: 'POST' });
+        const data = await response.json();
+  
+        if (data.success) {
+          resultDiv.innerHTML = `<h2 class="text-xl font-bold mb-2">Sample Proposal:</h2><p>${data.proposal}</p>`;
+        } else {
+          resultDiv.innerHTML = "Failed to generate proposal.";
+        }
+      } catch (error) {
+        resultDiv.innerHTML = "Error generating proposal.";
+      }
+    }
+  </script>
 
 </body>
 </html>
