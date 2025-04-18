@@ -16,7 +16,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-# Price IDs from .env
+# Price IDs
 PRICE_IDS = {
     'starter': os.getenv("STRIPE_STARTER_PRICE_ID"),
     'pro': os.getenv("STRIPE_PRO_PRICE_ID"),
@@ -27,11 +27,12 @@ PRICE_IDS = {
 create_automation_table()
 create_subscriptions_table()
 
-# Routes
+# Home
 @app.route('/')
 def home():
     return render_template('index.html')
 
+# Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -40,6 +41,7 @@ def login():
         return redirect(url_for('dashboard'))
     return render_template('login.html')
 
+# Onboarding
 @app.route('/onboarding', methods=['GET', 'POST'])
 def onboarding():
     if request.method == 'POST':
@@ -51,71 +53,57 @@ def onboarding():
 
         if email:
             conn = get_db_connection()
-            conn.execute(
-                """
+            conn.execute("""
                 UPDATE subscriptions
                 SET first_name = ?, last_name = ?, business_name = ?, business_type = ?
                 WHERE email = ?
-                """,
-                (first_name, last_name, business_name, business_type, email)
-            )
+            """, (first_name, last_name, business_name, business_type, email))
             conn.commit()
             conn.close()
             return redirect(url_for('dashboard'))
-        
         return redirect(url_for('login'))
-    
     return render_template('onboarding.html')
 
+# Dashboard
 @app.route('/dashboard')
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    user_info = conn.execute(
-        "SELECT stripe_subscription_id, first_name FROM subscriptions WHERE email = ?", 
-        (session['email'],)
-    ).fetchone()
-
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", 
-        (session['email'],)
-    ).fetchone()
-
+    subscription = conn.execute("SELECT * FROM subscriptions WHERE email = ?", (session['email'],)).fetchone()
+    automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
     conn.close()
 
     automation_complete = bool(automation)
 
+    first_name = None
+    if subscription and subscription['first_name']:
+        first_name = subscription['first_name']
+
     plan_status = "Free"
-    first_name = "User"
+    if subscription and subscription['stripe_subscription_id']:
+        plan_status = "Active Subscription"
 
-    if user_info:
-        if user_info["stripe_subscription_id"]:
-            plan_status = "Active Subscription"
-        if user_info["first_name"]:
-            first_name = user_info["first_name"]
+    return render_template('dashboard.html', email=session['email'], plan_status=plan_status, automation_complete=automation_complete, first_name=first_name)
 
-    return render_template('dashboard.html', 
-        email=session['email'], 
-        plan_status=plan_status, 
-        automation_complete=automation_complete, 
-        first_name=first_name
-    )
-
+# Memberships
 @app.route('/memberships')
 def memberships():
     return render_template('memberships.html')
 
+# Terms
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
 
+# Logout
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# Automation Settings
 @app.route('/automation')
 def automation():
     if 'email' not in session:
@@ -123,6 +111,7 @@ def automation():
     saved = request.args.get('saved')
     return render_template('automation.html', saved=saved)
 
+# Save Automation Settings
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
     if 'email' not in session:
@@ -168,6 +157,7 @@ def save_automation():
 
     return redirect(url_for('automation', saved='true'))
 
+# Create Checkout Session
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     plan = request.form.get('plan')
@@ -194,6 +184,7 @@ def create_checkout_session():
     except Exception as e:
         return f"Checkout failed: {e}", 500
 
+# Stripe Webhook
 @app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.data
@@ -223,5 +214,6 @@ def stripe_webhook():
 
     return jsonify(success=True)
 
+# Local run
 if __name__ == '__main__':
     app.run(debug=True)
