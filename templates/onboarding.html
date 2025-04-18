@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Client Onboarding | Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-3xl mx-auto p-8 mt-10 bg-white rounded-2xl shadow-lg">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-8">Client Onboarding</h1>
+    <form action="/onboarding" method="POST" class="space-y-6">
+
+      <div>
+        <label class="block mb-1 font-semibold">First Name</label>
+        <input type="text" name="first_name" required class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Last Name</label>
+        <input type="text" name="last_name" required class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Company Name</label>
+        <input type="text" name="company" required class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Business Type</label>
+        <input type="text" name="business_type" required placeholder="Luxury Travel, Private Jets, Marketing Agency..." class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Website URL (Optional)</label>
+        <input type="url" name="website" placeholder="https://yourbusiness.com" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div>
+        <label class="block mb-1 font-semibold">Preferred Contact Email (Optional)</label>
+        <input type="email" name="contact_email" placeholder="you@example.com" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 hover:scale-105 transition">Save and Continue</button>
+      </div>
+
+    </form>
+  </div>
+</body>
+</html>
