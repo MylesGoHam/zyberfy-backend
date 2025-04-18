@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Automation Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -10,7 +10,7 @@
 
   <h1 class="text-3xl font-bold mb-8">Automation Settings</h1>
 
-  <form action="/save-automation" method="POST" class="w-full max-w-2xl space-y-10">
+  <form id="automationForm" class="w-full max-w-2xl space-y-10">
 
     <!-- Automation Settings Section -->
     <div class="bg-white p-6 rounded-2xl shadow-md">
@@ -109,11 +109,13 @@
     </div>
 
     <div class="flex justify-center">
-      <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-10 rounded-full hover:bg-blue-700 transition">Save Settings</button>
+      <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-10 rounded-full hover:bg-blue-700 transition">
+        Save Settings
+      </button>
     </div>
+
   </form>
 
-  <!-- Proposal Generator Button + Result -->
   <div class="flex justify-center mt-8">
     <button 
       type="button"
@@ -130,11 +132,13 @@
       const resultDiv = document.getElementById('proposalResult');
       resultDiv.classList.remove('hidden');
       resultDiv.innerHTML = "Generating proposal...";
-  
+
       try {
-        const response = await fetch('/generate-proposal', { method: 'POST' });
+        const response = await fetch('/generate-proposal', {
+          method: 'POST'
+        });
         const data = await response.json();
-  
+
         if (data.success) {
           resultDiv.innerHTML = `<h2 class="text-xl font-bold mb-2">Sample Proposal:</h2><p>${data.proposal}</p>`;
         } else {
@@ -143,6 +147,37 @@
       } catch (error) {
         resultDiv.innerHTML = "Error generating proposal.";
       }
+    }
+
+    document.getElementById('automationForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // Stop normal form submit
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      const response = await fetch('/save-automation', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showSuccessBanner();
+      } else {
+        alert("Error saving settings: " + (result.error || "Unknown error"));
+      }
+    });
+
+    function showSuccessBanner() {
+      const banner = document.createElement('div');
+      banner.className = "bg-green-500 text-white font-bold p-4 rounded-xl shadow-md mb-8";
+      banner.innerText = "✅ Settings successfully saved!";
+      document.body.prepend(banner);
+
+      setTimeout(() => {
+        banner.remove();
+      }, 3000); // 3 seconds
     }
   </script>
 
