@@ -57,12 +57,18 @@ def dashboard():
 
     conn = get_db_connection()
     automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
+    subscription = conn.execute("SELECT * FROM subscriptions WHERE email = ?", (session['email'],)).fetchone()
     conn.close()
 
-    automation_complete = automation is not None
-    plan_status = "Active"  # Placeholder, until Stripe subscriptions connected
+    # Dummy fallback values
+    first_name = session['email'].split('@')[0].capitalize()
+    plan_status = 'Active' if subscription else 'Inactive'
+    automation_complete = True if automation else False
 
-    return render_template('dashboard.html', automation_complete=automation_complete, plan_status=plan_status)
+    return render_template('dashboard.html',
+                            first_name=first_name,
+                            plan_status=plan_status,
+                            automation_complete=automation_complete)
 
 # Automation Settings
 @app.route('/automation', methods=['GET', 'POST'])
@@ -147,6 +153,10 @@ The Zyberfy Team
 @app.route('/memberships')
 def memberships():
     return render_template('memberships.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
 
 # Logout
 @app.route('/logout')
