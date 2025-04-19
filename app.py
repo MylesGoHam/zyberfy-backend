@@ -1,64 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import os
-from email_assistant import generate_reply
+from email_utils import send_email
+from models import create_users_table, create_automation_settings_table, create_subscriptions_table
 from dotenv import load_dotenv
-import openai
-import stripe
-import posthog
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
 
-DATABASE = "zyberfy.db"
+DATABASE = 'zyberfy.db'
 
-# Initialize PostHog
-posthog.project_api_key = os.getenv("POSTHOG_API_KEY")
-posthog.host = 'https://app.posthog.com'
-
-# Initialize Stripe
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
-
+# Connect to the database
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
-# Create subscriptions table if it doesn't exist
-def create_subscriptions_table():
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE,
-            stripe_subscription_id TEXT,
-            price_id TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-# Create automation_settings table if it doesn't exist
-def create_automation_table():
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS automation_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE,
-            tone TEXT,
-            subject TEXT,
-            greeting TEXT,
-            closing TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
+# Initialize necessary tables
+create_users_table()
+create_automation_settings_table()
 create_subscriptions_table()
-create_automation_table()
 
 @app.route('/')
 def home():
@@ -67,47 +30,70 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        session['email'] = request.form['email']
-        return redirect(url_for('dashboard'))
+        email = request.form['email']
+        password = request.form['password']
+
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE email = ? AND password = ?', (email, password)).fetchone()
+        conn.close()
+
+        if user:
+            session['email'] = user['email']
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error='Invalid email or password')
+
     return render_template('login.html')
 
 @app.route('/dashboard')
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
+
     conn = get_db_connection()
     automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
     conn.close()
+
     return render_template('dashboard.html', automation=automation)
 
 @app.route('/automation', methods=['GET', 'POST'])
-def automation():
+def automation_settings():
     if 'email' not in session:
         return redirect(url_for('login'))
+
     conn = get_db_connection()
+
     if request.method == 'POST':
-        tone = request.form['tone']
         subject = request.form['subject']
         greeting = request.form['greeting']
-        closing = request.form['closing']
-        existing = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
+        tone = request.form['tone']
+        footer = request.form['footer']
+
+        existing = conn.execute('SELECT * FROM automation_settings WHERE email = ?', (session['email'],)).fetchone()
+
         if existing:
             conn.execute('''
                 UPDATE automation_settings
-                SET tone = ?, subject = ?, greeting = ?, closing = ?
+                SET subject = ?, greeting = ?, tone = ?, footer = ?
                 WHERE email = ?
-            ''', (tone, subject, greeting, closing, session['email']))
+            ''', (subject, greeting, tone, footer, session['email']))
         else:
             conn.execute('''
-                INSERT INTO automation_settings (email, tone, subject, greeting, closing)
+                INSERT INTO automation_settings (email, subject, greeting, tone, footer)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (session['email'], tone, subject, greeting, closing))
+            ''', (session['email'], subject, greeting, tone, footer))
+
         conn.commit()
-        conn.close()
-        return redirect(url_for('dashboard'))
-    automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
+
+    automation = conn.execute('SELECT * FROM automation_settings WHERE email = ?', (session['email'],)).fetchone()
     conn.close()
+
     return render_template('automation.html', automation=automation)
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(debug=True)
