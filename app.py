@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import os
-from email_utils import send_email
+from email_utils import send_proposal_email
 from models import create_automation_table  # Only create automation table for now
 from dotenv import load_dotenv
 
