@@ -27,9 +27,6 @@ PRICE_IDS = {
     'elite': os.getenv("STRIPE_ELITE_PRICE_ID"),
 }
 
-# Create tables
-create_automation_table()
-create_subscriptions_table()
 
 # Home
 @app.route('/')
