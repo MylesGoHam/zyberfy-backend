@@ -72,19 +72,14 @@ def dashboard():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    subscription = conn.execute("SELECT * FROM subscriptions WHERE email = ?", (session['email'],)).fetchone()
     automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (session['email'],)).fetchone()
     conn.close()
 
     automation_complete = bool(automation)
 
-    first_name = None
-    if subscription and subscription['first_name']:
-        first_name = subscription['first_name']
+    first_name = None  # No subscription anymore, so no first_name from DB
 
-    plan_status = "Free"
-    if subscription and subscription['stripe_subscription_id']:
-        plan_status = "Active Subscription"
+    plan_status = "Free"  # No subscription status tracking right now
 
     return render_template('dashboard.html', email=session['email'], plan_status=plan_status, automation_complete=automation_complete, first_name=first_name)
 
