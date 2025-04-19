@@ -9,18 +9,6 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-def create_users_table():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            email TEXT PRIMARY KEY,
-            password TEXT NOT NULL
-        );
-    """)
-    conn.commit()
-    conn.close()
-
 def create_automation_table():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -29,14 +17,19 @@ def create_automation_table():
             email TEXT PRIMARY KEY,
             tone TEXT,
             style TEXT,
-            additional_notes TEXT,
-            enable_follow_up TEXT,
-            number_of_followups INTEGER,
-            followup_delay TEXT,
-            followup_style TEXT,
-            minimum_offer REAL,
-            acceptance_message TEXT,
-            decline_message TEXT
+            additional_notes TEXT
+        );
+    """)
+    conn.commit()
+    conn.close()
+
+def create_users_table():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY,
+            password TEXT NOT NULL
         );
     """)
     conn.commit()
