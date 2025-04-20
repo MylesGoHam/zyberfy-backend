@@ -3,7 +3,8 @@ import os
 import sqlite3
 from flask import (
     Flask, render_template, request,
-    redirect, url_for, session, flash
+    redirect, url_for, session,
+    flash, jsonify
 )
 from dotenv import load_dotenv
 import openai
@@ -49,15 +50,15 @@ def generate_proposal_text(automation, prospect_name, prospect_email, prospect_b
     """
     prompt = f"""
 You are a professional proposal writer.
-Write an email proposal to {prospect_name} (email: {prospect_email})
-with a budget of ${prospect_budget:,}. Use these settings:
+Write an email proposal to {prospect_name} <{prospect_email}>
+with a budget of ${prospect_budget:,}. 
 
 Tone of voice: {automation['tone']}
 Email style: {automation['style']}
 Additional notes: {automation.get('additional_notes','None')}
 
 Keep it concise but persuasive, sign off as "The Zyberfy Team".
-Respond with plain text (no JSON).
+Respond with plain text only.
 """
     resp = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -128,53 +129,83 @@ def dashboard():
     conn.close()
     return render_template(
         'dashboard.html',
-        first_name        = user['first_name'],
-        plan_status       = user['plan_status'],
-        automation        = automation,
+        first_name         = user['first_name'],
+        plan_status        = user['plan_status'],
+        automation         = automation,
         automation_complete = (automation is not None)
     )
 
-@app.route('/automation', methods=['GET','POST'])
-def automation_settings():
+@app.route('/automation')
+def automation_page():
     if 'email' not in session:
         return redirect(url_for('login'))
+    # just serve the page; AJAX does the rest
+    return render_template('automation.html')
+
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    tone  = request.form.get('tone')
+    style = request.form.get('style')
+    notes = request.form.get('additional_notes')
+
     conn = get_db_connection()
-    if request.method=='POST':
-        tone  = request.form.get('tone')
-        style = request.form.get('style')
-        notes = request.form.get('additional_notes')
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
-        ).fetchone()
-        if exists:
-            conn.execute("""
-              UPDATE automation_settings
-                 SET tone=?, style=?, additional_notes=?
-               WHERE email=?
-            """, (tone, style, notes, session['email']))
-        else:
-            conn.execute("""
-              INSERT INTO automation_settings
-                (email,tone,style,additional_notes)
-              VALUES (?,?,?,?)
-            """, (session['email'], tone, style, notes))
-        conn.commit()
+    exists = conn.execute(
+        "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
+    ).fetchone()
+    if exists:
+        conn.execute("""
+          UPDATE automation_settings
+             SET tone=?, style=?, additional_notes=?
+           WHERE email=?
+        """, (tone, style, notes, session['email']))
+    else:
+        conn.execute("""
+          INSERT INTO automation_settings
+            (email,tone,style,additional_notes)
+          VALUES (?,?,?,?)
+        """, (session['email'], tone, style, notes))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/generate-proposal', methods=['POST'])
+def generate_proposal():
+    if 'email' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    conn = get_db_connection()
     automation = conn.execute(
         "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone()
     conn.close()
-    return render_template('automation.html', automation=automation)
+
+    if not automation:
+        return jsonify({'success': False, 'error': 'No automation settings found'}), 400
+
+    try:
+        # dummy lead info for test
+        text = generate_proposal_text(
+            automation,
+            prospect_name="Esteemed Client",
+            prospect_email="client@example.com",
+            prospect_budget=5000
+        )
+        return jsonify({'success': True, 'proposal': text})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/proposal', methods=['GET','POST'])
 def proposal():
     if 'email' not in session:
         return redirect(url_for('login'))
     if request.method=='POST':
-        # prospect info
         name   = request.form['name']
         email  = request.form['email']
         budget = request.form['budget']
-        # load your automation settings
+
         conn = get_db_connection()
         automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
@@ -182,16 +213,14 @@ def proposal():
         conn.close()
         if not automation:
             flash('Please configure your automation first!','error')
-            return redirect(url_for('automation_settings'))
-        # generate & send
+            return redirect(url_for('automation_page'))
+
+        # generate & email
         proposal_text = generate_proposal_text(automation, name, email, budget)
         subject = f"{automation['style']} Proposal from Zyberfy"
-        send_proposal_email(
-            to_email=email,
-            subject=subject,
-            content=proposal_text
-        )
+        send_proposal_email(to_email=email, subject=subject, content=proposal_text)
         return redirect(url_for('thank_you'))
+
     return render_template('proposal.html')
 
 @app.route('/thank-you')
