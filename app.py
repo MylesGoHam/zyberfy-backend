@@ -9,15 +9,12 @@ from flask import (
     flash, jsonify
 )
 from dotenv import load_dotenv
-import openai
 
-from models import (
-    get_db_connection,
-    create_users_table,
-    create_automation_settings_table,
-    create_subscriptions_table
-)
-from email_utils import send_proposal_email
+# Load .env once
+load_dotenv()
+
+PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 load_dotenv()
@@ -235,10 +232,11 @@ def proposal():
 
     if request.method == 'POST':
         lead_name  = request.form['name']
-        # always send to PERSONAL_EMAIL if set, otherwise fall back to form
+        # override to your personal inbox if set
         lead_email = PERSONAL_EMAIL or request.form['email']
         budget     = request.form['budget']
 
+        # fetch automation settings…
         conn = get_db_connection()
         automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?",
@@ -251,12 +249,13 @@ def proposal():
             f"in a {automation['tone']} tone and {automation['style']} style. "
             f"Notes: {automation['additional_notes'] or 'none'}"
         )
+
         try:
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                  {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                  {"role": "user",   "content": prompt}
+                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
+                    {"role": "user",   "content": prompt}
                 ],
                 max_tokens=350,
                 temperature=0.7
