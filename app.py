@@ -9,6 +9,15 @@ from flask import (
     flash, jsonify
 )
 from dotenv import load_dotenv
+import openai
+
+from models import (
+    get_db_connection,
+    create_users_table,
+    create_automation_settings_table,
+    create_subscriptions_table
+)
+from email_utils import send_proposal_email
 
 # Load .env once
 load_dotenv()
@@ -16,10 +25,7 @@ load_dotenv()
 PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# ─── Setup ────────────────────────────────────────────────────────────────────
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
+# ─── Setup ───────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -49,7 +55,7 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
-# ─── Routes ────────────────────────────────────────────────────────────────────
+# ─── Routes ───────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def home():
@@ -236,7 +242,6 @@ def proposal():
         lead_email = PERSONAL_EMAIL or request.form['email']
         budget     = request.form['budget']
 
-        # fetch automation settings…
         conn = get_db_connection()
         automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?",
