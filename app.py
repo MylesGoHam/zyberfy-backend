@@ -108,5 +108,7 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    # in debug mode for local testing
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # get PORT from the environment (Render will set this for you),
+    # default to 5000 when you run locally
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
