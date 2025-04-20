@@ -1,8 +1,9 @@
 # app.py
-
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import os
 from dotenv import load_dotenv
+
+load_dotenv()
 
 from models import (
     get_db_connection,
@@ -11,12 +12,10 @@ from models import (
     create_subscriptions_table
 )
 
-load_dotenv()
-
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
 
-# Initialize necessary tables at startup
+# Initialize DB + tables
 create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
@@ -33,16 +32,17 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute(
-            'SELECT * FROM users WHERE email = ? AND password = ?',
-            (email, password)
+            "SELECT * FROM users WHERE email = ?",
+            (email,)
         ).fetchone()
         conn.close()
 
-        if user:
-            session['email'] = user['email']
+        if user and user['password'] == password:
+            session['email'] = email
             return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', error='Invalid email or password')
+            flash('Invalid email or password', 'error')
+            return redirect(url_for('login'))
 
     return render_template('login.html')
 
@@ -68,39 +68,46 @@ def automation_settings():
     conn = get_db_connection()
 
     if request.method == 'POST':
-        tone             = request.form.get('tone')
-        style            = request.form.get('style')
-        additional_notes = request.form.get('additional_notes')
+        # pull all your form fields here...
+        # for example:
+        tone    = request.form.get('tone')
+        style   = request.form.get('style')
+        notes   = request.form.get('additional_notes')
+        # ...etc
 
         existing = conn.execute(
-            'SELECT email FROM automation_settings WHERE email = ?',
+            "SELECT 1 FROM automation_settings WHERE email = ?",
             (session['email'],)
         ).fetchone()
 
         if existing:
-            conn.execute('''
-                UPDATE automation_settings
-                   SET tone            = ?,
-                       style           = ?,
-                       additional_notes= ?
-                 WHERE email          = ?
-            ''', (tone, style, additional_notes, session['email']))
+            conn.execute("""
+              UPDATE automation_settings
+              SET tone=?, style=?, additional_notes=?
+              WHERE email=?;
+            """, (tone, style, notes, session['email']))
         else:
-            conn.execute('''
-                INSERT INTO automation_settings
-                            (email, tone, style, additional_notes)
-                     VALUES (?,    ?,    ?,     ?)
-            ''', (session['email'], tone, style, additional_notes))
+            conn.execute("""
+              INSERT INTO automation_settings
+                (email, tone, style, additional_notes)
+              VALUES (?, ?, ?, ?);
+            """, (session['email'], tone, style, notes))
 
         conn.commit()
 
     automation = conn.execute(
-        'SELECT * FROM automation_settings WHERE email = ?',
+        "SELECT * FROM automation_settings WHERE email = ?",
         (session['email'],)
     ).fetchone()
     conn.close()
 
     return render_template('automation.html', automation=automation)
+
+@app.route('/memberships')
+def memberships():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    return render_template('memberships.html')
 
 @app.route('/logout')
 def logout():
@@ -108,5 +115,6 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    # pick port from env (Render) or default 5000
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
