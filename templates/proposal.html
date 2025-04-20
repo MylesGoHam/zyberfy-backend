@@ -1,43 +1,39 @@
-<!-- proposal.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Request a Proposal | Zyberfy</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Send Proposal | Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-6 text-blue-700">Request a Proposal</h1>
+<body class="bg-gray-50 py-10">
+  <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow">
+    <h1 class="text-2xl font-bold mb-6">Send a Proposal</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="mb-4 text-red-600">
-          {% for cat,msg in messages %}
-            <p>{{ msg }}</p>
-          {% endfor %}
+          {% for category, msg in messages %}{{ msg }}<br>{% endfor %}
         </div>
       {% endif %}
     {% endwith %}
-    <form method="POST">
-      <label class="block mb-2 font-medium">Your Name</label>
-      <input type="text" name="name" required
-        class="w-full p-3 border rounded-lg mb-4"
-        placeholder="e.g. Jane Smith">
-
-      <label class="block mb-2 font-medium">Your Email</label>
-      <input type="email" name="email" required
-        class="w-full p-3 border rounded-lg mb-4"
-        placeholder="you@example.com">
-
-      <label class="block mb-2 font-medium">Your Budget ($)</label>
-      <input type="number" name="budget" required min="1"
-        class="w-full p-3 border rounded-lg mb-6"
-        placeholder="e.g. 5000">
-
+    <form method="POST" class="space-y-4">
+      <div>
+        <label class="block font-medium">Prospect Name</label>
+        <input name="prospect_name" type="text" required
+               class="w-full border p-2 rounded" />
+      </div>
+      <div>
+        <label class="block font-medium">Prospect Email</label>
+        <input name="prospect_email" type="email" required
+               class="w-full border p-2 rounded" />
+      </div>
+      <div>
+        <label class="block font-medium">Budget ($)</label>
+        <input name="budget" type="number" min="0"
+               class="w-full border p-2 rounded" />
+      </div>
       <button type="submit"
-        class="w-full bg-green-600 text-white font-semibold py-3 rounded-full hover:bg-green-700 transition">
-        Submit &amp; Email Proposal
+              class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
+        Send Proposal
       </button>
     </form>
   </div>
