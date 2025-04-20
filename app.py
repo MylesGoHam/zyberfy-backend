@@ -1,3 +1,5 @@
+# app.py
+
 import os
 import sqlite3
 from flask import (
@@ -8,6 +10,7 @@ from flask import (
 from dotenv import load_dotenv
 import openai
 
+# your helpers
 from models import (
     get_db_connection,
     create_users_table,
@@ -16,18 +19,21 @@ from models import (
 )
 from email_utils import send_proposal_email
 
+# ─── Setup ────────────────────────────────────────────────────────────────────
 load_dotenv()
+
+# OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecret")
 
-# ─── Initialize DB + Tables ────────────────────────────────────────────────────
+# ─── Initialize DB + Tables ───────────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 
-# seed admin user
+# Seed admin user if in .env
 ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 if ADMIN_EMAIL and ADMIN_PASSWORD:
@@ -36,12 +42,7 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
       INSERT OR IGNORE INTO users
         (email, password, first_name, plan_status)
       VALUES (?, ?, ?, ?)
-    """, (
-      ADMIN_EMAIL,
-      ADMIN_PASSWORD,
-      "Admin",
-      "pro"
-    ))
+    """, (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro"))
     conn.commit()
     conn.close()
 
@@ -51,42 +52,131 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 def home():
     return render_template('index.html')
 
+
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if request.method=='POST':
+    if request.method == 'POST':
         email = request.form['email']
         pw    = request.form['password']
-        conn = get_db_connection()
-        user = conn.execute("SELECT * FROM users WHERE email = ?",(email,)).fetchone()
+        conn  = get_db_connection()
+        user  = conn.execute(
+            "SELECT * FROM users WHERE email = ?",
+            (email,)
+        ).fetchone()
         conn.close()
-        if user and user['password']==pw:
-            session['email']=email
+
+        if user and user['password'] == pw:
+            session['email'] = email
             return redirect(url_for('dashboard'))
-        flash('Invalid email or password','error')
+
+        flash('Invalid email or password', 'error')
         return redirect(url_for('login'))
+
     return render_template('login.html')
+
+
+@app.route('/memberships', methods=['GET','POST'])
+def memberships():
+    # if already logged in, go to dashboard
+    if 'email' in session:
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        email      = request.form['email']
+        password   = request.form['password']
+        first_name = request.form.get('first_name','')
+        plan       = request.form.get('plan','free')
+
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                "INSERT INTO users (email, password, first_name, plan_status) VALUES (?,?,?,?);",
+                (email, password, first_name, plan)
+            )
+            conn.commit()
+        except sqlite3.IntegrityError:
+            flash('That email is already registered.', 'error')
+            conn.close()
+            return redirect(url_for('memberships'))
+        conn.close()
+
+        session['email'] = email
+        return redirect(url_for('dashboard'))
+
+    return render_template('memberships.html')
+
 
 @app.route('/dashboard')
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
+
     conn = get_db_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?",(session['email'],)).fetchone()
-    automation = conn.execute("SELECT * FROM automation_settings WHERE email = ?",(session['email'],)).fetchone()
+    user = conn.execute(
+        "SELECT * FROM users WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+    automation = conn.execute(
+        "SELECT * FROM automation_settings WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
     conn.close()
-    return render_template(
-        'dashboard.html',
+
+    return render_template('dashboard.html',
         first_name=user['first_name'],
         plan_status=user['plan_status'],
         automation=automation,
         automation_complete=(automation is not None)
     )
 
-@app.route('/proposal')
-def proposal():
+
+@app.route('/automation')
+def automation_page():
     if 'email' not in session:
         return redirect(url_for('login'))
-    return render_template('proposal.html')
+
+    conn = get_db_connection()
+    automation = conn.execute(
+        "SELECT * FROM automation_settings WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+    conn.close()
+
+    return render_template('automation.html', automation=automation)
+
+
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return jsonify({'success':False,'error':'Unauthorized'}),403
+
+    tone  = request.form.get('tone')
+    style = request.form.get('style')
+    notes = request.form.get('additional_notes')
+
+    conn = get_db_connection()
+    exists = conn.execute(
+        "SELECT 1 FROM automation_settings WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+
+    if exists:
+        conn.execute("""
+          UPDATE automation_settings
+             SET tone=?, style=?, additional_notes=?
+           WHERE email=?;
+        """, (tone, style, notes, session['email']))
+    else:
+        conn.execute("""
+          INSERT INTO automation_settings
+            (email, tone, style, additional_notes)
+          VALUES (?, ?, ?, ?);
+        """, (session['email'], tone, style, notes))
+
+    conn.commit()
+    conn.close()
+    return jsonify({'success':True})
+
 
 @app.route('/preview-proposal', methods=['POST'])
 def preview_proposal():
@@ -97,15 +187,15 @@ def preview_proposal():
     lead_email = request.form['email']
     budget     = request.form['budget']
 
-    # grab automation settings
     conn = get_db_connection()
     automation = conn.execute(
-      "SELECT * FROM automation_settings WHERE email = ?",(session['email'],)
+      "SELECT * FROM automation_settings WHERE email = ?",
+      (session['email'],)
     ).fetchone()
     conn.close()
 
     if not automation:
-        return jsonify({'success':False,'error':'No automation settings found'}),400
+        return jsonify({'success':False,'error':'No automation settings'}),400
 
     prompt = (
       f"Write a business proposal email to {lead_name}, budget ${budget}, "
@@ -119,11 +209,12 @@ def preview_proposal():
           max_tokens=350,
           temperature=0.7
         )
-        email_body = resp.choices[0].text.strip()
+        body = resp.choices[0].text.strip()
     except Exception as e:
         return jsonify({'success':False,'error':str(e)}),500
 
-    return jsonify({'success':True,'email_body':email_body})
+    return jsonify({'success':True,'email_body':body})
+
 
 @app.route('/send-proposal', methods=['POST'])
 def send_proposal():
@@ -131,29 +222,25 @@ def send_proposal():
         return jsonify({'success':False,'error':'Unauthorized'}),403
 
     data = request.get_json()
-    lead_name  = data.get('name')
-    lead_email = data.get('email')
-    budget     = data.get('budget')
-    email_body = data.get('email_body')
-
-    subject = f"Proposal for {lead_name} (Budget: ${budget})"
+    subject = f"Proposal for {data['name']} (Budget: ${data['budget']})"
     status = send_proposal_email(
-      to_email=lead_email,
+      to_email=data['email'],
       subject=subject,
-      content=email_body,
+      content=data['email_body'],
       cc_client=False
     )
 
     if status and 200 <= status < 300:
         return jsonify({'success':True})
-    else:
-        return jsonify({'success':False,'error':'Failed to send email'}),500
+    return jsonify({'success':False,'error':'Send failed'}),500
+
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     port = int(os.getenv('PORT',5000))
-    app.run(host='0.0.0.0',port=port,debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)
