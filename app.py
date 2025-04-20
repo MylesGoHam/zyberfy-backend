@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+import logging
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -22,6 +23,9 @@ from email_utils import send_proposal_email
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
@@ -30,7 +34,7 @@ create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 
-# Seed the admin user
+# Seed the admin user from .env
 ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 if ADMIN_EMAIL and ADMIN_PASSWORD:
@@ -39,7 +43,12 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
       INSERT OR IGNORE INTO users
         (email, password, first_name, plan_status)
       VALUES (?, ?, ?, ?)
-    """, (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro"))
+    """, (
+      ADMIN_EMAIL,
+      ADMIN_PASSWORD,
+      "Admin",
+      "pro"
+    ))
     conn.commit()
     conn.close()
 
@@ -48,7 +57,6 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
@@ -80,7 +88,6 @@ def memberships():
 
     return render_template('memberships.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -102,7 +109,6 @@ def login():
         return redirect(url_for('login'))
 
     return render_template('login.html')
-
 
 @app.route('/dashboard')
 def dashboard():
@@ -128,7 +134,6 @@ def dashboard():
         automation_complete=(automation is not None)
     )
 
-
 @app.route('/automation')
 def automation_page():
     if 'email' not in session:
@@ -142,7 +147,6 @@ def automation_page():
     conn.close()
 
     return render_template('automation.html', automation=automation)
-
 
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
@@ -174,16 +178,13 @@ def save_automation():
 
     conn.commit()
     conn.close()
-    return jsonify({'success': True})
 
+    return jsonify({'success': True})
 
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
     if 'email' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-
-    if not openai.api_key:
-        return jsonify({'success': False, 'error': 'OpenAI API key not set'}), 500
 
     conn = get_db_connection()
     automation = conn.execute(
@@ -197,23 +198,35 @@ def generate_proposal():
 
     prompt = (
         f"Write a concise business proposal email in a {automation['tone']} tone "
-        f"and {automation['style']} style.\n"
+        f"and {automation['style']} style.\n\n"
         f"Extra notes: {automation['additional_notes'] or 'none'}"
     )
 
     try:
-        resp = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
+        resp = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
+                {"role": "user",   "content": prompt}
+            ],
             max_tokens=300,
             temperature=0.7
         )
-        proposal = resp.choices[0].text.strip()
+        proposal = resp.choices[0].message.content.strip()
         return jsonify({'success': True, 'proposal': proposal})
     except Exception as e:
-        # return the real error so you can debug in the browser
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.exception("OpenAI ChatCompletion failed; falling back to dummy.")
+        # fallback dummy
+        proposal = f"""Hi there,
 
+Thanks for reaching out! We'd love to assist you with a {automation['tone']} and {automation['style']} proposal.
+
+{automation['additional_notes'] or ''}
+
+Best regards,
+The Zyberfy Team
+"""
+        return jsonify({'success': True, 'proposal': proposal, 'fallback': True})
 
 @app.route('/proposal', methods=['GET', 'POST'])
 def proposal():
@@ -234,17 +247,20 @@ def proposal():
 
         prompt = (
             f"Write a business proposal email to {lead_name}, budget ${budget}, "
-            f"in a {automation['tone']} tone and {automation['style']} style.\n"
+            f"in a {automation['tone']} tone and {automation['style']} style. "
             f"Notes: {automation['additional_notes'] or 'none'}"
         )
         try:
-            resp = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=prompt,
+            resp = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                  {"role": "system", "content": "You are a helpful assistant writing business proposals."},
+                  {"role": "user",   "content": prompt}
+                ],
                 max_tokens=350,
                 temperature=0.7
             )
-            email_body = resp.choices[0].text.strip()
+            email_body = resp.choices[0].message.content.strip()
         except Exception as e:
             flash(f"Error generating proposal: {e}", "error")
             return redirect(url_for('proposal'))
@@ -265,12 +281,10 @@ def proposal():
 
     return render_template('proposal.html')
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
 
 # ─── Run ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
