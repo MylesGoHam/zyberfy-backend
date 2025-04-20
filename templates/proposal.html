@@ -6,92 +6,114 @@
   <title>Send a Proposal | Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-start justify-center py-12">
-  <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-lg">
-    <h1 class="text-2xl font-bold mb-6">Send a Proposal</h1>
-    <form id="proposalForm" class="space-y-4">
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start py-12">
+
+  <!-- Share Button -->
+  <div class="w-full max-w-xl px-6 mb-6 flex justify-end">
+    <button
+      id="shareBtn"
+      class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+    >
+      Share this Form
+    </button>
+  </div>
+
+  <!-- Proposal Form -->
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">Send a Proposal</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for category, msg in messages %}
+            <div class="text-red-600">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('proposal') }}" method="POST" class="space-y-6">
+
       <div>
-        <label class="block font-medium mb-1">Prospect Name</label>
-        <input type="text" name="name" required
-               class="w-full p-3 border rounded-lg"/>
+        <label class="block mb-1 font-medium text-gray-700">Your Name</label>
+        <input
+          type="text"
+          name="name"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. Jane Doe"
+        />
       </div>
+
       <div>
-        <label class="block font-medium mb-1">Prospect Email</label>
-        <input type="email" name="email" required
-               class="w-full p-3 border rounded-lg"/>
+        <label class="block mb-1 font-medium text-gray-700">Your Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. you@example.com"
+        />
       </div>
+
       <div>
-        <label class="block font-medium mb-1">Budget ($)</label>
-        <input type="number" name="budget" required
-               class="w-full p-3 border rounded-lg"/>
+        <label class="block mb-1 font-medium text-gray-700">Company (Optional)</label>
+        <input
+          type="text"
+          name="company"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Your Company Name"
+        />
       </div>
-      <button type="submit"
-        class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
-        Preview Proposal
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Project Details</label>
+        <textarea
+          name="details"
+          required
+          rows="4"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Describe what you need—scope, timeline, anything else..."
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Budget ($)</label>
+        <input
+          type="number"
+          name="budget"
+          min="0"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. 5000"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition"
+      >
+        Send Proposal
       </button>
     </form>
-
-    <!-- preview + share area -->
-    <div id="previewArea" class="mt-8 hidden">
-      <h2 class="text-xl font-semibold mb-2">Proposal Preview</h2>
-      <div id="emailBody" class="p-4 bg-gray-100 rounded-lg whitespace-pre-line"></div>
-      <button id="shareBtn"
-        class="mt-4 w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
-        Share to Inbox
-      </button>
-      <p id="shareStatus" class="mt-3 text-center text-sm"></p>
-    </div>
   </div>
 
   <script>
-    const form       = document.getElementById('proposalForm');
-    const preview    = document.getElementById('previewArea');
-    const emailBody  = document.getElementById('emailBody');
-    const shareBtn   = document.getElementById('shareBtn');
-    const shareStatus= document.getElementById('shareStatus');
-
-    let currentData  = {};  // hold name/email/budget and preview
-
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      shareStatus.textContent = '';
-      const fm = new FormData(form);
-      const payload = new URLSearchParams(fm);
-
-      // call preview endpoint
-      const res = await fetch('/preview-proposal',{
-        method:'POST',
-        body: payload
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentData = {
-          name: fm.get('name'),
-          email: fm.get('email'),
-          budget: fm.get('budget'),
-          email_body: data.email_body
-        };
-        emailBody.textContent = data.email_body;
-        preview.classList.remove('hidden');
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', () => {
+      const url = window.location.href;
+      // try clipboard API
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          shareBtn.textContent = 'Link Copied!';
+          setTimeout(() => shareBtn.textContent = 'Share this Form', 2000);
+        });
       } else {
-        alert('Error: ' + (data.error||'Unknown'));
-      }
-    });
-
-    shareBtn.addEventListener('click', async () => {
-      shareStatus.textContent = 'Sending…';
-      const res = await fetch('/send-proposal',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(currentData)
-      });
-      const data = await res.json();
-      if (data.success) {
-        shareStatus.textContent = '✅ Proposal sent to inbox!';
-      } else {
-        shareStatus.textContent = '❌ Failed to send: ' + (data.error||'Unknown');
+        // fallback: open mailto
+        window.location.href = `mailto:?subject=Proposal%20Form&body=Please%20fill%20out%20this%20form:%20${encodeURIComponent(url)}`;
       }
     });
   </script>
+
 </body>
 </html>
