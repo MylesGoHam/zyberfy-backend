@@ -235,8 +235,8 @@ def proposal():
 
     if request.method == 'POST':
         lead_name  = request.form['name']
-        # override to your personal email for testing:
-        lead_email = os.getenv("ADMIN_EMAIL", request.form['email'])
+        # always send to PERSONAL_EMAIL if set, otherwise fall back to form
+        lead_email = PERSONAL_EMAIL or request.form['email']
         budget     = request.form['budget']
 
         conn = get_db_connection()
