@@ -1,41 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Send Proposal | Zyberfy</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send a Proposal | Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 py-10">
-  <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow">
+<body class="bg-gray-50 min-h-screen flex items-start justify-center py-12">
+  <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-lg">
     <h1 class="text-2xl font-bold mb-6">Send a Proposal</h1>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="mb-4 text-red-600">
-          {% for category, msg in messages %}{{ msg }}<br>{% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-    <form method="POST" class="space-y-4">
+    <form id="proposalForm" class="space-y-4">
       <div>
-        <label class="block font-medium">Prospect Name</label>
-        <input name="prospect_name" type="text" required
-               class="w-full border p-2 rounded" />
+        <label class="block font-medium mb-1">Prospect Name</label>
+        <input type="text" name="name" required
+               class="w-full p-3 border rounded-lg"/>
       </div>
       <div>
-        <label class="block font-medium">Prospect Email</label>
-        <input name="prospect_email" type="email" required
-               class="w-full border p-2 rounded" />
+        <label class="block font-medium mb-1">Prospect Email</label>
+        <input type="email" name="email" required
+               class="w-full p-3 border rounded-lg"/>
       </div>
       <div>
-        <label class="block font-medium">Budget ($)</label>
-        <input name="budget" type="number" min="0"
-               class="w-full border p-2 rounded" />
+        <label class="block font-medium mb-1">Budget ($)</label>
+        <input type="number" name="budget" required
+               class="w-full p-3 border rounded-lg"/>
       </div>
       <button type="submit"
-              class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">
-        Send Proposal
+        class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+        Preview Proposal
       </button>
     </form>
+
+    <!-- preview + share area -->
+    <div id="previewArea" class="mt-8 hidden">
+      <h2 class="text-xl font-semibold mb-2">Proposal Preview</h2>
+      <div id="emailBody" class="p-4 bg-gray-100 rounded-lg whitespace-pre-line"></div>
+      <button id="shareBtn"
+        class="mt-4 w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+        Share to Inbox
+      </button>
+      <p id="shareStatus" class="mt-3 text-center text-sm"></p>
+    </div>
   </div>
+
+  <script>
+    const form       = document.getElementById('proposalForm');
+    const preview    = document.getElementById('previewArea');
+    const emailBody  = document.getElementById('emailBody');
+    const shareBtn   = document.getElementById('shareBtn');
+    const shareStatus= document.getElementById('shareStatus');
+
+    let currentData  = {};  // hold name/email/budget and preview
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      shareStatus.textContent = '';
+      const fm = new FormData(form);
+      const payload = new URLSearchParams(fm);
+
+      // call preview endpoint
+      const res = await fetch('/preview-proposal',{
+        method:'POST',
+        body: payload
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentData = {
+          name: fm.get('name'),
+          email: fm.get('email'),
+          budget: fm.get('budget'),
+          email_body: data.email_body
+        };
+        emailBody.textContent = data.email_body;
+        preview.classList.remove('hidden');
+      } else {
+        alert('Error: ' + (data.error||'Unknown'));
+      }
+    });
+
+    shareBtn.addEventListener('click', async () => {
+      shareStatus.textContent = 'Sending…';
+      const res = await fetch('/send-proposal',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(currentData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        shareStatus.textContent = '✅ Proposal sent to inbox!';
+      } else {
+        shareStatus.textContent = '❌ Failed to send: ' + (data.error||'Unknown');
+      }
+    });
+  </script>
 </body>
 </html>
