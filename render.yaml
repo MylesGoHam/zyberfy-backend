@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: smartrepliesai
+    name: zyberfy-backend
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run ui.py --server.port=10000 --server.address=0.0.0.0"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     plan: free
