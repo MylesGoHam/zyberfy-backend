@@ -1,10 +1,11 @@
-# models.py
 import sqlite3
+import os
 
-DB_PATH = 'zyberfy.db'
+# use this constant everywhere
+DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -12,15 +13,13 @@ def create_users_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
-        email TEXT PRIMARY KEY,
-        password TEXT NOT NULL
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        first_name TEXT,
+        plan_status TEXT
       );
     """)
-    # seed one default user:
-    conn.execute("""
-      INSERT OR IGNORE INTO users (email, password)
-      VALUES (?, ?);
-    """, ("admin@zyberfy.com", "admin"))
     conn.commit()
     conn.close()
 
@@ -31,14 +30,7 @@ def create_automation_settings_table():
         email TEXT PRIMARY KEY,
         tone TEXT,
         style TEXT,
-        additional_notes TEXT,
-        enable_follow_up BOOLEAN,
-        number_of_followups INTEGER,
-        followup_delay TEXT,
-        followup_style TEXT,
-        minimum_offer REAL,
-        acceptance_message TEXT,
-        decline_message TEXT
+        additional_notes TEXT
       );
     """)
     conn.commit()
@@ -49,9 +41,10 @@ def create_subscriptions_table():
     conn.execute("""
       CREATE TABLE IF NOT EXISTS subscriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT,
-        plan TEXT,
-        started_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        email TEXT NOT NULL,
+        plan TEXT NOT NULL,
+        status TEXT NOT NULL,
+        FOREIGN KEY(email) REFERENCES users(email)
       );
     """)
     conn.commit()
