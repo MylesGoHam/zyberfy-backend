@@ -20,8 +20,6 @@ from email_utils import send_proposal_email
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 load_dotenv()
-
-# initialize OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
@@ -32,7 +30,7 @@ create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 
-# seed the admin user from .env
+# Seed the admin user
 ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 if ADMIN_EMAIL and ADMIN_PASSWORD:
@@ -41,12 +39,7 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
       INSERT OR IGNORE INTO users
         (email, password, first_name, plan_status)
       VALUES (?, ?, ?, ?)
-    """, (
-      ADMIN_EMAIL,
-      ADMIN_PASSWORD,
-      "Admin",
-      "pro"
-    ))
+    """, (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro"))
     conn.commit()
     conn.close()
 
@@ -59,7 +52,6 @@ def home():
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    # already logged‑in?
     if 'email' in session:
         return redirect(url_for('dashboard'))
 
@@ -182,7 +174,6 @@ def save_automation():
 
     conn.commit()
     conn.close()
-
     return jsonify({'success': True})
 
 
@@ -190,6 +181,9 @@ def save_automation():
 def generate_proposal():
     if 'email' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    if not openai.api_key:
+        return jsonify({'success': False, 'error': 'OpenAI API key not set'}), 500
 
     conn = get_db_connection()
     automation = conn.execute(
@@ -201,9 +195,12 @@ def generate_proposal():
     if not automation:
         return jsonify({'success': False, 'error': 'No automation settings found'}), 400
 
-    # build a prompt and call OpenAI
-    prompt = f"""Write a concise business proposal email in a {automation['tone']} tone and {automation['style']} style.
-Extra notes: {automation['additional_notes'] or 'none'}"""
+    prompt = (
+        f"Write a concise business proposal email in a {automation['tone']} tone "
+        f"and {automation['style']} style.\n"
+        f"Extra notes: {automation['additional_notes'] or 'none'}"
+    )
+
     try:
         resp = openai.Completion.create(
             engine="text-davinci-003",
@@ -212,15 +209,14 @@ Extra notes: {automation['additional_notes'] or 'none'}"""
             temperature=0.7
         )
         proposal = resp.choices[0].text.strip()
+        return jsonify({'success': True, 'proposal': proposal})
     except Exception as e:
+        # return the real error so you can debug in the browser
         return jsonify({'success': False, 'error': str(e)}), 500
-
-    return jsonify({'success': True, 'proposal': proposal})
 
 
 @app.route('/proposal', methods=['GET', 'POST'])
 def proposal():
-    # this is the public lead‑capture / proposal form
     if 'email' not in session:
         return redirect(url_for('login'))
 
@@ -229,7 +225,6 @@ def proposal():
         lead_email = request.form['email']
         budget     = request.form['budget']
 
-        # grab your saved automation settings
         conn = get_db_connection()
         automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?",
@@ -237,10 +232,9 @@ def proposal():
         ).fetchone()
         conn.close()
 
-        # generate the final email via OpenAI
         prompt = (
             f"Write a business proposal email to {lead_name}, budget ${budget}, "
-            f"in a {automation['tone']} tone and {automation['style']} style. "
+            f"in a {automation['tone']} tone and {automation['style']} style.\n"
             f"Notes: {automation['additional_notes'] or 'none'}"
         )
         try:
@@ -255,7 +249,6 @@ def proposal():
             flash(f"Error generating proposal: {e}", "error")
             return redirect(url_for('proposal'))
 
-        # send it
         subject = f"Proposal for {lead_name} (Budget: ${budget})"
         status_code = send_proposal_email(
             to_email=lead_email,
