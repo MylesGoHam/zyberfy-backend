@@ -235,7 +235,8 @@ def proposal():
 
     if request.method == 'POST':
         lead_name  = request.form['name']
-        lead_email = request.form['email']
+        # override to your personal email for testing:
+        lead_email = os.getenv("ADMIN_EMAIL", request.form['email'])
         budget     = request.form['budget']
 
         conn = get_db_connection()
@@ -274,6 +275,7 @@ def proposal():
         )
 
         if status_code and 200 <= status_code < 300:
+            flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
         else:
             flash("❌ Failed to send proposal email.", "error")
