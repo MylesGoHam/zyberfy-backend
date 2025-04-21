@@ -1,55 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Join Zyberfy Bundle</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      background: #f0f2f5;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      color: #333;
-    }
-    .card {
-      background: #fff;
-      padding: 2rem;
-      max-width: 400px; width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    h1 { margin: 0 0 .5rem; font-size: 1.75rem; }
-    p.subtitle { margin: 0 0 1.5rem; color: #555; }
-    ul { list-style: disc inside; text-align: left; margin: 0 0 1.5rem; padding: 0; }
-    ul li { margin-bottom: .5rem; }
-    .btn {
-      display: block; width: 100%;
-      padding: .75rem; font-size: 1rem;
-      background: #4f46e5; color: #fff;
-      border: none; border-radius: 4px;
-      cursor: pointer; text-decoration: none;
-      transition: background 0.2s ease;
-    }
-    .btn:hover { background: #4338ca; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Zyberfy Bundle</h1>
-    <p class="subtitle">Unlock full access for <strong>$1,497</strong></p>
-    <ul>
+{% extends "base.html" %}
+
+{% block title %}Join Zyberfy Bundle{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+  <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+    <h1 class="text-4xl font-bold text-center mb-4">Zyberfy Bundle</h1>
+    <p class="text-center text-lg text-gray-700 mb-6">
+      Unlock full access for <span class="text-indigo-600 font-semibold">$1,497</span>
+    </p>
+    <ul class="list-disc list-inside space-y-2 mb-6 text-gray-800">
       <li>Unlimited proposal automation</li>
       <li>Priority support</li>
-      <li>Advanced tone & style customization</li>
+      <li>Advanced tone &amp; style customization</li>
       <li>Access to future premium features</li>
     </ul>
-    <form method="POST" action="{{ url_for('memberships') }}">
+    <form method="POST" action="{{ url_for('memberships') }}" class="space-y-4">
       <input type="hidden" name="plan" value="bundle">
-      <button type="submit" class="btn">Get Started</button>
+
+      <div class="flex items-center">
+        <input
+          id="terms"
+          name="terms"
+          type="checkbox"
+          required
+          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+        >
+        <label for="terms" class="ml-2 text-sm text-gray-700">
+          I agree to the
+          <a href="{{ url_for('terms') }}" class="text-indigo-600 underline">
+            Terms of Service
+          </a>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        id="submit-btn"
+        class="w-full bg-indigo-600 text-white font-semibold py-3 rounded disabled:opacity-50"
+        disabled
+      >
+        Get Started
+      </button>
     </form>
   </div>
-</body>
-</html>
+</div>
+
+<script>
+  // disable button until TOS is checked
+  const termsCheckbox = document.getElementById('terms');
+  const submitBtn     = document.getElementById('submit-btn');
+  termsCheckbox.addEventListener('change', () => {
+    submitBtn.disabled = !termsCheckbox.checked;
+  });
+</script>
+{% endblock %}
