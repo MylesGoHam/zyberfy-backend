@@ -61,34 +61,27 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 def home():
     return render_template('index.html')
 
-@app.route('/memberships', methods=['GET', 'POST'])
+@@app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    if 'email' in session:
-        return redirect(url_for('dashboard'))
-
     if request.method == 'POST':
-        email      = request.form['email']
-        password   = request.form['password']
-        first_name = request.form.get('first_name', '')
-        plan       = request.form.get('plan', 'free')
-
-        conn = get_db_connection()
-        try:
-            conn.execute(
-                "INSERT INTO users (email, password, first_name, plan_status) "
-                "VALUES (?, ?, ?, ?)",
-                (email, password, first_name, plan)
-            )
-            conn.commit()
-        except sqlite3.IntegrityError:
-            flash('That email is already registered.', 'error')
-            conn.close()
-            return redirect(url_for('memberships'))
-        conn.close()
-
-        session['email'] = email
-        return redirect(url_for('dashboard'))
-
+        # … your existing form-handling …
+        
+        # grab the Stripe/Braintree/whatever price ID from env
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        
+        # now use `price_id` in your payment/session creation:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=email,
+            line_items=[{
+                "price": price_id,
+                "quantity": 1,
+            }],
+            mode="subscription",
+            success_url=url_for('dashboard', _external=True),
+            cancel_url=url_for('memberships', _external=True),
+        )
+        return redirect(checkout_session.url, code=303)
+        
     return render_template('memberships.html')
 
 @app.route('/login', methods=['GET', 'POST'])
