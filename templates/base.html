@@ -4,11 +4,8 @@
     <meta charset="utf-8">
     <title>{% block title %}Zyberfy{% endblock %}</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <!-- TailwindCSS -->
-    <link
-      href="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
+    <!-- TailwindCSS from CDN -->
+    <link href="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.css" rel="stylesheet">
   </head>
   <body class="flex items-center justify-center min-h-screen bg-gray-100">
     {% block content %}{% endblock %}
