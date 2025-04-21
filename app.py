@@ -52,7 +52,7 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return redirect(url_for('memberships'))
 
 
 @app.route('/memberships', methods=['GET', 'POST'])
