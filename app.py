@@ -57,7 +57,7 @@ def home():
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    # allow everyone to view /memberships
+    # allow everyone (even logged‑in) to see this page
     if request.method == 'POST':
         # 1) grab & validate form data
         first_name = request.form.get('first_name', '').strip()
@@ -67,9 +67,9 @@ def memberships():
 
         if not (first_name and email and password):
             flash("All fields are required.", "error")
-            return redirect(url_for("memberships"))
+            return redirect(url_for('memberships'))
 
-        # 2) save (or skip if already exists)
+        # 2) persist the user if new
         conn = get_db_connection()
         try:
             conn.execute(
@@ -78,39 +78,38 @@ def memberships():
             )
             conn.commit()
         except sqlite3.IntegrityError:
-            # user exists → proceed
+            # already exists, that's fine
             flash("Welcome back! Continuing to checkout…", "info")
         finally:
             conn.close()
 
-        # keep them logged in
+        # remember them for post‑checkout
         session['email'] = email
 
-        # 3) build Stripe session
+        # 3) create Stripe Checkout Session
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
-            flash("Payment configuration missing.", "error")
-            return redirect(url_for("memberships"))
+            flash("Payment configuration missing. Try again later.", "error")
+            return redirect(url_for('memberships'))
 
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer_email=email,
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url=url_for("dashboard", _external=True),
-                cancel_url=url_for("memberships", _external=True),
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
             )
         except Exception:
             logger.exception("Stripe checkout creation failed")
             flash("Could not start payment. Please try again.", "error")
-            return redirect(url_for("memberships"))
+            return redirect(url_for('memberships'))
 
-        # 4) redirect into Stripe
+        # 4) send them to Stripe
         return redirect(checkout_session.url, code=303)
 
-    # GET → show the bundle page
-    return render_template("memberships.html")
-
+    # GET → just render the page
+    return render_template('memberships.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
