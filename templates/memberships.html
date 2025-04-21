@@ -3,80 +3,48 @@
 {% block title %}Join Zyberfy Bundle{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+<div class="flex items-center justify-center min-h-screen px-4">
   <div class="bg-white shadow-xl rounded-lg p-8 max-w-lg w-full">
     <h1 class="text-3xl font-bold text-center mb-4">Zyberfy Bundle</h1>
     <p class="text-center text-xl text-gray-700 mb-6">
-      Unlock full access for 
-      <span class="text-indigo-600 font-semibold">$1,497</span>
+      Unlock full access for <span class="text-indigo-600 font-semibold">$1,497</span>
     </p>
-    <ul class="space-y-3 mb-6">
+    <ul class="space-y-2 mb-6">
       <li class="flex items-start">
-        <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" 
-                d="M16.707 5.293a1 1 0 010 1.414L8.414 
-                   15l-4.121-4.121a1 1 0 011.414-1.414L8.414 
-                   12.586l7.293-7.293a1 1 0 011.414 0z" 
-                clip-rule="evenodd" />
-        </svg>
-        <span>Unlimited proposal automation</span>
+        <span class="mr-2 text-green-500">✔️</span>Unlimited proposal automation
       </li>
       <li class="flex items-start">
-        <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" 
-                d="M16.707 5.293a1 1 0 010 1.414L8.414 
-                   15l-4.121-4.121a1 1 0 011.414-1.414L8.414 
-                   12.586l7.293-7.293a1 1 0 011.414 0z" 
-                clip-rule="evenodd" />
-        </svg>
-        <span>Priority support</span>
+        <span class="mr-2 text-green-500">✔️</span>Priority support
       </li>
       <li class="flex items-start">
-        <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" 
-                d="M16.707 5.293a1 1 0 010 1.414L8.414 
-                   15l-4.121-4.121a1 1 0 011.414-1.414L8.414 
-                   12.586l7.293-7.293a1 1 0 011.414 0z" 
-                clip-rule="evenodd" />
-        </svg>
-        <span>Advanced tone & style customization</span>
+        <span class="mr-2 text-green-500">✔️</span>Advanced tone & style customization
       </li>
       <li class="flex items-start">
-        <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" 
-                d="M16.707 5.293a1 1 0 010 1.414L8.414 
-                   15l-4.121-4.121a1 1 0 011.414-1.414L8.414 
-                   12.586l7.293-7.293a1 1 0 011.414 0z" 
-                clip-rule="evenodd" />
-        </svg>
-        <span>Access to future premium features</span>
+        <span class="mr-2 text-green-500">✔️</span>Access to future premium features
       </li>
     </ul>
-
     <form method="POST" action="{{ url_for('memberships') }}" class="space-y-4">
-      <input type="hidden" name="plan" value="bundle">
+      <input type="hidden" name="plan" value="bundle" />
 
       <div>
         <label for="first_name" class="block text-gray-700 mb-1">First Name</label>
         <input id="first_name" name="first_name" type="text" required
-               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+               class="w-full border-gray-300 rounded px-3 py-2 focus:ring-indigo-400 focus:outline-none focus:ring-2" />
       </div>
-
       <div>
         <label for="email" class="block text-gray-700 mb-1">Email</label>
         <input id="email" name="email" type="email" required
-               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+               class="w-full border-gray-300 rounded px-3 py-2 focus:ring-indigo-400 focus:outline-none focus:ring-2" />
       </div>
-
       <div>
         <label for="password" class="block text-gray-700 mb-1">Password</label>
         <input id="password" name="password" type="password" required
-               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+               class="w-full border-gray-300 rounded px-3 py-2 focus:ring-indigo-400 focus:outline-none focus:ring-2" />
       </div>
 
       <button type="submit"
               class="w-full bg-indigo-600 text-white font-semibold py-3 rounded hover:bg-indigo-700 transition">
-        Get Started – $1,497
+        Get Started – $1,497
       </button>
     </form>
   </div>
