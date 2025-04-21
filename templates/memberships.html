@@ -11,54 +11,43 @@
   </p>
   <ul class="space-y-2 mb-6">
     <li class="flex items-start">
-      <span class="mr-2 text-green-500">✔️</span>Unlimited proposal automation
+      <span class="mr-2 text-green-500">✔️</span>
+      Unlimited proposal automation
     </li>
     <li class="flex items-start">
-      <span class="mr-2 text-green-500">✔️</span>Priority support
+      <span class="mr-2 text-green-500">✔️</span>
+      Priority support
     </li>
     <li class="flex items-start">
-      <span class="mr-2 text-green-500">✔️</span>Advanced tone & style customization
+      <span class="mr-2 text-green-500">✔️</span>
+      Advanced tone & style customization
     </li>
     <li class="flex items-start">
-      <span class="mr-2 text-green-500">✔️</span>Access to future premium features
+      <span class="mr-2 text-green-500">✔️</span>
+      Access to future premium features
     </li>
   </ul>
-  <form method="POST" action="{{ url_for('memberships') }}">
+  <form method="POST" action="{{ url_for('memberships') }}" class="space-y-4">
     <input type="hidden" name="plan" value="bundle">
-    <div class="mb-4">
-      <label class="block text-gray-700 mb-2" for="first_name">First Name</label>
-      <input
-        id="first_name"
-        name="first_name"
-        type="text"
-        required
-        class="w-full border rounded px-3 py-2 focus:ring-indigo-400"
-      >
+
+    <div>
+      <label for="first_name" class="block text-gray-700 mb-1">First Name</label>
+      <input id="first_name" name="first_name" type="text" required
+             class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400">
     </div>
-    <div class="mb-4">
-      <label class="block text-gray-700 mb-2" for="email">Email</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        required
-        class="w-full border rounded px-3 py-2 focus:ring-indigo-400"
-      >
+    <div>
+      <label for="email" class="block text-gray-700 mb-1">Email</label>
+      <input id="email" name="email" type="email" required
+             class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400">
     </div>
-    <div class="mb-6">
-      <label class="block text-gray-700 mb-2" for="password">Password</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        required
-        class="w-full border rounded px-3 py-2 focus:ring-indigo-400"
-      >
+    <div>
+      <label for="password" class="block text-gray-700 mb-1">Password</label>
+      <input id="password" name="password" type="password" required
+             class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400">
     </div>
-    <button
-      type="submit"
-      class="w-full bg-indigo-600 text-white font-semibold py-3 rounded hover:bg-indigo-700"
-    >
+
+    <button type="submit"
+            class="w-full bg-indigo-600 text-white font-semibold py-3 rounded hover:bg-indigo-700 transition">
       Get Started – $1,497
     </button>
   </form>
