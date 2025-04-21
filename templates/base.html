@@ -1,19 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
     <title>{% block title %}Zyberfy{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- Tailwind CSS via CDN -->
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- TailwindCSS -->
     <link
       href="https://unpkg.com/tailwindcss@^3/dist/tailwind.min.css"
       rel="stylesheet"
     />
-
-    {% block head %}{% endblock %}
   </head>
-  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <body class="flex items-center justify-center min-h-screen bg-gray-100">
     {% block content %}{% endblock %}
   </body>
 </html>
