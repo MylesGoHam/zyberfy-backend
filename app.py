@@ -57,46 +57,35 @@ def home():
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    # only logged‑in users can subscribe
-    if 'email' not in session:
-        flash("Please log in before subscribing.", "error")
-        return redirect(url_for('login'))
-
     if request.method == 'POST':
-        # 0) ensure they agreed to Terms
+        # 1) Make sure they've checked “I agree”
         if not request.form.get('terms'):
             flash("You must agree to the Terms of Service.", "error")
             return redirect(url_for('memberships'))
 
-        user_email = session['email']
-
-        # 1) fetch price ID
+        # 2) Grab your price ID from env
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
-            logger.error("Missing SECRET_BUNDLE_PRICE_ID in env")
-            flash("Payment configuration is missing. Try again later.", "error")
+            flash("Payment configuration missing. Try again later.", "error")
             return redirect(url_for('memberships'))
 
-        # 2) create a Stripe Checkout Session
+        # 3) Create the Stripe Checkout Session
         try:
             checkout_session = stripe.checkout.Session.create(
-                customer_email=user_email,
+                payment_method_types=['card'],
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url=url_for('dashboard', _external=True),
-                cancel_url=url_for('memberships', _external=True),
+                success_url = url_for('dashboard', _external=True),
+                cancel_url  = url_for('memberships', _external=True),
             )
+            return redirect(checkout_session.url, code=303)
         except Exception:
             logger.exception("Stripe checkout creation failed")
             flash("Could not start payment. Please try again.", "error")
             return redirect(url_for('memberships'))
 
-        # 3) redirect to Stripe
-        return redirect(checkout_session.url, code=303)
-
-    # GET → render the membership landing
+    # GET → render the standalone memberships page
     return render_template('memberships.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
