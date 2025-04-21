@@ -52,19 +52,19 @@ def home():
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    # allow both logged‑in and new users to see/join this page
+    # allow everyone to view /memberships
     if request.method == 'POST':
-        # 1) Extract form inputs
+        # 1) grab & validate form data
         first_name = request.form.get('first_name', '').strip()
         email      = request.form.get('email', '').strip()
         password   = request.form.get('password', '').strip()
         plan       = request.form.get('plan', 'bundle')
 
-        if not first_name or not email or not password:
+        if not (first_name and email and password):
             flash("All fields are required.", "error")
-            return redirect(url_for('memberships'))
+            return redirect(url_for("memberships"))
 
-        # 2) Persist user (if not already there)
+        # 2) save (or skip if already exists)
         conn = get_db_connection()
         try:
             conn.execute(
@@ -73,38 +73,38 @@ def memberships():
             )
             conn.commit()
         except sqlite3.IntegrityError:
-            # user already exists—ok to proceed to checkout
+            # user exists → proceed
             flash("Welcome back! Continuing to checkout…", "info")
         finally:
             conn.close()
 
-        # store in session so post‑payment you know who’s logged in
+        # keep them logged in
         session['email'] = email
 
-        # 3) Prepare Stripe checkout
+        # 3) build Stripe session
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
-            flash("Payment configuration missing. Please try again later.", "error")
-            return redirect(url_for('memberships'))
+            flash("Payment configuration missing.", "error")
+            return redirect(url_for("memberships"))
 
         try:
             checkout_session = stripe.checkout.Session.create(
                 customer_email=email,
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url=url_for('dashboard', _external=True),
-                cancel_url=url_for('memberships', _external=True),
+                success_url=url_for("dashboard", _external=True),
+                cancel_url=url_for("memberships", _external=True),
             )
-        except Exception as e:
+        except Exception:
             logger.exception("Stripe checkout creation failed")
-            flash("Could not start payment. Please try again later.", "error")
-            return redirect(url_for('memberships'))
+            flash("Could not start payment. Please try again.", "error")
+            return redirect(url_for("memberships"))
 
-        # 4) Redirect user into Stripe's checkout flow
+        # 4) redirect into Stripe
         return redirect(checkout_session.url, code=303)
 
-    # GET → render the signup/checkout page
-    return render_template('memberships.html')
+    # GET → show the bundle page
+    return render_template("memberships.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
