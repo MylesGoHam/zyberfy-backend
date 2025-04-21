@@ -1,10 +1,15 @@
 import os
 import sqlite3
 import logging
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+
+from flask import (
+    Flask, render_template, request,
+    redirect, url_for, session,
+    flash, jsonify
+)
 from dotenv import load_dotenv
 import openai
-import stripe
+import stripe    # ← make sure this is here
 
 from models import (
     get_db_connection,
@@ -16,9 +21,9 @@ from email_utils import send_proposal_email
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key   = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")    # ← load your Stripe secret key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
