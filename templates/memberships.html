@@ -1,25 +1,83 @@
-{# templates/memberships.html #}
-{% extends "base.html" %}
-
-{% block title %}Join Zyberfy Bundle{% endblock %}
-
-{% block content %}
-  <div style="max-width:600px; margin:2rem auto; padding:1rem; border:1px solid #ccc; border-radius:4px; text-align:center;">
-    <h1>Zyberfy Bundle</h1>
-    <p><strong>Unlock full access for $1,497</strong></p>
-    <ul style="text-align:left; margin:1rem 0;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Join Zyberfy Bundle</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* Base */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #333;
+    }
+    /* Card */
+    .card {
+      background: #fff;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    p.subtitle {
+      margin: 0 0 1.5rem;
+      color: #555;
+    }
+    ul {
+      list-style: disc inside;
+      text-align: left;
+      margin: 0 0 1.5rem;
+      padding: 0;
+    }
+    ul li {
+      margin-bottom: 0.5rem;
+    }
+    /* Button */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background-color: #4338ca;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Zyberfy Bundle</h1>
+    <p class="subtitle">Unlock full access for <strong>$1,497</strong></p>
+    <ul>
       <li>Unlimited proposal automation</li>
       <li>Priority support</li>
-      <li>Advanced tone &amp; style customization</li>
+      <li>Advanced tone & style customization</li>
       <li>Access to future premium features</li>
     </ul>
-
     <form method="POST" action="{{ url_for('memberships') }}">
       <input type="hidden" name="plan" value="bundle">
-      <button type="submit"
-              style="display:block; width:100%; padding:0.75rem; background:#444; color:#fff; border:none; border-radius:4px; font-size:1rem;">
-        Get Started – $1,497
-      </button>
+      <button type="submit" class="btn">Get Started – $1,497</button>
     </form>
   </div>
-{% endblock %}
+</body>
+</html>
