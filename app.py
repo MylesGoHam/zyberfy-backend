@@ -9,7 +9,7 @@ from flask import (
 )
 from dotenv import load_dotenv
 import openai
-import stripe    # ← make sure this is here
+import stripe    # ← stripe is now imported
 
 from models import (
     get_db_connection,
@@ -58,11 +58,27 @@ def home():
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
     if request.method == 'POST':
-        # … your existing POST logic (validate, save user, stripe checkout) …
-        # (unchanged)
-        return redirect(checkout_session.url, code=303)
+        # 1) Grab your bundle price ID
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        if not price_id:
+            flash("Payment configuration missing. Try again later.", "error")
+            return redirect(url_for('memberships'))
 
-    # GET → render the standalone memberships page
+        # 2) Create a Stripe Checkout session
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception:
+            logger.exception("Stripe checkout creation failed")
+            flash("Could not start payment. Please try again.", "error")
+            return redirect(url_for('memberships'))
+
+    # GET → show the standalone membership card
     return render_template('memberships.html')
 
 
@@ -244,7 +260,6 @@ def proposal():
     return render_template('proposal.html')
 
 
-# ─── New Terms of Service Route ────────────────────────────────────────────────
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
