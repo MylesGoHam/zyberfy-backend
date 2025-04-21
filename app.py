@@ -21,9 +21,9 @@ from email_utils import send_proposal_email
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")    # ← load your Stripe secret key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
+stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key   = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,9 +57,7 @@ def home():
 
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    # allow everyone (even logged‑in) to see this page
     if request.method == 'POST':
-        # 1) grab & validate form data
         first_name = request.form.get('first_name', '').strip()
         email      = request.form.get('email', '').strip()
         password   = request.form.get('password', '').strip()
@@ -69,7 +67,6 @@ def memberships():
             flash("All fields are required.", "error")
             return redirect(url_for('memberships'))
 
-        # 2) persist the user if new
         conn = get_db_connection()
         try:
             conn.execute(
@@ -78,15 +75,12 @@ def memberships():
             )
             conn.commit()
         except sqlite3.IntegrityError:
-            # already exists, that's fine
             flash("Welcome back! Continuing to checkout…", "info")
         finally:
             conn.close()
 
-        # remember them for post‑checkout
         session['email'] = email
 
-        # 3) create Stripe Checkout Session
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
             flash("Payment configuration missing. Try again later.", "error")
@@ -105,11 +99,10 @@ def memberships():
             flash("Could not start payment. Please try again.", "error")
             return redirect(url_for('memberships'))
 
-        # 4) send them to Stripe
         return redirect(checkout_session.url, code=303)
 
-    # GET → just render the page
     return render_template('memberships.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -225,13 +218,12 @@ def generate_proposal():
             max_tokens=300,
             temperature=0.7
         )
-        proposal = resp.choices[0].message.content.strip()
-        return jsonify(success=True, proposal=proposal)
+        return jsonify(success=True, proposal=resp.choices[0].message.content.strip())
     except Exception:
         logger.exception("OpenAI failure; using dummy.")
         fallback = (
-            f"Hi there,\n\nThanks for reaching out! "
-            f"We'd love to assist you with a {automation['tone']} and {automation['style']} proposal.\n\n"
+            f"Hi there,\n\nThanks for reaching out! We'd love to assist you with a "
+            f"{automation['tone']} and {automation['style']} proposal.\n\n"
             f"{automation['additional_notes'] or ''}\n\nBest regards,\nThe Zyberfy Team"
         )
         return jsonify(success=True, proposal=fallback, fallback=True)
@@ -290,11 +282,18 @@ def proposal():
     return render_template('proposal.html')
 
 
+# ─── New Terms of Service Route ────────────────────────────────────────────────
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
 
+# ─── Run ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=True)
