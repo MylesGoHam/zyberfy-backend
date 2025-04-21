@@ -1,52 +1,40 @@
+{# templates/memberships.html #}
 {% extends "base.html" %}
 
 {% block title %}Join Zyberfy Bundle{% endblock %}
 
 {% block content %}
-<div class="container mx-auto py-12 px-4">
-  <h2 class="text-4xl font-bold text-center mb-8">Choose Your Plan</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
-    <!-- Only one card now, but the grid still has 3 cols for that same "feel" -->
-    <div class="col-span-1 bg-white border border-indigo-500 rounded-lg shadow-lg p-6 flex flex-col w-full max-w-md">
-      <h3 class="text-2xl font-semibold mb-4 text-center">Zyberfy Bundle</h3>
-      <p class="text-center text-3xl font-bold mb-6">$1,497</p>
-      <ul class="flex-1 mb-6 space-y-2">
-        <li class="flex items-center"><span class="text-green-500 mr-2">✔️</span>Unlimited proposal automation</li>
-        <li class="flex items-center"><span class="text-green-500 mr-2">✔️</span>Priority support</li>
-        <li class="flex items-center"><span class="text-green-500 mr-2">✔️</span>Advanced tone & style customization</li>
-        <li class="flex items-center"><span class="text-green-500 mr-2">✔️</span>Access to future premium features</li>
-      </ul>
-      <form method="POST" action="{{ url_for('memberships') }}" class="space-y-4">
-        <input type="hidden" name="plan" value="bundle" />
-        <input
-          name="first_name"
-          type="text"
-          placeholder="First Name"
-          required
-          class="w-full border border-gray-300 rounded px-3 py-2"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          class="w-full border border-gray-300 rounded px-3 py-2"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
-          class="w-full border border-gray-300 rounded px-3 py-2"
-        />
-        <button
-          type="submit"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded"
-        >
-          Get Started
-        </button>
-      </form>
-    </div>
+  <div style="max-width: 600px; margin: 2rem auto; padding: 1rem; border: 1px solid #ccc; border-radius: 4px;">
+    <h1>Zyberfy Bundle</h1>
+    <p><strong>Unlock full access for $1,497</strong></p>
+    <ul>
+      <li>Unlimited proposal automation</li>
+      <li>Priority support</li>
+      <li>Advanced tone & style customization</li>
+      <li>Access to future premium features</li>
+    </ul>
+
+    <form method="POST" action="{{ url_for('memberships') }}">
+      <input type="hidden" name="plan" value="bundle">
+
+      <div style="margin-bottom: 1rem;">
+        <label for="first_name">First Name</label><br>
+        <input id="first_name" name="first_name" type="text" required style="width:100%; padding:0.5rem;">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="email">Email</label><br>
+        <input id="email" name="email" type="email" required style="width:100%; padding:0.5rem;">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label for="password">Password</label><br>
+        <input id="password" name="password" type="password" required style="width:100%; padding:0.5rem;">
+      </div>
+
+      <button type="submit" style="padding:0.75rem 1.5rem; background:#444; color:#fff; border:none; border-radius:4px;">
+        Get Started – $1,497
+      </button>
+    </form>
   </div>
-</div>
 {% endblock %}
