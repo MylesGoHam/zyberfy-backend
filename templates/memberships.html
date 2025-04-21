@@ -3,55 +3,41 @@
 {% block title %}Join Zyberfy Bundle{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
   <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
-    <h1 class="text-4xl font-bold text-center mb-4">Zyberfy Bundle</h1>
-    <p class="text-center text-lg text-gray-700 mb-6">
-      Unlock full access for <span class="text-indigo-600 font-semibold">$1,497</span>
+    <h1 class="text-3xl font-bold text-center mb-4">Zyberfy Bundle</h1>
+    <p class="text-center text-gray-700 text-lg mb-6">
+      Unlock full access for 
+      <span class="text-indigo-600 font-semibold">$1,497</span>
     </p>
-    <ul class="list-disc list-inside space-y-2 mb-6 text-gray-800">
-      <li>Unlimited proposal automation</li>
-      <li>Priority support</li>
-      <li>Advanced tone &amp; style customization</li>
-      <li>Access to future premium features</li>
-    </ul>
-    <form method="POST" action="{{ url_for('memberships') }}" class="space-y-4">
-      <input type="hidden" name="plan" value="bundle">
 
-      <div class="flex items-center">
-        <input
-          id="terms"
-          name="terms"
-          type="checkbox"
-          required
-          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-        >
-        <label for="terms" class="ml-2 text-sm text-gray-700">
-          I agree to the
-          <a href="{{ url_for('terms') }}" class="text-indigo-600 underline">
-            Terms of Service
-          </a>
+    <ul class="space-y-2 mb-6 text-gray-700">
+      <li class="flex items-center">
+        <span class="text-green-500 mr-2">✔️</span> Unlimited proposal automation
+      </li>
+      <li class="flex items-center">
+        <span class="text-green-500 mr-2">✔️</span> Priority support
+      </li>
+      <li class="flex items-center">
+        <span class="text-green-500 mr-2">✔️</span> Advanced tone & style customization
+      </li>
+      <li class="flex items-center">
+        <span class="text-green-500 mr-2">✔️</span> Access to future premium features
+      </li>
+    </ul>
+
+    <form method="POST" action="{{ url_for('memberships') }}">
+      <div class="flex items-center mb-6">
+        <input id="terms" name="terms" type="checkbox" required class="mr-2">
+        <label for="terms" class="text-sm text-gray-600">
+          I agree to the <a href="{{ url_for('terms') }}" class="text-indigo-600 hover:underline">Terms of Service</a>
         </label>
       </div>
 
-      <button
-        type="submit"
-        id="submit-btn"
-        class="w-full bg-indigo-600 text-white font-semibold py-3 rounded disabled:opacity-50"
-        disabled
-      >
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded transition">
         Get Started
       </button>
     </form>
   </div>
 </div>
-
-<script>
-  // disable button until TOS is checked
-  const termsCheckbox = document.getElementById('terms');
-  const submitBtn     = document.getElementById('submit-btn');
-  termsCheckbox.addEventListener('change', () => {
-    submitBtn.disabled = !termsCheckbox.checked;
-  });
-</script>
 {% endblock %}
