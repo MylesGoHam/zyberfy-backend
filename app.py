@@ -219,7 +219,6 @@ def generate_proposal():
         return jsonify({'success': True, 'proposal': proposal})
     except Exception as e:
         logger.exception("OpenAI ChatCompletion failed; falling back to dummy.")
-        # fallback dummy
         proposal = f"""Hi there,
 
 Thanks for reaching out! We'd love to assist you with a {automation['tone']} and {automation['style']} proposal.
@@ -238,7 +237,7 @@ def proposal():
 
     if request.method == 'POST':
         lead_name  = request.form['name']
-        # override to your personal inbox if set
+        # override to personal inbox if set
         lead_email = PERSONAL_EMAIL or request.form['email']
         budget     = request.form['budget']
 
@@ -256,6 +255,7 @@ def proposal():
         )
 
         try:
+            # generate via OpenAI
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -271,14 +271,16 @@ def proposal():
             return redirect(url_for('proposal'))
 
         subject = f"Proposal for {lead_name} (Budget: ${budget})"
-        status_code = send_proposal_email(
+        # ——— PATCHED: extract .status_code from the response object ———
+        resp_obj = send_proposal_email(
             to_email=lead_email,
             subject=subject,
             content=email_body,
             cc_client=False
         )
+        status_code = resp_obj.status_code if hasattr(resp_obj, 'status_code') else resp_obj
 
-        if status_code and 200 <= status_code < 300:
+        if 200 <= status_code < 300:
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
         else:
