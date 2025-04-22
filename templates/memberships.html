@@ -1,45 +1,32 @@
+{# templates/memberships.html #}
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Join Zyberfy Bundle</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8">
+    <title>Join Zyberfy Bundle</title>
+  </head>
+  <body>
+    <h1>Zyberfy Bundle</h1>
+    <p>Unlock full access for $1,497</p>
 
-  <!-- Direct TailwindCSS link -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-
-  <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-    <h1 class="text-3xl font-bold mb-4">Zyberfy Bundle</h1>
-    <p class="text-lg mb-6">
-      Unlock full access for <span class="font-semibold text-indigo-600">$1,497</span>
-    </p>
-
-    <ul class="text-left mb-6 space-y-2">
-      <li>✔️ Unlimited proposal automation</li>
-      <li>✔️ Priority support</li>
-      <li>✔️ Advanced tone & style customization</li>
-      <li>✔️ Access to future premium features</li>
-    </ul>
-
-    <form method="POST" action="{{ url_for('memberships_checkout') }}">
-      <div class="mb-4">
-        <label class="inline-flex items-center">
-          <input type="checkbox" required class="form-checkbox h-5 w-5 text-indigo-600">
-          <span class="ml-2 text-gray-700 text-sm">
-            I agree to the
-            <a href="{{ url_for('terms') }}" class="text-indigo-600 underline">Terms of Service</a>
-          </span>
+    <form method="POST" action="{{ url_for('memberships') }}">
+      <p>
+        <label>
+          <input type="checkbox" name="terms" />
+          I agree to the <a href="{{ url_for('terms') }}">Terms of Service</a>
         </label>
-      </div>
-
-      <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition">
-        Get Started
-      </button>
+      </p>
+      <button type="submit">Get Started</button>
     </form>
-  </div>
 
-</body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, msg in messages %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </body>
 </html>
