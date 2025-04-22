@@ -1,43 +1,45 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Join Zyberfy Bundle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-{% block title %}Join Zyberfy Bundle{% endblock %}
+  <!-- Direct TailwindCSS link -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-{% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100">
-  <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
-    <h1 class="text-3xl font-bold text-center mb-4">Zyberfy Bundle</h1>
-    <p class="text-center text-gray-700 text-lg mb-6">
-      Unlock full access for 
-      <span class="text-indigo-600 font-semibold">$1,497</span>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+    <h1 class="text-3xl font-bold mb-4">Zyberfy Bundle</h1>
+    <p class="text-lg mb-6">
+      Unlock full access for <span class="font-semibold text-indigo-600">$1,497</span>
     </p>
 
-    <ul class="space-y-2 mb-6 text-gray-700">
-      <li class="flex items-center">
-        <span class="text-green-500 mr-2">✔️</span> Unlimited proposal automation
-      </li>
-      <li class="flex items-center">
-        <span class="text-green-500 mr-2">✔️</span> Priority support
-      </li>
-      <li class="flex items-center">
-        <span class="text-green-500 mr-2">✔️</span> Advanced tone & style customization
-      </li>
-      <li class="flex items-center">
-        <span class="text-green-500 mr-2">✔️</span> Access to future premium features
-      </li>
+    <ul class="text-left mb-6 space-y-2">
+      <li>✔️ Unlimited proposal automation</li>
+      <li>✔️ Priority support</li>
+      <li>✔️ Advanced tone & style customization</li>
+      <li>✔️ Access to future premium features</li>
     </ul>
 
-    <form method="POST" action="{{ url_for('memberships') }}">
-      <div class="flex items-center mb-6">
-        <input id="terms" name="terms" type="checkbox" required class="mr-2">
-        <label for="terms" class="text-sm text-gray-600">
-          I agree to the <a href="{{ url_for('terms') }}" class="text-indigo-600 hover:underline">Terms of Service</a>
+    <form method="POST" action="{{ url_for('memberships_checkout') }}">
+      <div class="mb-4">
+        <label class="inline-flex items-center">
+          <input type="checkbox" required class="form-checkbox h-5 w-5 text-indigo-600">
+          <span class="ml-2 text-gray-700 text-sm">
+            I agree to the
+            <a href="{{ url_for('terms') }}" class="text-indigo-600 underline">Terms of Service</a>
+          </span>
         </label>
       </div>
 
-      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded transition">
+      <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition">
         Get Started
       </button>
     </form>
   </div>
-</div>
-{% endblock %}
+
+</body>
+</html>
