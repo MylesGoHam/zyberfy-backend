@@ -63,28 +63,29 @@ def memberships():
             flash("You must agree to the Terms of Service.", "error")
             return redirect(url_for('memberships'))
 
-        # 2) Grab your price ID from env
+        # 2) Create the Stripe Checkout Session
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
             flash("Payment configuration missing. Try again later.", "error")
             return redirect(url_for('memberships'))
 
-        # 3) Create the Stripe Checkout Session
         try:
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{"price": price_id, "quantity": 1}],
+                line_items=[{
+                    "price": price_id,
+                    "quantity": 1,
+                }],
                 mode="subscription",
-                success_url = url_for('dashboard', _external=True),
-                cancel_url  = url_for('memberships', _external=True),
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
             )
             return redirect(checkout_session.url, code=303)
-        except Exception:
-            logger.exception("Stripe checkout creation failed")
+        except Exception as e:
+            logger.exception("Stripe checkout creation failed: %s", str(e))
             flash("Could not start payment. Please try again.", "error")
             return redirect(url_for('memberships'))
 
-    # GET → render the standalone memberships page
+    # GET → now render the **standalone** page (no base.html dependency)
     return render_template('memberships.html')
 
 @app.route('/login', methods=['GET', 'POST'])
