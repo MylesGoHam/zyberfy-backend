@@ -4,13 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zyberfy – AI Proposals</title>
+
+  <!-- PostHog snippet -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
+        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
+      }}
+      (r=t.createElement("script")).type="text/javascript";
+      r.async=!0;
+      r.src="https://cdn.posthog.com/posthog.js";
+      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;
+          p<o.length;p++)g(e,o[p]);
+    },e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('YOUR_POSTHOG_PROJECT_API_KEY', {
+      api_host: 'https://app.posthog.com',
+      autocapture: true,
+      capture_pageview: true,
+    });
+  </script>
+
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f9fafb;
     }
-
     header {
       background: #ffffff;
       padding: 16px 32px;
@@ -20,13 +40,11 @@
       border-bottom: 1px solid #e5e7eb;
       position: relative;
     }
-
     .logo {
       font-size: 1.8rem;
       font-weight: bold;
       color: #1e40af;
     }
-
     .hamburger {
       width: 24px;
       height: 18px;
@@ -35,13 +53,11 @@
       justify-content: space-between;
       cursor: pointer;
     }
-
     .bar {
       height: 3px;
       background-color: #1e40af;
       border-radius: 4px;
     }
-
     .dropdown {
       position: absolute;
       top: 64px;
@@ -55,37 +71,31 @@
       min-width: 160px;
       z-index: 10;
     }
-
     .dropdown a {
       padding: 10px 20px;
       text-decoration: none;
       color: #1f2937;
       transition: background 0.2s ease;
     }
-
     .dropdown a:hover {
       background: #f3f4f6;
     }
-
     .hero {
       max-width: 700px;
       margin: 100px auto;
       text-align: center;
       padding: 2rem;
     }
-
     .hero h1 {
       font-size: 2.5rem;
       color: #1e40af;
       margin-bottom: 1rem;
     }
-
     .hero p {
       color: #4b5563;
       font-size: 1.1rem;
       margin-bottom: 2rem;
     }
-
     .cta-button {
       background-color: #3b82f6;
       color: white;
@@ -96,11 +106,9 @@
       border-radius: 8px;
       text-decoration: none;
     }
-
     .cta-button:hover {
       background-color: #2563eb;
     }
-
     footer {
       text-align: center;
       padding: 40px 20px 20px;
@@ -121,38 +129,33 @@
     </div>
     <div id="dropdownMenu" class="dropdown">
       <a href="/login">Login</a>
-      <a href="/memberships">Memberships</a>
+      <!-- Memberships link intentionally removed -->
     </div>
   </header>
 
   <!-- Hero Section -->
-  <div class="hero">
-    <h1 class="hero-title">Close Faster, Work Less</h1>
-    <p>Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
-    <a href="/login" class="cta-button">Get Started</a>
-  </div>
+  <main class="hero">
+    <h1>Close Faster, Work Less</h1>
+    <p>Deliver premium, automated proposals in seconds. Designed for high‑end service businesses.</p>
+    <a href="/memberships" class="cta-button">Get Started</a>
+  </main>
 
   <!-- Footer -->
-  <footer>
-    &copy; 2025 <strong style="color: #1e40af;">Zyberfy</strong>. All rights reserved.
-  </footer>
+  <footer>&copy; 2025 <strong style="color: #1e40af;">Zyberfy</strong>. All rights reserved.</footer>
 
   <!-- Dropdown Script -->
   <script>
     function toggleDropdown() {
-      const dropdown = document.getElementById("dropdownMenu");
-      const currentDisplay = getComputedStyle(dropdown).display;
-      dropdown.style.display = currentDisplay === "flex" ? "none" : "flex";
+      const dd = document.getElementById("dropdownMenu");
+      dd.style.display = dd.style.display === "flex" ? "none" : "flex";
     }
-
-    document.addEventListener("click", function(event) {
-      const dropdown = document.getElementById("dropdownMenu");
-      const hamburger = document.querySelector(".hamburger");
-      if (!dropdown.contains(event.target) && !hamburger.contains(event.target)) {
-        dropdown.style.display = "none";
+    document.addEventListener("click", function(e) {
+      const dd = document.getElementById("dropdownMenu"),
+            hb = document.querySelector(".hamburger");
+      if (!dd.contains(e.target) && !hb.contains(e.target)) {
+        dd.style.display = "none";
       }
     });
   </script>
-
 </body>
 </html>
