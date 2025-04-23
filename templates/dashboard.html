@@ -5,7 +5,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <!-- PostHog analytics snippet (optional) -->
+  <!-- (optional) PostHog analytics snippet -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
       function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
@@ -112,9 +112,26 @@
     .btn.logout {
       background: #e00;
     }
+
+    /* analytics section */
+    .analytics {
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 0 24px 24px;
+    }
+    .analytics h2 {
+      margin-bottom: 12px;
+      color: #333;
+      text-align: center;
+    }
+    .analytics iframe {
+      width: 100%;
+      height: 350px;
+      border: none;
+      border-radius: 4px;
+    }
   </style>
 </head>
-
 <body>
   <header>
     <div class="logo">Zyberfy</div>
@@ -130,6 +147,7 @@
     </div>
   </header>
 
+  <!-- main dashboard card -->
   <div class="container">
     <h1>Welcome, {{ first_name or 'User' }}!</h1>
     <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
@@ -149,6 +167,13 @@
     </div>
   </div>
 
+  <!-- embedded analytics right below the dashboard card -->
+  <div class="analytics">
+    <h2>Real-time Activity</h2>
+    <!-- replace INSIGHT_EMBED_URL with your PostHog embed link -->
+    <iframe src="https://app.posthog.com/insight/INSIGHT_ID?embed=true"></iframe>
+  </div>
+
   <script>
     function toggleDropdown() {
       const dd = document.getElementById('dropdown');
@@ -156,11 +181,9 @@
       dd.style.flexDirection = 'column';
     }
     document.addEventListener('click', e => {
-      const dd = document.getElementById('dropdown');
-      const hb = document.querySelector('.hamburger');
-      if (!dd.contains(e.target) && !hb.contains(e.target)) {
-        dd.style.display = 'none';
-      }
+      const dd = document.getElementById('dropdown'),
+            hb = document.querySelector('.hamburger');
+      if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = 'none';
     });
   </script>
 </body>
