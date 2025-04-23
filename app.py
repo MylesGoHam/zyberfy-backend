@@ -21,32 +21,21 @@ from email_utils import send_proposal_email
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key   = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
-
-# ─── Config ───────────────────────────────────────────────────────────────────
-load_dotenv()
-stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key   = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
-
-# pull in PostHog settings
+# PostHog
 POSTHOG_KEY  = os.getenv("POSTHOG_PROJECT_API_KEY")
 POSTHOG_HOST = os.getenv("POSTHOG_HOST")
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
-# make them available in all templates
+# Make PostHog settings available in all templates
 app.config['POSTHOG_PROJECT_API_KEY'] = POSTHOG_KEY
 app.config['POSTHOG_HOST']           = POSTHOG_HOST
+
 # ─── DB Init ───────────────────────────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
@@ -74,18 +63,15 @@ def home():
 @app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
     if request.method == 'POST':
-        # 1) check Terms checkbox
         if not request.form.get('terms'):
             flash("You must agree to the Terms of Service.", "error")
             return redirect(url_for('memberships'))
 
-        # 2) grab your price ID
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
             flash("Payment configuration missing. Try again later.", "error")
             return redirect(url_for('memberships'))
 
-        # 3) create Stripe checkout
         try:
             checkout_session = stripe.checkout.Session.create(
                 line_items=[{"price": price_id, "quantity": 1}],
@@ -99,7 +85,6 @@ def memberships():
             flash("Could not start payment. Please try again.", "error")
             return redirect(url_for('memberships'))
 
-    # GET → just render the standalone page
     return render_template('memberships.html')
 
 
@@ -186,7 +171,6 @@ def save_automation():
         )
     conn.commit()
     conn.close()
-
     return jsonify(success=True)
 
 
@@ -286,7 +270,6 @@ def proposal():
 def analytics():
     if 'email' not in session:
         return redirect(url_for('login'))
-    # you can pass any context you want here
     return render_template('analytics.html')
 
 
@@ -301,6 +284,5 @@ def logout():
     return redirect(url_for('login'))
 
 
-# ─── Run ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=True)
