@@ -1,25 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Analytics – Zyberfy</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 40px; background: #f4f4f4; }
-    .container { max-width: 800px; margin: auto; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    nav a { margin-right: 16px; color: #0070f3; text-decoration: none; }
-    h1 { margin-top: 0; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zyberfy – Analytics</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PostHog snippet -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
+        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
+      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
+      r.src="https://cdn.posthog.com/posthog.js",(n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
+    },e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(
+      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
+      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
+    );
+  </script>
+
 </head>
-<body>
-  <div class="container">
-    <nav>
-      <a href="{{ url_for('dashboard') }}">← Dashboard</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-    <h1>Analytics</h1>
-    <p>Here’s where your analytics UI will live.</p>
-    <!-- e.g. embed your PostHog graphs via <iframe> or link off to your PostHog dashboard -->
-  </div>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="text-2xl font-bold text-blue-600">Zyberfy</div>
+      <div class="md:hidden">
+        <button id="menu-btn" class="text-gray-700 focus:outline-none">
+          <!-- simple hamburger -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+      <nav id="menu" class="hidden md:flex space-x-8">
+        <a href="{{ url_for('dashboard') }}" class="text-gray-700 hover:text-blue-600">Home</a>
+        <a href="{{ url_for('analytics') }}" class="text-gray-700 hover:text-blue-600 font-semibold">Analytics</a>
+        <a href="{{ url_for('logout') }}" class="text-gray-700 hover:text-blue-600">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main dashboard block + analytics graph -->
+  <main class="container mx-auto px-6 py-8 flex-1">
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h1 class="text-2xl font-semibold text-gray-800 text-center">Welcome, {{ first_name or "User" }}!</h1>
+      <p class="mt-4 text-gray-600 text-center">
+        <strong>Plan status:</strong> {{ plan_status }}
+      </p>
+      {% if automation_complete %}
+        <p class="mt-2 text-green-600 text-center">Your automation settings are saved.</p>
+      {% else %}
+        <p class="mt-2 text-red-600 text-center">You haven’t set up your automation preferences yet.</p>
+        <div class="mt-4 flex justify-center">
+          <a href="{{ url_for('automation_page') }}"
+             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Set Up Automation
+          </a>
+        </div>
+      {% endif %}
+      <div class="mt-6 flex justify-center space-x-4">
+        <a href="{{ url_for('proposal') }}"
+           class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Generate Proposal
+        </a>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Activity Overview</h2>
+
+      <!-- replace the src with your actual PostHog embed URL -->
+      <iframe
+        src="https://app.posthog.com/insights/YOUR_INSIGHT_ID?embed=true"
+        class="w-full h-[500px] border-0 rounded"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </main>
+
+  <!-- Mobile menu toggle script -->
+  <script>
+    document.getElementById('menu-btn').addEventListener('click', () => {
+      const menu = document.getElementById('menu');
+      menu.classList.toggle('hidden');
+    });
+  </script>
+
 </body>
 </html>
