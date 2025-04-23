@@ -1,23 +1,26 @@
-<!-- templates/dashboard.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <!-- (optional) PostHog analytics snippet -->
+  <!-- PostHog analytics snippet -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
-      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
         t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-      r.src="https://cdn.posthog.com/posthog.js",
+      }}(r=t.createElement("script")).type="text/javascript",
+      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
       (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
       for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
     },e.__SV=1)}(document,window.posthog||[]);
     posthog.init(
       "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
-      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
+      {
+        api_host: "{{ config['POSTHOG_HOST'] }}",
+        autocapture: true,
+        capture_pageview: true
+      }
     );
   </script>
 
@@ -26,15 +29,19 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     header {
+      width: 100%;
       background: #fff;
-      padding: 16px 24px;
+      padding: 1rem 2rem;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #ddd;
-      position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     .logo {
       font-size: 1.5rem;
@@ -42,148 +49,111 @@
       color: #1e40af;
     }
     .hamburger {
-      margin-left: auto;
-      width: 24px;
       cursor: pointer;
     }
-    .hamburger .bar {
-      height: 3px;
-      background: #1e40af;
-      margin: 4px 0;
-      border-radius: 2px;
-    }
-    .dropdown {
-      position: absolute;
-      top: 56px;
-      right: 24px;
+    .card {
       background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      min-width: 140px;
-      z-index: 10;
-    }
-    .dropdown a {
-      padding: 10px 16px;
-      text-decoration: none;
-      color: #333;
-      border-bottom: 1px solid #eee;
-    }
-    .dropdown a:last-child { border-bottom: none; }
-    .dropdown a:hover { background: #f0f0f0; }
-
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 24px;
+      margin: 2rem 0 1rem;
+      padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
     }
-    h1 {
+    .card h1 {
       margin-top: 0;
       font-size: 1.75rem;
-      text-align: center;
-      color: #333;
     }
     .info {
-      margin: 16px 0;
+      margin: 1rem 0;
       font-size: 1rem;
       color: #555;
     }
-    .buttons {
-      text-align: center;
-      margin-top: 24px;
+    .button-group {
+      margin-top: 1.5rem;
     }
     .btn {
       display: inline-block;
-      margin: 0 8px;
-      padding: 10px 20px;
-      font-size: 0.9rem;
+      margin: 0 .5rem;
+      padding: .75rem 1.5rem;
+      font-size: .95rem;
       color: #fff;
-      background: #0070f3;
+      background: #3b82f6;
       border: none;
       border-radius: 4px;
       text-decoration: none;
       cursor: pointer;
     }
-    .btn.logout {
-      background: #e00;
+    .btn:hover {
+      background: #2563eb;
     }
-
-    /* analytics section */
+    /* Analytics section */
     .analytics {
+      width: 90%;
       max-width: 800px;
-      margin: 24px auto;
-      padding: 0 24px 24px;
+      margin-bottom: 3rem;
     }
     .analytics h2 {
-      margin-bottom: 12px;
-      color: #333;
       text-align: center;
+      margin-bottom: 1rem;
     }
-    .analytics iframe {
+    iframe.posthog-embed {
       width: 100%;
-      height: 350px;
+      height: 400px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo">Zyberfy</div>
-    <div class="hamburger" onclick="toggleDropdown()">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-    </div>
-    <div id="dropdown" class="dropdown">
-      <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('analytics') }}">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
+    <div onclick="toggleDropdown()" class="hamburger">☰</div>
+    <div id="dropdownMenu" class="dropdown" style="display:none; position:absolute; top:64px; right:32px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:8px; overflow:hidden;">
+      <a href="{{ url_for('dashboard') }}" style="display:block;padding:10px 20px;">Home</a>
+      <a href="{{ url_for('logout') }}" style="display:block;padding:10px 20px; color:#e00;">Logout</a>
     </div>
   </header>
 
-  <!-- main dashboard card -->
-  <div class="container">
-    <h1>Welcome, {{ first_name or 'User' }}!</h1>
+  <div class="card">
+    <h1>Welcome, {{ first_name or "User" }}!</h1>
     <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
 
-    {% if not automation_complete %}
+    {% if automation_complete %}
+      <p class="info">Your automation settings are saved.</p>
+    {% else %}
       <p class="info">You haven’t set up your automation preferences yet.</p>
-      <div class="buttons">
+      <div class="button-group">
         <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
       </div>
-    {% else %}
-      <p class="info">✅ Your automation settings are saved.</p>
     {% endif %}
 
-    <div class="buttons">
+    <div class="button-group">
       <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-      <a href="{{ url_for('logout') }}" class="btn logout">Logout</a>
+      <!-- Logout removed from here -->
     </div>
   </div>
 
-  <!-- embedded analytics right below the dashboard card -->
   <div class="analytics">
     <h2>Real-time Activity</h2>
-    <!-- replace INSIGHT_EMBED_URL with your PostHog embed link -->
-    <iframe src="https://app.posthog.com/insight/INSIGHT_ID?embed=true"></iframe>
+    <!-- embed your PostHog dashboard/chart here -->
+    <iframe
+      class="posthog-embed"
+      src="https://app.posthog.com/insights/your-embed-url?from_dashboard=360407"
+      allow="clipboard-write">
+    </iframe>
   </div>
 
   <script>
     function toggleDropdown() {
-      const dd = document.getElementById('dropdown');
-      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
-      dd.style.flexDirection = 'column';
+      const dd = document.getElementById("dropdownMenu");
+      dd.style.display = dd.style.display === "block" ? "none" : "block";
     }
-    document.addEventListener('click', e => {
-      const dd = document.getElementById('dropdown'),
-            hb = document.querySelector('.hamburger');
-      if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = 'none';
+    document.addEventListener("click", e => {
+      const dd = document.getElementById("dropdownMenu"),
+            hb = document.querySelector(".hamburger");
+      if (!hb.contains(e.target) && !dd.contains(e.target)) dd.style.display = "none";
     });
   </script>
 </body>
