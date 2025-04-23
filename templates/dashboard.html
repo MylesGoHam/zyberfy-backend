@@ -76,7 +76,6 @@
     .dropdown a:hover {
       background: #f0f0f0;
     }
-    /* our new billing‐status line */
     .dropdown .billing-status {
       padding: 10px 16px;
       font-size: 0.9rem;
@@ -154,7 +153,7 @@
       <a href="{{ url_for('analytics') }}">Analytics</a>
       <a href="{{ url_for('logout') }}">Logout</a>
       <div class="billing-status">
-        Billing: {{ plan_status }}
+        Billing: Active
       </div>
     </div>
   </header>
@@ -162,7 +161,6 @@
   <!-- main dashboard card -->
   <div class="container">
     <h1>Welcome, {{ first_name or 'User' }}!</h1>
-    <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
 
     {% if not automation_complete %}
       <p class="info">You haven’t set up your automation preferences yet.</p>
@@ -175,7 +173,7 @@
 
     <div class="buttons">
       <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-      <!-- logout button removed from card -->
+      <!-- Logout removed from here -->
     </div>
   </div>
 
