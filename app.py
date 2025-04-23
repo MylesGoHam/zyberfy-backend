@@ -31,6 +31,22 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
+# ─── Config ───────────────────────────────────────────────────────────────────
+load_dotenv()
+stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key   = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
+
+# pull in PostHog settings
+POSTHOG_KEY  = os.getenv("POSTHOG_PROJECT_API_KEY")
+POSTHOG_HOST = os.getenv("POSTHOG_HOST")
+
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+
+# make them available in all templates
+app.config['POSTHOG_PROJECT_API_KEY'] = POSTHOG_KEY
+app.config['POSTHOG_HOST']           = POSTHOG_HOST
 # ─── DB Init ───────────────────────────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
@@ -264,6 +280,15 @@ def proposal():
         return redirect(url_for('proposal'))
 
     return render_template('proposal.html')
+
+
+@app.route('/analytics')
+def analytics():
+    # require login
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    # you can pull in real analytics here later!
+    return render_template('analytics.html')
 
 
 @app.route('/terms')
