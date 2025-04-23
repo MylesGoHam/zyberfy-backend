@@ -5,56 +5,95 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <!-- PostHog analytics snippet -->
+  <!-- PostHog analytics snippet (optional) -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
-      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
         t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-      }}(r=t.createElement("script")).type="text/javascript",
-      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
+      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
+      r.src="https://cdn.posthog.com/posthog.js",
       (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
       for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
     },e.__SV=1)}(document,window.posthog||[]);
     posthog.init(
       "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
-      {
-        api_host: "{{ config['POSTHOG_HOST'] }}",
-        autocapture: true,
-        capture_pageview: true
-      }
+      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
     );
   </script>
 
-  <title>Your Dashboard</title>
+  <title>Zyberfy Dashboard</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      padding: 40px 0;
+      background: #f4f4f4;
     }
-    .dashboard-container {
+    header {
       background: #fff;
-      width: 90%;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      position: relative;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1e40af;
+    }
+    .hamburger {
+      margin-left: auto;
+      width: 24px;
+      cursor: pointer;
+    }
+    .hamburger .bar {
+      height: 3px;
+      background: #1e40af;
+      margin: 4px 0;
+      border-radius: 2px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 56px;
+      right: 24px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      min-width: 140px;
+      z-index: 10;
+    }
+    .dropdown a {
+      padding: 10px 16px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+    .dropdown a:last-child { border-bottom: none; }
+    .dropdown a:hover { background: #f0f0f0; }
+
+    .container {
       max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 24px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 24px;
     }
     h1 {
       margin-top: 0;
-      font-size: 24px;
-      color: #333;
+      font-size: 1.75rem;
       text-align: center;
+      color: #333;
     }
     .info {
       margin: 16px 0;
-      font-size: 16px;
+      font-size: 1rem;
       color: #555;
     }
-    .button-group {
+    .buttons {
       text-align: center;
       margin-top: 24px;
     }
@@ -62,39 +101,67 @@
       display: inline-block;
       margin: 0 8px;
       padding: 10px 20px;
-      font-size: 14px;
+      font-size: 0.9rem;
+      color: #fff;
+      background: #0070f3;
       border: none;
       border-radius: 4px;
-      cursor: pointer;
       text-decoration: none;
-      color: #fff;
-      background-color: #0070f3;
+      cursor: pointer;
     }
     .btn.logout {
-      background-color: #e00;
+      background: #e00;
     }
   </style>
 </head>
-<body>
-  <div class="dashboard-container">
-    <h1>Welcome, {{ first_name or "User" }}!</h1>
 
+<body>
+  <header>
+    <div class="logo">Zyberfy</div>
+    <div class="hamburger" onclick="toggleDropdown()">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <div id="dropdown" class="dropdown">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('analytics') }}">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>Welcome, {{ first_name or 'User' }}!</h1>
     <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
 
     {% if not automation_complete %}
       <p class="info">You haven’t set up your automation preferences yet.</p>
-      <div class="button-group">
+      <div class="buttons">
         <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
       </div>
     {% else %}
       <p class="info">✅ Your automation settings are saved.</p>
     {% endif %}
 
-    <div class="button-group">
+    <div class="buttons">
       <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-      <a href="{{ url_for('analytics') }}" class="btn">Analytics</a>
       <a href="{{ url_for('logout') }}" class="btn logout">Logout</a>
     </div>
   </div>
+
+  <script>
+    function toggleDropdown() {
+      const dd = document.getElementById('dropdown');
+      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
+      dd.style.flexDirection = 'column';
+    }
+    document.addEventListener('click', e => {
+      const dd = document.getElementById('dropdown');
+      const hb = document.querySelector('.hamburger');
+      if (!dd.contains(e.target) && !hb.contains(e.target)) {
+        dd.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
