@@ -21,20 +21,22 @@ from email_utils import send_proposal_email
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
+stripe.api_key         = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key         = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL         = os.getenv("PERSONAL_EMAIL")
 
 # PostHog
-POSTHOG_KEY  = os.getenv("POSTHOG_PROJECT_API_KEY")
-POSTHOG_HOST = os.getenv("POSTHOG_HOST")
+POSTHOG_KEY            = os.getenv("POSTHOG_PROJECT_API_KEY")
+POSTHOG_HOST           = os.getenv("POSTHOG_HOST")
+POSTHOG_INSIGHT_ID     = os.getenv("POSTHOG_INSIGHT_ID")    # ← new
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
 # Make PostHog settings available in all templates
-app.config['POSTHOG_PROJECT_API_KEY'] = POSTHOG_KEY
-app.config['POSTHOG_HOST']           = POSTHOG_HOST
+app.config["POSTHOG_PROJECT_API_KEY"] = POSTHOG_KEY
+app.config["POSTHOG_HOST"]            = POSTHOG_HOST
+app.config["POSTHOG_INSIGHT_ID"]      = POSTHOG_INSIGHT_ID   # ← new
 
 # ─── DB Init ───────────────────────────────────────────────────────────────────
 create_users_table()
