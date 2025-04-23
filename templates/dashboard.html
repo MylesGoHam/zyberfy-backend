@@ -61,7 +61,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       display: none;
       flex-direction: column;
-      min-width: 140px;
+      min-width: 160px;
       z-index: 10;
     }
     .dropdown a {
@@ -70,8 +70,21 @@
       color: #333;
       border-bottom: 1px solid #eee;
     }
-    .dropdown a:last-child { border-bottom: none; }
-    .dropdown a:hover { background: #f0f0f0; }
+    .dropdown a:last-child {
+      border-bottom: none;
+    }
+    .dropdown a:hover {
+      background: #f0f0f0;
+    }
+    /* our new billing‐status line */
+    .dropdown .billing-status {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      color: #555;
+      text-align: center;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+    }
 
     .container {
       max-width: 600px;
@@ -140,6 +153,9 @@
       <a href="{{ url_for('dashboard') }}">Home</a>
       <a href="{{ url_for('analytics') }}">Analytics</a>
       <a href="{{ url_for('logout') }}">Logout</a>
+      <div class="billing-status">
+        Billing: {{ plan_status }}
+      </div>
     </div>
   </header>
 
@@ -159,14 +175,14 @@
 
     <div class="buttons">
       <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-      <!-- logout button removed from here -->
+      <!-- logout button removed from card -->
     </div>
   </div>
 
   <!-- embedded analytics right below the dashboard card -->
   <div class="analytics">
     <h2>Real-time Activity</h2>
-    <!-- replace INSIGHT_EMBED_URL with your PostHog embed link -->
+    <!-- replace INSIGHT_ID with your PostHog insight ID -->
     <iframe src="https://app.posthog.com/insight/INSIGHT_ID?embed=true"></iframe>
   </div>
 
