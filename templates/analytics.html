@@ -1,29 +1,100 @@
+<!-- templates/dashboard.html -->
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Analytics • Zyberfy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- include your PostHog snippet here or any charting library CSS -->
-  </head>
-  <body>
-    <nav style="padding:1rem; background:#eee;">
-      <a href="{{ url_for('dashboard') }}" style="margin-right:1rem;">Home</a>
-      <a href="{{ url_for('analytics') }}" style="margin-right:1rem; font-weight:bold;">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-    <div style="padding:2rem;">
-      <h1>🧮 Analytics</h1>
-      <p>Welcome, {{ session['email'] }}! Here’s some high-level metrics:</p>
+  <!-- PostHog analytics snippet -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
+        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
+      }}(r=t.createElement("script")).type="text/javascript",
+      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
+      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
+    },e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(
+      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
+      {
+        api_host: "{{ config['POSTHOG_HOST'] }}",
+        autocapture: true,
+        capture_pageview: true
+      }
+    );
+  </script>
 
-      <!-- Example: embed a chart, or pull from PostHog API -->
-      <div id="chart" style="height:300px; background:#fafafa; border:1px solid #ddd; display:flex; align-items:center; justify-content:center;">
-        <!-- placeholder -->
-        <em>your charts go here</em>
+  <title>Your Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 40px 0;
+    }
+    .dashboard-container {
+      background: #fff;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 24px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      color: #333;
+      text-align: center;
+    }
+    .info {
+      margin: 16px 0;
+      font-size: 16px;
+      color: #555;
+    }
+    .button-group {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .btn {
+      display: inline-block;
+      margin: 0 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background-color: #0070f3;
+    }
+    .btn.logout {
+      background-color: #e00;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Welcome, {{ first_name or "User" }}!</h1>
+
+    <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
+
+    {% if not automation_complete %}
+      <p class="info">You haven’t set up your automation preferences yet.</p>
+      <div class="button-group">
+        <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
       </div>
-    </div>
+    {% else %}
+      <p class="info">✅ Your automation settings are saved.</p>
+    {% endif %}
 
-    <!-- Optionally include PostHog JS here if you want to track clicks on this page -->
-  </body>
+    <div class="button-group">
+      <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
+      <a href="{{ url_for('analytics') }}" class="btn">Analytics</a>
+      <a href="{{ url_for('logout') }}" class="btn logout">Logout</a>
+    </div>
+  </div>
+</body>
 </html>
