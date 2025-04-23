@@ -284,10 +284,9 @@ def proposal():
 
 @app.route('/analytics')
 def analytics():
-    # require login
     if 'email' not in session:
         return redirect(url_for('login'))
-    # you can pull in real analytics here later!
+    # you can pass any context you want here
     return render_template('analytics.html')
 
 
