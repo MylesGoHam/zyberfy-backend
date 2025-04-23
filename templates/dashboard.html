@@ -1,96 +1,105 @@
 <!-- templates/dashboard.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Client Dashboard | Zyberfy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 min-h-screen">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <!-- Header -->
-  <header class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <div class="text-xl font-bold text-blue-700">Zyberfy</div>
-      <div class="relative">
-        <button onclick="toggleDropdown()" class="text-2xl">☰</button>
-        <div id="dropdownMenu" class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50">
-          <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Dashboard</a>
-          <a href="{{ url_for('automation_page') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Automation</a>
-          <a href="{{ url_for('proposal') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">New Proposal</a>
-          <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Logout</a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main content -->
-  <main class="max-w-5xl mx-auto p-6">
-
-    <!-- Welcome & Plan Status -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold">Welcome, {{ first_name or 'Client' }}!</h1>
-      <p class="text-gray-600 mt-2">
-        Your plan status: <span class="font-semibold">{{ plan_status }}</span>
-      </p>
-    </div>
-
-    <!-- Quick Action: New Proposal -->
-    <div class="mb-8">
-      <a href="{{ url_for('proposal') }}"
-         class="inline-block bg-green-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-700 transition">
-        + New Proposal
-      </a>
-    </div>
-
-    <!-- Automation Incomplete Banner -->
-    {% if not automation_complete %}
-    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8 rounded">
-      <p><strong>Action Needed:</strong> Complete your automation settings to start sending proposals!</p>
-      <a href="{{ url_for('automation_page') }}"
-         class="inline-block mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Set Up Automation
-      </a>
-    </div>
-    {% endif %}
-
-    <!-- Your Recent Proposals -->
-    <div class="space-y-6">
-      <h2 class="text-2xl font-semibold mb-4">Your Recent Proposals</h2>
-
-      <!-- Example / placeholder cards -->
-      <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
-        <h3 class="text-xl font-semibold text-blue-700">Luxury Yacht Charter Proposal</h3>
-        <p class="text-gray-600 mt-2"><strong>Budget:</strong> $25,000</p>
-        <p class="text-gray-600"><strong>Status:</strong> Sent</p>
-        <a href="#" class="inline-block mt-4 text-sm px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          View Proposal
-        </a>
-      </div>
-
-      <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
-        <h3 class="text-xl font-semibold text-blue-700">Private Jet Booking Proposal</h3>
-        <p class="text-gray-600 mt-2"><strong>Budget:</strong> $14,500</p>
-        <p class="text-gray-600"><strong>Status:</strong> In Review</p>
-        <a href="#" class="inline-block mt-4 text-sm px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          View Proposal
-        </a>
-      </div>
-    </div>
-
-  </main>
-
+  <!-- PostHog analytics snippet -->
   <script>
-    function toggleDropdown() {
-      document.getElementById("dropdownMenu").classList.toggle("hidden");
-    }
-    document.addEventListener("click", function(event) {
-      if (!event.target.closest("header")) {
-        document.getElementById("dropdownMenu").classList.add("hidden");
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
+        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
+      }}(r=t.createElement("script")).type="text/javascript",
+      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
+      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
+    },e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(
+      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
+      {
+        api_host: "{{ config['POSTHOG_HOST'] }}",
+        autocapture: true,
+        capture_pageview: true
       }
-    });
+    );
   </script>
 
+  <title>Your Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 40px 0;
+    }
+    .dashboard-container {
+      background: #fff;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 24px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      color: #333;
+      text-align: center;
+    }
+    .info {
+      margin: 16px 0;
+      font-size: 16px;
+      color: #555;
+    }
+    .button-group {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .btn {
+      display: inline-block;
+      margin: 0 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background-color: #0070f3;
+    }
+    .btn.logout {
+      background-color: #e00;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Welcome, {{ first_name or "User" }}!</h1>
+
+    <p class="info">
+      <strong>Plan status:</strong> {{ plan_status }}
+    </p>
+
+    {% if automation_complete %}
+      <p class="info">
+        Your automation settings are saved.
+      </p>
+    {% else %}
+      <p class="info">
+        You haven’t set up your automation preferences yet.
+      </p>
+      <div class="button-group">
+        <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
+      </div>
+    {% endif %}
+
+    <div class="button-group">
+      <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
+      <a href="{{ url_for('logout') }}" class="btn logout">Logout</a>
+    </div>
+  </div>
 </body>
 </html>
