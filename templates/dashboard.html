@@ -1,159 +1,109 @@
+<!-- templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zyberfy – AI Proposals</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Zyberfy Dashboard</title>
 
-  <!-- PostHog snippet -->
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PostHog analytics snippet -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
-      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
         t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-      r.src="https://cdn.posthog.com/posthog.js",(n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      }}(r=t.createElement("script")).type="text/javascript",
+      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
+      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
       for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
     },e.__SV=1)}(document,window.posthog||[]);
-    posthog.init('{{ config["POSTHOG_PROJECT_API_KEY"] }}', {
-      api_host: '{{ config["POSTHOG_HOST"] }}',
-      autocapture: true,
-      capture_pageview: true
-    });
+    posthog.init(
+      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
+      {
+        api_host: "{{ config['POSTHOG_HOST'] }}",
+        autocapture: true,
+        capture_pageview: true
+      }
+    );
   </script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9fafb;
-    }
-    header {
-      background: #ffffff;
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e5e7eb;
-      position: relative;
-    }
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-      color: #1e40af;
-    }
-    .hamburger {
-      width: 24px;
-      height: 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-    .bar {
-      height: 3px;
-      background-color: #1e40af;
-      border-radius: 4px;
-    }
-    .dropdown {
-      position: absolute;
-      top: 64px;
-      right: 32px;
-      background: white;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      padding: 10px 0;
-      display: none;
-      flex-direction: column;
-      min-width: 160px;
-      z-index: 10;
-    }
-    .dropdown a {
-      padding: 10px 20px;
-      text-decoration: none;
-      color: #1f2937;
-      transition: background 0.2s ease;
-    }
-    .dropdown a:hover {
-      background: #f3f4f6;
-    }
-    .hero {
-      max-width: 700px;
-      margin: 100px auto;
-      text-align: center;
-      padding: 2rem;
-    }
-    .hero h1 {
-      font-size: 2.5rem;
-      color: #1e40af;
-      margin-bottom: 1rem;
-    }
-    .hero p {
-      color: #4b5563;
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
-    .cta-button {
-      background-color: #3b82f6;
-      color: white;
-      font-weight: 600;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .cta-button:hover {
-      background-color: #2563eb;
-    }
-    footer {
-      text-align: center;
-      padding: 40px 20px 20px;
-      font-size: 0.95rem;
-      color: #6b7280;
-    }
-  </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen">
 
   <!-- Header -->
-  <header>
-    <div class="logo">Zyberfy</div>
-    <div onclick="toggleDropdown()" class="hamburger">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="text-2xl font-bold text-blue-600">Zyberfy</div>
+      <!-- desktop nav -->
+      <nav class="hidden md:flex space-x-6">
+        <a href="{{ url_for('dashboard') }}" class="text-gray-700 hover:text-blue-600">Home</a>
+        <a href="{{ url_for('analytics') }}" class="text-gray-700 hover:text-blue-600">Analytics</a>
+        <a href="{{ url_for('logout') }}" class="text-gray-700 hover:text-blue-600">Logout</a>
+      </nav>
+      <!-- mobile hamburger -->
+      <button onclick="toggleDropdown()" class="md:hidden text-2xl focus:outline-none">
+        &#x2630;
+      </button>
     </div>
-    <div id="dropdownMenu" class="dropdown">
-      <a href="{{ url_for('login') }}">Login</a>
-      <a href="{{ url_for('memberships') }}">Memberships</a>
+    <!-- mobile menu -->
+    <div id="mobileMenu" class="md:hidden hidden bg-white shadow">
+      <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+      <a href="{{ url_for('analytics') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Analytics</a>
+      <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <div class="hero">
-    <h1>Close Faster, Work Less</h1>
-    <p>Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
-    <!-- now linking to the login page -->
-    <a href="{{ url_for('login') }}" class="cta-button">Get Started</a>
-  </div>
+  <!-- Main content -->
+  <main class="container mx-auto px-4 py-8 space-y-6">
 
-  <!-- Footer -->
-  <footer>
-    &copy; 2025 <strong style="color: #1e40af;">Zyberfy</strong>. All rights reserved.
-  </footer>
+    <!-- Dashboard card -->
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <h1 class="text-3xl font-semibold text-gray-800 text-center mb-4">
+        Welcome, {{ first_name or "User" }}!
+      </h1>
+      <p class="text-gray-600 text-center mb-6">
+        <span class="font-medium">Plan status:</span> {{ plan_status }}
+      </p>
 
-  <!-- Dropdown Script -->
+      {% if automation_complete %}
+        <p class="text-green-600 text-center mb-4">Your automation settings are saved.</p>
+      {% else %}
+        <p class="text-red-600 text-center mb-4">
+          You haven’t set up your automation preferences yet.
+        </p>
+        <div class="flex justify-center">
+          <a href="{{ url_for('automation_page') }}"
+             class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Set Up Automation
+          </a>
+        </div>
+      {% endif %}
+
+      <div class="flex justify-center mt-6 space-x-4">
+        <a href="{{ url_for('proposal') }}"
+           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Generate Proposal
+        </a>
+        <!-- logout removed from here -->
+      </div>
+    </div>
+
+    <!-- Analytics embed -->
+    <div class="bg-white shadow-md rounded-lg p-4">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Activity Overview</h2>
+      <iframe
+        src="{{ analytics_embed_url }}"
+        class="w-full h-64 rounded border-0"
+      ></iframe>
+    </div>
+
+  </main>
+
   <script>
     function toggleDropdown() {
-      const dd = document.getElementById("dropdownMenu");
-      dd.style.display = getComputedStyle(dd).display === "flex" ? "none" : "flex";
+      document.getElementById('mobileMenu').classList.toggle('hidden');
     }
-    document.addEventListener("click", function(e) {
-      const dd = document.getElementById("dropdownMenu"),
-            hb = document.querySelector(".hamburger");
-      if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = "none";
-    });
   </script>
 </body>
 </html>
