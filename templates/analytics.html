@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Analytics • Zyberfy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- include your PostHog snippet here or any charting library CSS -->
+  </head>
+  <body>
+    <nav style="padding:1rem; background:#eee;">
+      <a href="{{ url_for('dashboard') }}" style="margin-right:1rem;">Home</a>
+      <a href="{{ url_for('analytics') }}" style="margin-right:1rem; font-weight:bold;">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+
+    <div style="padding:2rem;">
+      <h1>🧮 Analytics</h1>
+      <p>Welcome, {{ session['email'] }}! Here’s some high-level metrics:</p>
+
+      <!-- Example: embed a chart, or pull from PostHog API -->
+      <div id="chart" style="height:300px; background:#fafafa; border:1px solid #ddd; display:flex; align-items:center; justify-content:center;">
+        <!-- placeholder -->
+        <em>your charts go here</em>
+      </div>
+    </div>
+
+    <!-- Optionally include PostHog JS here if you want to track clicks on this page -->
+  </body>
+</html>
