@@ -1,104 +1,82 @@
+<!-- templates/dashboard.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <title>Zyberfy Dashboard</title>
-
-  <!-- PostHog snippet (fires only on dashboard) -->
+  <!-- PostHog analytics snippet -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
       function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){
         t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-      r.src="https://cdn.posthog.com/posthog.js",
+      }}(r=t.createElement("script")).type="text/javascript",
+      r.async=!0,r.src="https://cdn.posthog.com/posthog.js",
       (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
       for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
     },e.__SV=1)}(document,window.posthog||[]);
     posthog.init(
       "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
-      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
+      {
+        api_host: "{{ config['POSTHOG_HOST'] }}",
+        autocapture: true,
+        capture_pageview: true
+      }
     );
   </script>
 
+  <title>Your Dashboard</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #f4f4f4;
       display: flex;
       justify-content: center;
-      align-items: start;
-      min-height: 100vh;
-      padding-top: 50px;
+      padding: 40px 0;
     }
-    .card {
+    .dashboard-container {
       background: #fff;
+      width: 90%;
+      max-width: 600px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 500px;
-      overflow: hidden;
+      padding: 24px;
     }
-    .card nav {
-      background: #eee;
-      display: flex;
-      justify-content: center;
-    }
-    .card nav a {
-      padding: 12px 20px;
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
       color: #333;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .card nav a + a {
-      border-left: 1px solid #ddd;
-    }
-    .card h1 {
-      margin: 24px 0 8px;
-      font-size: 1.5rem;
       text-align: center;
-      color: #333;
     }
-    .card .info {
-      text-align: center;
+    .info {
+      margin: 16px 0;
+      font-size: 16px;
       color: #555;
-      margin-bottom: 24px;
     }
     .button-group {
       text-align: center;
-      margin-bottom: 24px;
+      margin-top: 24px;
     }
     .btn {
       display: inline-block;
       margin: 0 8px;
       padding: 10px 20px;
+      font-size: 14px;
       border: none;
       border-radius: 4px;
-      color: #fff;
-      font-size: 0.95rem;
       cursor: pointer;
       text-decoration: none;
+      color: #fff;
+      background-color: #0070f3;
     }
-    .btn-primary { background: #007bff; }
-    .btn-primary:hover { background: #0069d9; }
-    .btn-danger  { background: #dc3545; }
-    .btn-danger:hover { background: #c82333; }
+    .btn.logout {
+      background-color: #e00;
+    }
   </style>
 </head>
 <body>
-
-  <div class="card">
-    <!-- in-card nav -->
-    <nav>
-      <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('analytics') }}">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-
-    <!-- content -->
+  <div class="dashboard-container">
     <h1>Welcome, {{ first_name or "User" }}!</h1>
 
     <p class="info"><strong>Plan status:</strong> {{ plan_status }}</p>
@@ -106,17 +84,17 @@
     {% if not automation_complete %}
       <p class="info">You haven’t set up your automation preferences yet.</p>
       <div class="button-group">
-        <a href="{{ url_for('automation_page') }}" class="btn btn-primary">Set Up Automation</a>
+        <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
       </div>
     {% else %}
       <p class="info">✅ Your automation settings are saved.</p>
     {% endif %}
 
     <div class="button-group">
-      <a href="{{ url_for('generate_proposal') }}" class="btn btn-primary">Generate Proposal</a>
-      <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+      <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
+      <a href="{{ url_for('analytics') }}" class="btn">Analytics</a>
+      <a href="{{ url_for('logout') }}" class="btn logout">Logout</a>
     </div>
   </div>
-
 </body>
 </html>
