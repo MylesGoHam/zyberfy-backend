@@ -11,7 +11,7 @@
           function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
             t.push([e].concat(Array.prototype.slice.call(arguments,0)))
           }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-          r.src="https://cdn.posthog.com/posthog.js",
+          r.src="https://unpkg.com/posthog-js@latest"
           (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
           for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
         },e.__SV=1)}(document,window.posthog||[]);
