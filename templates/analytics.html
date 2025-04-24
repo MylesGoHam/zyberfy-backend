@@ -6,25 +6,22 @@
   <title>Analytics – Zyberfy</title>
 
   <!-- ✅ Move PostHog script here inside <head> -->
-<!-- 1) Load the UMD bundle directly -->
-<script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
-
-<!-- 2) Then initialize PostHog -->
-<script>
-  // make sure the global `posthog` object is now defined
-  if (window.posthog) {
+<!-- load and initialize PostHog via an ES module import -->
+<script type="module">
+    import posthog from 'https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/es.js';
+  
+    // attach to window so you can inspect in Console if you like
+    window.posthog = posthog;
+  
     posthog.init(
-      "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
+      'phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V',
       {
-        api_host: "https://us.posthog.com",
+        api_host: 'https://us.posthog.com',
         autocapture: true,
         capture_pageview: true
       }
     );
-  } else {
-    console.error("PostHog failed to load");
-  }
-</script>
+  </script>
 
   <style>
     body { font-family: Arial, sans-serif; padding: 40px; background: #f4f4f4; }
