@@ -4,6 +4,23 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Analytics – Zyberfy</title>
+
+  <!-- ✅ Move PostHog script here inside <head> -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
+      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
+        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
+      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
+      r.src="https://cdn.posthog.com/posthog.js",
+      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
+      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
+    },e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(
+      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
+      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
+    );
+  </script>
+
   <style>
     body { font-family: Arial, sans-serif; padding: 40px; background: #f4f4f4; }
     .container { max-width: 800px; margin: auto; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
