@@ -1,26 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-
-  <!-- (optional) PostHog analytics snippet -->
-  <script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
-      function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
-        t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-      }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-      r.src="https://cdn.posthog.com/posthog.js",
-      (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
-      for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
-    },e.__SV=1)}(document,window.posthog||[]);
-    posthog.init(
-      "{{ config['POSTHOG_PROJECT_API_KEY'] }}",
-      { api_host: "{{ config['POSTHOG_HOST'] }}", autocapture: true, capture_pageview: true }
-    );
-  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>Zyberfy Dashboard</title>
+
+  <!-- Your existing CSS -->
   <style>
     body {
       margin: 0;
@@ -139,6 +125,24 @@
       border-radius: 4px;
     }
   </style>
+
+  <!-- PostHog: load the UMD bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
+  <!-- PostHog: initialize with your API key -->
+  <script>
+    if (window.posthog) {
+      posthog.init(
+        "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
+        {
+          api_host: "https://us.posthog.com",
+          autocapture: true,
+          capture_pageview: true
+        }
+      );
+    } else {
+      console.error("PostHog failed to load");
+    }
+  </script>
 </head>
 <body>
   <header>
@@ -173,7 +177,6 @@
 
     <div class="buttons">
       <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-      <!-- Logout removed from here -->
     </div>
   </div>
 
@@ -182,10 +185,7 @@
     <h2>Real-time Activity</h2>
     <iframe
       src="https://app.posthog.com/insight/{{ config['POSTHOG_INSIGHT_ID'] }}?embed=true"
-      frameborder="0"
-      width="100%"
-      height="350"
-      style="border-radius:4px"
+      allowfullscreen
     ></iframe>
   </div>
 
@@ -198,7 +198,9 @@
     document.addEventListener('click', e => {
       const dd = document.getElementById('dropdown'),
             hb = document.querySelector('.hamburger');
-      if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = 'none';
+      if (!dd.contains(e.target) && !hb.contains(e.target)) {
+        dd.style.display = 'none';
+      }
     });
   </script>
 </body>
