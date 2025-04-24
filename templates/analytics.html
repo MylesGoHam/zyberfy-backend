@@ -6,20 +6,25 @@
   <title>Analytics – Zyberfy</title>
 
   <!-- ✅ Move PostHog script here inside <head> -->
-    <script>
-        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){
-          function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){
-            t.push([e].concat(Array.prototype.slice.call(arguments,0)))
-          }}(r=t.createElement("script")).type="text/javascript",r.async=!0,
-          r.src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js",  // ← UMD build
-          (n=t.getElementsByTagName("script")[0]).parentNode.insertBefore(r,n);
-          for(window.posthog._i.push([i,s,a]),o=["capture","identify","alias","people.set"],p=0;p<o.length;p++)g(e,o[p]);
-        },e.__SV=1)}(document,window.posthog||[]);
-        posthog.init(
-          "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
-          { api_host: "https://us.posthog.com", autocapture: true, capture_pageview: true }
-        );
-      </script>
+<!-- 1) Load the UMD bundle directly -->
+<script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
+
+<!-- 2) Then initialize PostHog -->
+<script>
+  // make sure the global `posthog` object is now defined
+  if (window.posthog) {
+    posthog.init(
+      "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
+      {
+        api_host: "https://us.posthog.com",
+        autocapture: true,
+        capture_pageview: true
+      }
+    );
+  } else {
+    console.error("PostHog failed to load");
+  }
+</script>
 
   <style>
     body { font-family: Arial, sans-serif; padding: 40px; background: #f4f4f4; }
