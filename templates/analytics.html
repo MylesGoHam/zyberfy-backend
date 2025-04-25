@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Analytics – Zyberfy</title>
 
-  <!-- Your existing CSS -->
   <style>
     body {
       margin: 0;
@@ -49,21 +48,16 @@
     }
   </style>
 
-  <!-- PostHog: load UMD bundle from jsDelivr -->
+  <!-- PostHog: load UMD bundle -->
   <script src="https://cdn.jsdelivr.net/npm/posthog-js@1.236.7/dist/main.js"></script>
-  <!-- PostHog: initialize with your API key -->
   <script>
     if (window.posthog) {
       posthog.init(
-        "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
-        {
-          api_host: "https://us.posthog.com",
-          autocapture: true,
-          capture_pageview: true
-        }
+        'phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V',
+        { api_host: 'https://us.posthog.com', autocapture: true, capture_pageview: true }
       );
     } else {
-      console.error("PostHog failed to load");
+      console.error('PostHog failed to load');
     }
   </script>
 </head>
@@ -78,7 +72,7 @@
     <p>Here’s where your analytics UI will live.</p>
 
     <div class="analytics">
-      <!-- Replace the ID below with your actual PostHog embed insight ID -->
+      <!-- ← Make sure this URL matches the “Embed as iframe” snippet exactly -->
       <iframe
         src="https://app.posthog.com/embed/insight/7mZmFR7e1gbIqvAo_XybOnk13pl-XQ?live=true"
         width="100%"
