@@ -73,13 +73,17 @@
       <a href="{{ url_for('dashboard') }}">← Dashboard</a>
       <a href="{{ url_for('logout') }}">Logout</a>
     </nav>
+
     <h1>Analytics</h1>
     <p>Here’s where your analytics UI will live.</p>
 
     <div class="analytics">
-      <!-- Replace YOUR_INSIGHT_ID with your actual PostHog insight ID -->
+      <!-- Replace the ID below with your actual PostHog embed insight ID -->
       <iframe
-        src="https://app.posthog.com/insight/{{ config['POSTHOG_INSIGHT_ID'] }}?embed=true"
+        src="https://app.posthog.com/embed/insight/7mZmFR7e1gbIqvAo_XybOnk13pl-XQ?live=true"
+        width="100%"
+        height="400"
+        frameborder="0"
         allowfullscreen
       ></iframe>
     </div>
