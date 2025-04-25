@@ -1,5 +1,24 @@
 <!doctype html>
 <html lang="en">
+    <!-- PostHog: load official UMD bundle from jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/posthog-js@1.236.7/dist/main.js"></script>
+
+    <!-- PostHog: initialize with your API key -->
+    <script>
+      if (window.posthog) {
+        posthog.init(
+          "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
+          {
+            api_host: "https://us.posthog.com",
+            autocapture: true,
+            capture_pageview: true
+          }
+        );
+      } else {
+        console.error("PostHog failed to load");
+      }
+    </script>
+  </head>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
