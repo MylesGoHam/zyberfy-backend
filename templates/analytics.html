@@ -1,127 +1,105 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Zyberfy{% endblock %}</title>
+{% extends "base.html" %}
 
-  <!-- Chart.js locked & deferred -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js" defer></script>
+{% block title %}Analytics – Zyberfy{% endblock %}
 
-  <style>
-    /* ─── Global Reset & Base Styles ───────────────────────────────────────── */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-    }
-    a { text-decoration: none; color: inherit; }
+{% block content %}
+  <header>
+    <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
+    <div class="hamburger" role="button" aria-label="Menu" tabindex="0">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <nav id="dropdown" class="dropdown">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('analytics') }}">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
 
-    /* ─── Header / Nav common to all pages ───────────────────────────────── */
-    header {
-      background: #fff;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      border-bottom: 1px solid #ddd;
-      position: relative;
-    }
-    .hamburger {
-      width: 24px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 18px;
-    }
-    .bar {
-      height: 3px;
-      background: #333;
-      border-radius: 2px;
-    }
-    .dropdown {
-      position: absolute;
-      top: 56px;
-      right: 24px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      min-width: 160px;
-      z-index: 10;
-    }
-    .dropdown a {
-      padding: 10px 16px;
-      color: #333;
-      border-bottom: 1px solid #eee;
-    }
-    .dropdown a:last-child { border-bottom: none; }
-    .dropdown a:hover { background: #f0f0f0; }
+  <div class="container">
+    <div class="metrics-grid"></div>
 
-    /* ─── Utility Containers ─────────────────────────────────────────────── */
-    .container {
-      max-width: 800px;
-      margin: 24px auto;
-      padding: 0 16px;
-    }
+    <div class="chart-card">
+      <h2>Conversion Rate</h2>
+      <canvas id="donutChart"></canvas>
+    </div>
 
-    /* ─── Charts & Metrics (used by analytics.html) ──────────────────────── */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      grid-gap: 16px;
-      margin-bottom: 24px;
-    }
-    .metric {
-      background: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      text-align: center;
-    }
-    .metric .value {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #0070f3;
-    }
-    .metric .label {
-      font-size: 0.85rem;
-      color: #555;
-    }
-    .chart-card {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      height: 280px;
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 24px;
-    }
-    .chart-card h2 {
-      margin: 0 0 12px;
-      font-size: 1.1rem;
-      color: #333;
-    }
-    .chart-card canvas { flex: 1; }
-  </style>
-</head>
-<body>
-  {% block content %}{% endblock %}
+    <div class="chart-card">
+      <h2>Proposals This Month</h2>
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+{% endblock %}
 
-  <!-- ─── Global pageview tracking ───────────────────────────────────────── -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch("/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event: "pageview" })
-      });
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // dropdown toggle
+    const dd = document.getElementById('dropdown'),
+          hb = document.querySelector('.hamburger');
+    hb.addEventListener('click', () => {
+      const open = getComputedStyle(dd).display !== 'none';
+      dd.style.display = open ? 'none' : 'flex';
     });
-  </script>
+    document.addEventListener('click', e => {
+      if (!dd.contains(e.target) && !hb.contains(e.target)) {
+        dd.style.display = 'none';
+      }
+    });
 
-  {% block scripts %}{% endblock %}
-</body>
-</html>
+    // Data from Flask
+    const donutConverted = {{ donut_converted|tojson }},
+          donutDropped   = {{ donut_dropped|tojson }},
+          lineLabels     = {{ line_labels|tojson }},
+          lineData       = {{ line_data|tojson }},
+          kpis           = {{ kpis|tojson }};
+
+    // Populate KPI cards
+    const metricsGrid = document.querySelector('.metrics-grid');
+    Object.entries(kpis).forEach(([label, value]) => {
+      const card = document.createElement('div');
+      card.className = 'metric';
+      card.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
+      metricsGrid.append(card);
+    });
+
+    // Render Donut chart
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted','Dropped'],
+        datasets: [{ data: [donutConverted, donutDropped] }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: { legend: { position: 'bottom' } },
+        maintainAspectRatio: false
+      }
+    });
+
+    // Render Line chart
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          data: lineData,
+          fill: false,
+          pointRadius: 3,
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true }
+        },
+        plugins: { legend: { display: false } },
+        maintainAspectRatio: false
+      }
+    });
+  });
+</script>
+{% endblock %}
