@@ -267,16 +267,31 @@ def proposal():
 
     return render_template('proposal.html')
 
-
 @app.route('/analytics')
 def analytics():
-    # load real stats from your DB...
-    return render_template('analytics.html',
-        donut_converted=39,
-        donut_dropped=61,
-        line_labels=[...],
-        line_data=[...],
-        kpis={ 'Daily Active': 42, ... }
+    # pull real data from your DB or service here:
+    donut_converted = 39
+    donut_dropped   = 61
+
+    # e.g. proposals per week
+    line_labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    line_data   = [5, 7, 12, 9, 15, 18, 22]
+
+    # your KPI cards
+    kpis = {
+        "Daily Active":   42,
+        "Pageviews":     128,
+        "Bounce Rate":   "9%",
+        "New Sign-ups":   24
+    }
+
+    return render_template(
+        'analytics.html',
+        donut_converted=donut_converted,
+        donut_dropped=donut_dropped,
+        line_labels=line_labels,
+        line_data=line_data,
+        kpis=kpis
     )
 
 @app.route('/terms')
