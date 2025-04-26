@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>New Lead | Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+  <form method="POST" class="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4">
+    <h1 class="text-2xl font-bold text-blue-700">New Lead</h1>
+
+    <input name="lead_name" placeholder="Lead Name" required
+           class="w-full p-3 border rounded-lg"/>
+
+    <input type="email" name="lead_email" placeholder="Lead Email" required
+           class="w-full p-3 border rounded-lg"/>
+
+    <input type="number" name="lead_budget" placeholder="Budget ($)" required
+           class="w-full p-3 border rounded-lg"/>
+
+    <textarea name="lead_message" placeholder="What did they ask for?"
+              class="w-full p-3 border rounded-lg" rows="4"></textarea>
+
+    <button type="submit"
+            class="w-full bg-green-600 text-white p-3 rounded-lg font-semibold">
+      Send Proposal
+    </button>
+  </form>
+</body>
+</html>

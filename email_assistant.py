@@ -32,4 +32,8 @@ Write a polished, luxury-style service proposal in under 200 words.
 
     except Exception as e:
         print(f"OpenAI Error: {e}")
+<<<<<<< Updated upstream
         return "We're preparing your custom proposal. A concierge will follow up shortly."
+=======
+        return "We're preparing your custom proposal. A concierge will follow up shortly."
+>>>>>>> Stashed changes

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send a Proposal | Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start py-12">
+
+  <!-- Share Button -->
+  <div class="w-full max-w-xl px-6 mb-6 flex justify-end">
+    <button
+      id="shareBtn"
+      class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+    >
+      Share this Form
+    </button>
+  </div>
+
+  <!-- Proposal Form -->
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">Send a Proposal</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for category, msg in messages %}
+            <div class="text-red-600">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('proposal') }}" method="POST" class="space-y-6">
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Your Name</label>
+        <input
+          type="text"
+          name="name"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. Jane Doe"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Your Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. you@example.com"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Company (Optional)</label>
+        <input
+          type="text"
+          name="company"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Your Company Name"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Project Details</label>
+        <textarea
+          name="details"
+          required
+          rows="4"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Describe what you need—scope, timeline, anything else..."
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium text-gray-700">Budget ($)</label>
+        <input
+          type="number"
+          name="budget"
+          min="0"
+          required
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="e.g. 5000"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition"
+      >
+        Send Proposal
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', () => {
+      const url = window.location.href;
+      // try clipboard API
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          shareBtn.textContent = 'Link Copied!';
+          setTimeout(() => shareBtn.textContent = 'Share this Form', 2000);
+        });
+      } else {
+        // fallback: open mailto
+        window.location.href = `mailto:?subject=Proposal%20Form&body=Please%20fill%20out%20this%20form:%20${encodeURIComponent(url)}`;
+      }
+    });
+  </script>
+
+</body>
+</html>

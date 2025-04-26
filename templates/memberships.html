@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Join Zyberfy Bundle – Zyberfy{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Zyberfy Bundle</h1>
+    <p class="price">Unlock full access for $1,497</p>
+
+    <ul>
+      <li>Unlimited proposal automation</li>
+      <li>Priority support</li>
+      <li>Advanced tone &amp; style customization</li>
+      <li>Access to future premium features</li>
+    </ul>
+
+    <form method="POST" action="{{ url_for('memberships') }}">
+      <div class="terms">
+        <label>
+          <input type="checkbox" name="terms" required>
+          I agree to the <a href="{{ url_for('terms') }}">Terms of Service</a>
+        </label>
+      </div>
+      <button type="submit">Get Started</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-list">
+          {% for _, msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
