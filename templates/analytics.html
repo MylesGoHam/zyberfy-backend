@@ -1,309 +1,224 @@
-import os
-import sqlite3
-import logging
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics – Zyberfy</title>
 
-from flask import (
-    Flask, render_template, request,
-    redirect, url_for, session,
-    flash, jsonify
-)
-from dotenv import load_dotenv
-import openai
-import stripe
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-from models import (
-    get_db_connection,
-    create_users_table,
-    create_automation_settings_table,
-    create_subscriptions_table
-)
-from email_utils import send_proposal_email
-
-# ─── Config ───────────────────────────────────────────────────────────────────
-load_dotenv()
-stripe.api_key         = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key         = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL         = os.getenv("PERSONAL_EMAIL")
-
-# PostHog
-POSTHOG_KEY            = os.getenv("POSTHOG_PROJECT_API_KEY")
-POSTHOG_HOST           = os.getenv("POSTHOG_HOST")
-POSTHOG_INSIGHT_ID     = os.getenv("POSTHOG_INSIGHT_ID")    # ← new
-
-app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
-
-# Make PostHog settings available in all templates
-app.config["POSTHOG_PROJECT_API_KEY"] = POSTHOG_KEY
-app.config["POSTHOG_HOST"]            = POSTHOG_HOST
-app.config["POSTHOG_INSIGHT_ID"]      = POSTHOG_INSIGHT_ID   # ← new
-
-# ─── DB Init ───────────────────────────────────────────────────────────────────
-create_users_table()
-create_automation_settings_table()
-create_subscriptions_table()
-
-ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-if ADMIN_EMAIL and ADMIN_PASSWORD:
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
-        "VALUES (?, ?, ?, ?)",
-        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
-    )
-    conn.commit()
-    conn.close()
-
-# ─── Routes ───────────────────────────────────────────────────────────────────
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-
-@app.route('/memberships', methods=['GET', 'POST'])
-def memberships():
-    if request.method == 'POST':
-        if not request.form.get('terms'):
-            flash("You must agree to the Terms of Service.", "error")
-            return redirect(url_for('memberships'))
-
-        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
-        if not price_id:
-            flash("Payment configuration missing. Try again later.", "error")
-            return redirect(url_for('memberships'))
-
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                line_items=[{"price": price_id, "quantity": 1}],
-                mode="subscription",
-                success_url=url_for('dashboard', _external=True),
-                cancel_url=url_for('memberships', _external=True),
-            )
-            return redirect(checkout_session.url, code=303)
-        except Exception as e:
-            logger.exception("Stripe checkout creation failed: %s", e)
-            flash("Could not start payment. Please try again.", "error")
-            return redirect(url_for('memberships'))
-
-    return render_template('memberships.html')
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email    = request.form['email']
-        password = request.form['password']
-        conn = get_db_connection()
-        user = conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email,)
-        ).fetchone()
-        conn.close()
-
-        if user and user['password'] == password:
-            session['email'] = email
-            return redirect(url_for('dashboard'))
-
-        flash('Invalid email or password', 'error')
-        return redirect(url_for('login'))
-
-    return render_template('login.html')
-
-
-@app.route('/dashboard')
-def dashboard():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    user = conn.execute(
-        "SELECT * FROM users WHERE email = ?", (session['email'],)
-    ).fetchone()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone()
-    conn.close()
-
-    return render_template(
-        'dashboard.html',
-        first_name=user['first_name'] if user else '',
-        plan_status=user['plan_status'] if user else 'None',
-        automation=automation,
-        automation_complete=(automation is not None)
-    )
-
-
-@app.route('/automation')
-def automation_page():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone()
-    conn.close()
-    return render_template('automation.html', automation=automation)
-
-
-@app.route('/save-automation', methods=['POST'])
-def save_automation():
-    if 'email' not in session:
-        return jsonify(success=False, error='Unauthorized'), 403
-
-    tone, style, notes = (
-        request.form.get('tone'),
-        request.form.get('style'),
-        request.form.get('additional_notes'),
-    )
-
-    conn = get_db_connection()
-    if conn.execute(
-        "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone():
-        conn.execute(
-            "UPDATE automation_settings SET tone=?, style=?, additional_notes=? WHERE email=?",
-            (tone, style, notes, session['email'])
-        )
-    else:
-        conn.execute(
-            "INSERT INTO automation_settings (email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
-            (session['email'], tone, style, notes)
-        )
-    conn.commit()
-    conn.close()
-    return jsonify(success=True)
-
-
-@app.route('/generate-proposal', methods=['POST'])
-def generate_proposal():
-    if 'email' not in session:
-        return jsonify(success=False, error='Unauthorized'), 403
-
-    conn = get_db_connection()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone()
-    conn.close()
-
-    if not automation:
-        return jsonify(success=False, error='No automation settings found'), 400
-
-    prompt = (
-        f"Write a concise business proposal email in a {automation['tone']} tone "
-        f"and {automation['style']} style.\n\nExtra notes: {automation['additional_notes'] or 'none'}"
-    )
-    try:
-        resp = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                {"role": "user",   "content": prompt}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-        return jsonify(success=True, proposal=resp.choices[0].message.content.strip())
-    except Exception:
-        logger.exception("OpenAI failure; using dummy.")
-        fallback = (
-            f"Hi there,\n\nThanks for reaching out! We'd love to assist you with a "
-            f"{automation['tone']} and {automation['style']} proposal.\n\n"
-            f"{automation['additional_notes'] or ''}\n\nBest regards,\nThe Zyberfy Team"
-        )
-        return jsonify(success=True, proposal=fallback, fallback=True)
-
-
-@app.route('/proposal', methods=['GET', 'POST'])
-def proposal():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        lead_name  = request.form['name']
-        lead_email = PERSONAL_EMAIL or request.form['email']
-        budget     = request.form['budget']
-
-        conn = get_db_connection()
-        automation = conn.execute(
-            "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-        ).fetchone()
-        conn.close()
-
-        prompt = (
-            f"Write a business proposal email to {lead_name}, budget ${budget}, "
-            f"in a {automation['tone']} tone and {automation['style']} style. "
-            f"Notes: {automation['additional_notes'] or 'none'}"
-        )
-        try:
-            resp = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                    {"role": "user",   "content": prompt}
-                ],
-                max_tokens=350,
-                temperature=0.7
-            )
-            email_body = resp.choices[0].message.content.strip()
-        except Exception as e:
-            flash(f"Error generating proposal: {e}", "error")
-            return redirect(url_for('proposal'))
-
-        subject = f"Proposal for {lead_name} (Budget: ${budget})"
-        resp_obj = send_proposal_email(
-            to_email=lead_email,
-            subject=subject,
-            content=email_body,
-            cc_client=False
-        )
-        status_code = getattr(resp_obj, 'status_code', resp_obj)
-        if 200 <= status_code < 300:
-            flash(f"✅ Proposal sent to {lead_email}", "success")
-            return render_template('thank_you.html')
-        flash("❌ Failed to send proposal email.", "error")
-        return redirect(url_for('proposal'))
-
-    return render_template('proposal.html')
-
-@app.route('/analytics')
-def analytics():
-    # pull real data from your DB or service here:
-    donut_converted = 39
-    donut_dropped   = 61
-
-    # e.g. proposals per week
-    line_labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-    line_data   = [5, 7, 12, 9, 15, 18, 22]
-
-    # your KPI cards
-    kpis = {
-        "Daily Active":   42,
-        "Pageviews":     128,
-        "Bounce Rate":   "9%",
-        "New Sign-ups":   24
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
     }
+    header {
+      background: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      position: relative;
+    }
+    header a.back {
+      color: #0070f3;
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-right: auto;
+    }
+    .hamburger {
+      width: 24px;
+      cursor: pointer;
+    }
+    .hamburger .bar {
+      height: 3px;
+      background: #333;
+      margin: 4px 0;
+      border-radius: 2px;
+    }
+    .dropdown {
+      position: absolute;
+      top: 56px;
+      right: 24px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 10;
+    }
+    .dropdown a {
+      padding: 10px 16px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+    .dropdown a:last-child { border-bottom: none; }
+    .dropdown a:hover { background: #f0f0f0; }
 
-    return render_template(
-        'analytics.html',
-        donut_converted=donut_converted,
-        donut_dropped=donut_dropped,
-        line_labels=line_labels,
-        line_data=line_data,
-        kpis=kpis
-    )
+    .container {
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-gap: 24px;
+    }
+    .chart-card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .chart-card h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-gap: 16px;
+      width: 100%;
+    }
+    .metric {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .metric .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #0070f3;
+    }
+    .metric .label {
+      font-size: 0.85rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
 
-@app.route('/terms')
-def terms():
-    return render_template('terms.html')
+  <header>
+    <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
+    <div class="hamburger" onclick="toggleDropdown()">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <nav id="dropdown" class="dropdown">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('analytics') }}">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
 
+  <div class="container">
+    <!-- Donut chart card -->
+    <div class="chart-card">
+      <h2>Conversion Rate</h2>
+      <canvas id="donutChart"></canvas>
+    </div>
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+    <!-- Line chart card -->
+    <div class="chart-card">
+      <h2>Proposals This Month</h2>
+      <canvas id="lineChart"></canvas>
+    </div>
 
+    <!-- Metrics cards -->
+    <div class="metric">
+      <div class="value">42</div>
+      <div class="label">Daily Active</div>
+    </div>
+    <div class="metric">
+      <div class="value">128</div>
+      <div class="label">Pageviews</div>
+    </div>
+    <div class="metric">
+      <div class="value">9%</div>
+      <div class="label">Bounce Rate</div>
+    </div>
+    <div class="metric">
+      <div class="value">24</div>
+      <div class="label">New Sign-ups</div>
+    </div>
+  </div>
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=True)
+  <script>
+    function toggleDropdown() {
+      const dd = document.getElementById('dropdown');
+      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
+    }
+    document.addEventListener('click', e => {
+      const dd = document.getElementById('dropdown'),
+            hb = document.querySelector('.hamburger');
+      if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = 'none';
+    });
+
+    // Donut (conversion rate)
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted', 'Dropped'],
+        datasets: [{
+          data: [39, 61],
+          backgroundColor: ['#0070f3','#e0e0e0'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+          beforeDraw: (chart) => {
+            const {ctx, chartArea: {width, height}} = chart;
+            ctx.save();
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('39%', width/2, height/2);
+            ctx.restore();
+          }
+        }
+      }
+    });
+
+    // Line (proposals over days)
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: ['1','5','10','15','20','25','30'],
+        datasets: [{
+          label: 'Proposals',
+          data: [5,7,12,9,15,18,22],
+          borderColor: '#0070f3',
+          backgroundColor: 'rgba(0,112,243,0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#eee' }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  </script>
+
+</body>
+</html>
