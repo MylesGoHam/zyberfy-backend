@@ -1,5 +1,4 @@
 import os
-import sqlite3
 import logging
 
 from flask import (
@@ -15,48 +14,54 @@ from models import (
     get_db_connection,
     create_users_table,
     create_automation_settings_table,
-    create_subscriptions_table
+    create_subscriptions_table,
+    create_analytics_events_table
 )
 from email_utils import send_proposal_email
 
+# ─── Logging ───────────────────────────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # ─── Config ───────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key         = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key         = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL         = os.getenv("PERSONAL_EMAIL")
+stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key     = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
-# PostHog
-POSTHOG_KEY            = os.getenv("POSTHOG_PROJECT_API_KEY")
-POSTHOG_HOST           = os.getenv("POSTHOG_HOST")
-POSTHOG_INSIGHT_ID     = os.getenv("POSTHOG_INSIGHT_ID")    # ← new
+POSTHOG_KEY        = os.getenv("POSTHOG_PROJECT_API_KEY")
+POSTHOG_HOST       = os.getenv("POSTHOG_HOST")
+POSTHOG_INSIGHT_ID = os.getenv("POSTHOG_INSIGHT_ID")
 
+# ─── Flask Setup ───────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
-# Make PostHog settings available in all templates
 app.config["POSTHOG_PROJECT_API_KEY"] = POSTHOG_KEY
 app.config["POSTHOG_HOST"]            = POSTHOG_HOST
-app.config["POSTHOG_INSIGHT_ID"]      = POSTHOG_INSIGHT_ID   # ← new
+app.config["POSTHOG_INSIGHT_ID"]      = POSTHOG_INSIGHT_ID
 
-# ─── DB Init ───────────────────────────────────────────────────────────────────
-create_users_table()
-create_automation_settings_table()
-create_subscriptions_table()
+# ─── Database Initialization ──────────────────────────────────────────────────
+@app.before_first_request
+def initialize_db():
+    create_users_table()
+    create_automation_settings_table()
+    create_subscriptions_table()
+    create_analytics_events_table()
 
-ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-if ADMIN_EMAIL and ADMIN_PASSWORD:
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
-        "VALUES (?, ?, ?, ?)",
-        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
-    )
-    conn.commit()
-    conn.close()
+    if ADMIN_EMAIL and ADMIN_PASSWORD:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
+            "VALUES (?, ?, ?, ?)",
+            (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
+        )
+        conn.commit()
+        conn.close()
 
-# ─── Routes ───────────────────────────────────────────────────────────────────
-
+# ─── Routes ────────────────────────────────────────────────────────────────────
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -75,13 +80,13 @@ def memberships():
             return redirect(url_for('memberships'))
 
         try:
-            checkout_session = stripe.checkout.Session.create(
+            session_obj = stripe.checkout.Session.create(
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
                 success_url=url_for('dashboard', _external=True),
                 cancel_url=url_for('memberships', _external=True),
             )
-            return redirect(checkout_session.url, code=303)
+            return redirect(session_obj.url, code=303)
         except Exception as e:
             logger.exception("Stripe checkout creation failed: %s", e)
             flash("Could not start payment. Please try again.", "error")
@@ -144,6 +149,7 @@ def automation_page():
         "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone()
     conn.close()
+
     return render_template('automation.html', automation=automation)
 
 
@@ -173,6 +179,7 @@ def save_automation():
         )
     conn.commit()
     conn.close()
+
     return jsonify(success=True)
 
 
@@ -262,37 +269,50 @@ def proposal():
         if 200 <= status_code < 300:
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
-        flash("❌ Failed to send proposal email.", "error")
+
+        flash("Failed to send proposal email.", "error")
         return redirect(url_for('proposal'))
 
     return render_template('proposal.html')
 
-@app.route('/analytics')
+
+@app.route("/analytics")
 def analytics():
-    # pull real data from your DB or service here:
-    donut_converted = 39
-    donut_dropped   = 61
-
-    # e.g. proposals per week
-    line_labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-    line_data   = [5, 7, 12, 9, 15, 18, 22]
-
-    # your KPI cards
+    # Dummy data for quick test
+    donut_converted = 10
+    donut_dropped   = 5
+    line_labels     = ["Jan", "Feb", "Mar", "Apr"]
+    line_data       = [2, 4, 6, 8]
     kpis = {
-        "Daily Active":   42,
-        "Pageviews":     128,
-        "Bounce Rate":   "9%",
-        "New Sign-ups":   24
+        "Total Leads": 20,
+        "Conversions": 10,
+        "Drop-Offs": 5,
+        "Conversion Rate (%)": 50
     }
-
     return render_template(
-        'analytics.html',
+        "analytics.html",
         donut_converted=donut_converted,
         donut_dropped=donut_dropped,
         line_labels=line_labels,
         line_data=line_data,
         kpis=kpis
     )
+
+
+@app.route('/track', methods=['POST'])
+def track_event():
+    data = request.get_json()
+    event = data.get('event')           # e.g. 'pageview'
+    user  = session.get('email', None)  # or anonymous ID
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_id, event_type) VALUES (?,?)",
+        (user, event)
+    )
+    conn.commit()
+    conn.close()
+    return ('', 204)
+
 
 @app.route('/terms')
 def terms():
@@ -306,4 +326,8 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=int(os.getenv('PORT', 5000)),
+        debug=True
+    )
