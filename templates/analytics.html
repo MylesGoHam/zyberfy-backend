@@ -1,14 +1,11 @@
 {% extends "base.html" %}
-
 {% block title %}Analytics – Zyberfy{% endblock %}
 
 {% block content %}
   <header>
     <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
     <div class="hamburger" role="button" aria-label="Menu" tabindex="0">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
     <nav id="dropdown" class="dropdown">
       <a href="{{ url_for('dashboard') }}">Home</a>
@@ -18,13 +15,16 @@
   </header>
 
   <div class="container">
+    <!-- KPI cards row -->
     <div class="metrics-grid"></div>
 
+    <!-- Donut chart card -->
     <div class="chart-card">
       <h2>Conversion Rate</h2>
       <canvas id="donutChart"></canvas>
     </div>
 
+    <!-- Line chart card -->
     <div class="chart-card">
       <h2>Proposals This Month</h2>
       <canvas id="lineChart"></canvas>
@@ -35,41 +35,38 @@
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // dropdown toggle
-    const dd = document.getElementById('dropdown'),
-          hb = document.querySelector('.hamburger');
-    hb.addEventListener('click', () => {
-      const open = getComputedStyle(dd).display !== 'none';
-      dd.style.display = open ? 'none' : 'flex';
-    });
-    document.addEventListener('click', e => {
-      if (!dd.contains(e.target) && !hb.contains(e.target)) {
-        dd.style.display = 'none';
-      }
-    });
+    // 1) Grab data injected by Jinja
+    const kpis           = {{ kpis|tojson }};
+    const donutConverted = {{ donut_converted|tojson }};
+    const donutDropped   = {{ donut_dropped|tojson }};
+    const lineLabels     = {{ line_labels|tojson }};
+    const lineData       = {{ line_data|tojson }};
 
-    // Data from Flask
-    const donutConverted = {{ donut_converted|tojson }},
-          donutDropped   = {{ donut_dropped|tojson }},
-          lineLabels     = {{ line_labels|tojson }},
-          lineData       = {{ line_data|tojson }},
-          kpis           = {{ kpis|tojson }};
+    // 2) Sanity‐check
+    console.log("▶ analytics data", { kpis, lineLabels, lineData });
 
-    // Populate KPI cards
-    const metricsGrid = document.querySelector('.metrics-grid');
-    Object.entries(kpis).forEach(([label, value]) => {
+    // 3) Render KPI cards
+    const grid = document.querySelector('.metrics-grid');
+    for (const [label, value] of Object.entries(kpis)) {
       const card = document.createElement('div');
       card.className = 'metric';
-      card.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
-      metricsGrid.append(card);
-    });
+      card.innerHTML = `
+        <div class="value">${value}</div>
+        <div class="label">${label}</div>
+      `;
+      grid.append(card);
+    }
 
-    // Render Donut chart
+    // 4) Draw the donut chart
     new Chart(document.getElementById('donutChart'), {
       type: 'doughnut',
       data: {
         labels: ['Converted','Dropped'],
-        datasets: [{ data: [donutConverted, donutDropped] }]
+        datasets: [{
+          data: [donutConverted, donutDropped],
+          backgroundColor: ['#1e40af','#ddd'],
+          borderWidth: 0
+        }]
       },
       options: {
         cutout: '70%',
@@ -78,7 +75,7 @@
       }
     });
 
-    // Render Line chart
+    // 5) Draw the line chart
     new Chart(document.getElementById('lineChart'), {
       type: 'line',
       data: {

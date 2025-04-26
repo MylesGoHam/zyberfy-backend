@@ -1,50 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- meta, Chart.js, global CSS… -->
-  <title>{% block title %}Zyberfy{% endblock %}</title>
+  <!-- … other tags … -->
+
+  <!-- global stylesheet -->
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/global.css') }}">
+
+  <!-- other head content -->
 </head>
 <body>
-  <!-- your main nav, header, etc. -->
   {% block content %}{% endblock %}
 
-  <!-- pageview tracking script -->
-  <script>/* … */</script>
+  <!-- load Chart.js before any page scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
   {% block scripts %}{% endblock %}
-</body>
-</html><!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>{% block title %}Zyberfy{% endblock %}</title>
-
-  <!-- Global CSS / scripts -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js" defer></script>
-</head>
-<body>
-
-  <!-- Global nav/header could go here -->
-
-  {% block content %}
-  <!-- Page-specific content will be injected here -->
-  {% endblock %}
-
-  <!-- Global pageview tracking -->
-  <script>
-    document.addEventListener('DOMContentLoaded', ()=>{
-      fetch("/track", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({event:"pageview"})
-      });
-    });
-  </script>
-
-  {% block scripts %}
-  <!-- Page-specific scripts (e.g. analytics charts) will be injected here -->
-  {% endblock %}
 </body>
 </html>

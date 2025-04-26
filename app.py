@@ -1,6 +1,5 @@
 import os
 import logging
-
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -18,12 +17,13 @@ from models import (
     create_analytics_events_table
 )
 from email_utils import send_proposal_email
+from datetime import datetime, timedelta
 
-# ─── Logging ───────────────────────────────────────────────────────────────────
+# ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ─── Config ───────────────────────────────────────────────────────────────────
+# ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
 stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
 openai.api_key     = os.getenv("OPENAI_API_KEY")
@@ -31,68 +31,31 @@ PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
 ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
-POSTHOG_KEY        = os.getenv("POSTHOG_PROJECT_API_KEY")
-POSTHOG_HOST       = os.getenv("POSTHOG_HOST")
-POSTHOG_INSIGHT_ID = os.getenv("POSTHOG_INSIGHT_ID")
-
-# ─── Flask Setup ───────────────────────────────────────────────────────────────
-app = Flask(__name__)
+# ─── Flask Setup ────────────────────────────────────────────────────────────
+app = Flask(__name__, template_folder="templates")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
-app.config["POSTHOG_PROJECT_API_KEY"] = POSTHOG_KEY
-app.config["POSTHOG_HOST"]            = POSTHOG_HOST
-app.config["POSTHOG_INSIGHT_ID"]      = POSTHOG_INSIGHT_ID
+# ─── Force DB Init ──────────────────────────────────────────────────────────
+create_users_table()
+create_automation_settings_table()
+create_subscriptions_table()
+create_analytics_events_table()
 
-# ─── Database Initialization ──────────────────────────────────────────────────
-@app.before_first_request
-def initialize_db():
-    create_users_table()
-    create_automation_settings_table()
-    create_subscriptions_table()
-    create_analytics_events_table()
+# Seed admin if configured
+if ADMIN_EMAIL and ADMIN_PASSWORD:
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
+        "VALUES (?, ?, ?, ?)",
+        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
+    )
+    conn.commit()
+    conn.close()
 
-    if ADMIN_EMAIL and ADMIN_PASSWORD:
-        conn = get_db_connection()
-        conn.execute(
-            "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
-            "VALUES (?, ?, ?, ?)",
-            (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
-        )
-        conn.commit()
-        conn.close()
-
-# ─── Routes ────────────────────────────────────────────────────────────────────
+# ─── Routes ──────────────────────────────────────────────────────────────────
 @app.route('/')
 def home():
     return render_template('index.html')
-
-
-@app.route('/memberships', methods=['GET', 'POST'])
-def memberships():
-    if request.method == 'POST':
-        if not request.form.get('terms'):
-            flash("You must agree to the Terms of Service.", "error")
-            return redirect(url_for('memberships'))
-
-        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
-        if not price_id:
-            flash("Payment configuration missing. Try again later.", "error")
-            return redirect(url_for('memberships'))
-
-        try:
-            session_obj = stripe.checkout.Session.create(
-                line_items=[{"price": price_id, "quantity": 1}],
-                mode="subscription",
-                success_url=url_for('dashboard', _external=True),
-                cancel_url=url_for('memberships', _external=True),
-            )
-            return redirect(session_obj.url, code=303)
-        except Exception as e:
-            logger.exception("Stripe checkout creation failed: %s", e)
-            flash("Could not start payment. Please try again.", "error")
-            return redirect(url_for('memberships'))
-
-    return render_template('memberships.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -139,6 +102,34 @@ def dashboard():
     )
 
 
+@app.route('/memberships', methods=['GET', 'POST'])
+def memberships():
+    if request.method == 'POST':
+        if not request.form.get('terms'):
+            flash("You must agree to the Terms of Service.", "error")
+            return redirect(url_for('memberships'))
+
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        if not price_id:
+            flash("Payment configuration missing. Try again later.", "error")
+            return redirect(url_for('memberships'))
+
+        try:
+            session_obj = stripe.checkout.Session.create(
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
+            )
+            return redirect(session_obj.url, code=303)
+        except Exception as e:
+            logger.exception("Stripe checkout creation failed: %s", e)
+            flash("Could not start payment. Please try again.", "error")
+            return redirect(url_for('memberships'))
+
+    return render_template('memberships.html')
+
+
 @app.route('/automation')
 def automation_page():
     if 'email' not in session:
@@ -169,12 +160,14 @@ def save_automation():
         "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone():
         conn.execute(
-            "UPDATE automation_settings SET tone=?, style=?, additional_notes=? WHERE email=?",
+            "UPDATE automation_settings "
+            "SET tone=?, style=?, additional_notes=? WHERE email=?",
             (tone, style, notes, session['email'])
         )
     else:
         conn.execute(
-            "INSERT INTO automation_settings (email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
+            "INSERT INTO automation_settings (email, tone, style, additional_notes) "
+            "VALUES (?, ?, ?, ?)",
             (session['email'], tone, style, notes)
         )
     conn.commit()
@@ -199,25 +192,29 @@ def generate_proposal():
 
     prompt = (
         f"Write a concise business proposal email in a {automation['tone']} tone "
-        f"and {automation['style']} style.\n\nExtra notes: {automation['additional_notes'] or 'none'}"
+        f"and {automation['style']} style.\n\n"
+        f"Extra notes: {automation['additional_notes'] or 'none'}"
     )
     try:
         resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                {"role": "user",   "content": prompt}
+                {"role": "system",
+                 "content": "You are a helpful assistant writing business proposals."},
+                {"role": "user", "content": prompt}
             ],
             max_tokens=300,
             temperature=0.7
         )
-        return jsonify(success=True, proposal=resp.choices[0].message.content.strip())
+        return jsonify(success=True,
+                       proposal=resp.choices[0].message.content.strip())
     except Exception:
         logger.exception("OpenAI failure; using dummy.")
         fallback = (
-            f"Hi there,\n\nThanks for reaching out! We'd love to assist you with a "
-            f"{automation['tone']} and {automation['style']} proposal.\n\n"
-            f"{automation['additional_notes'] or ''}\n\nBest regards,\nThe Zyberfy Team"
+            f"Hi there,\n\nThanks for reaching out! Here's a "
+            f"{automation['tone']} & {automation['style']} proposal.\n\n"
+            f"{automation['additional_notes'] or ''}\n\n"
+            "Best regards,\nThe Zyberfy Team"
         )
         return jsonify(success=True, proposal=fallback, fallback=True)
 
@@ -240,15 +237,16 @@ def proposal():
 
         prompt = (
             f"Write a business proposal email to {lead_name}, budget ${budget}, "
-            f"in a {automation['tone']} tone and {automation['style']} style. "
+            f"in a {automation['tone']} tone & {automation['style']} style. "
             f"Notes: {automation['additional_notes'] or 'none'}"
         )
         try:
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                    {"role": "user",   "content": prompt}
+                    {"role": "system",
+                     "content": "You are a helpful assistant writing business proposals."},
+                    {"role": "user", "content": prompt}
                 ],
                 max_tokens=350,
                 temperature=0.7
@@ -270,48 +268,57 @@ def proposal():
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
 
-        flash("Failed to send proposal email.", "error")
+        flash("❌ Failed to send proposal email.", "error")
         return redirect(url_for('proposal'))
 
     return render_template('proposal.html')
 
 
-@app.route("/analytics")
+@app.route('/analytics')
 def analytics():
-    # Dummy data for quick test
-    donut_converted = 10
-    donut_dropped   = 5
-    line_labels     = ["Jan", "Feb", "Mar", "Apr"]
-    line_data       = [2, 4, 6, 8]
-    kpis = {
-        "Total Leads": 20,
-        "Conversions": 10,
-        "Drop-Offs": 5,
-        "Conversion Rate (%)": 50
-    }
-    return render_template(
-        "analytics.html",
-        donut_converted=donut_converted,
-        donut_dropped=donut_dropped,
-        line_labels=line_labels,
-        line_data=line_data,
-        kpis=kpis
-    )
-
-
-@app.route('/track', methods=['POST'])
-def track_event():
-    data = request.get_json()
-    event = data.get('event')           # e.g. 'pageview'
-    user  = session.get('email', None)  # or anonymous ID
     conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?,?)",
-        (user, event)
-    )
-    conn.commit()
+
+    # Totals
+    total_converted = conn.execute(
+        "SELECT COUNT(*) FROM analytics_events WHERE event_type = 'converted'"
+    ).fetchone()[0]
+    total_pageviews = conn.execute(
+        "SELECT COUNT(*) FROM analytics_events WHERE event_type = 'pageview'"
+    ).fetchone()[0]
+    drop_offs = total_pageviews - total_converted
+
+    # 30-day series
+    thirty_days_ago = datetime.utcnow() - timedelta(days=29)
+    rows = conn.execute("""
+      SELECT DATE(timestamp) AS day, COUNT(*) AS count
+      FROM analytics_events
+      WHERE event_type='converted' AND timestamp >= ?
+      GROUP BY day ORDER BY day
+    """, (thirty_days_ago,)).fetchall()
+
     conn.close()
-    return ('', 204)
+
+    labels, data = [], []
+    for i in range(30):
+      day = (thirty_days_ago + timedelta(days=i)).date().isoformat()
+      labels.append(day)
+      data.append(next((r["count"] for r in rows if r["day"] == day), 0))
+
+    kpis = {
+      "Pageviews": total_pageviews,
+      "Conversions": total_converted,
+      "Drop-Offs": drop_offs,
+      "Conversion Rate (%)": round((total_converted / total_pageviews) * 100, 1) if total_pageviews else 0
+    }
+
+    return render_template(
+      "analytics.html",
+      donut_converted=total_converted,
+      donut_dropped=drop_offs,
+      line_labels=labels,
+      line_data=data,
+      kpis=kpis
+    )
 
 
 @app.route('/terms')
@@ -319,15 +326,38 @@ def terms():
     return render_template('terms.html')
 
 
+@app.route('/track', methods=['POST'])
+def track_event():
+    data = request.get_json()
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_id, event_type) VALUES (?,?)",
+        (session.get('email'), data.get('event'))
+    )
+    conn.commit()
+    conn.close()
+    return ('', 204)
+
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/ping')
+def ping():
+    return "pong"
+
+
+@app.route('/debug_templates')
+def debug_templates():
+    import os
+    tpl_dir = os.path.join(app.root_path, 'templates')
+    files = sorted(os.listdir(tpl_dir))
+    items = "".join(f"<li>{f}</li>" for f in files)
+    return f"<h2>Templates folder contains:</h2><ul>{items}</ul>"
+
 
 if __name__ == '__main__':
-    app.run(
-        host='0.0.0.0',
-        port=int(os.getenv('PORT', 5000)),
-        debug=True
-    )
+    port = int(os.getenv('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=True)
