@@ -270,10 +270,14 @@ def proposal():
 
 @app.route('/analytics')
 def analytics():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-    return render_template('analytics.html')
-
+    # load real stats from your DB...
+    return render_template('analytics.html',
+        donut_converted=39,
+        donut_dropped=61,
+        line_labels=[...],
+        line_data=[...],
+        kpis={ 'Daily Active': 42, ... }
+    )
 
 @app.route('/terms')
 def terms():
