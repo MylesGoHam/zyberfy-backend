@@ -5,18 +5,23 @@ import os
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(
+        DATABASE,
+        detect_types=sqlite3.PARSE_DECLTYPES,  # optional, for DATETIME
+        check_same_thread=False                  # only if using multi-threaded server
+    )
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
 def create_users_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        first_name TEXT,
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        email       TEXT UNIQUE    NOT NULL,
+        password    TEXT           NOT NULL,
+        first_name  TEXT,
         plan_status TEXT
       );
     """)
@@ -27,10 +32,11 @@ def create_automation_settings_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS automation_settings (
-        email TEXT PRIMARY KEY,
-        tone TEXT,
-        style TEXT,
-        additional_notes TEXT
+        email             TEXT PRIMARY KEY,
+        tone              TEXT,
+        style             TEXT,
+        additional_notes  TEXT,
+        FOREIGN KEY(email) REFERENCES users(email)
       );
     """)
     conn.commit()
@@ -40,12 +46,35 @@ def create_subscriptions_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS subscriptions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL,
-        plan TEXT NOT NULL,
-        status TEXT NOT NULL,
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        email    TEXT NOT NULL,
+        plan     TEXT NOT NULL,
+        status   TEXT NOT NULL,
         FOREIGN KEY(email) REFERENCES users(email)
       );
     """)
+    conn.commit()
+    conn.close()
+
+def create_analytics_events_table():
+    conn = get_db_connection()
+    conn.execute("""
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id    INTEGER NOT NULL,
+        event_type TEXT    NOT NULL,
+        timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      );
+    """)
+    conn.commit()
+    conn.close()
+
+def log_event(user_id, event_type):
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
+        (user_id, event_type)
+    )
     conn.commit()
     conn.close()
