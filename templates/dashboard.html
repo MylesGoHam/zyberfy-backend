@@ -1,31 +1,11 @@
 <!doctype html>
 <html lang="en">
-    <!-- PostHog: load official UMD bundle from jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/posthog-js@1.236.7/dist/main.js"></script>
-
-    <!-- PostHog: initialize with your API key -->
-    <script>
-      if (window.posthog) {
-        posthog.init(
-          "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
-          {
-            api_host: "https://us.posthog.com",
-            autocapture: true,
-            capture_pageview: true
-          }
-        );
-      } else {
-        console.error("PostHog failed to load");
-      }
-    </script>
-  </head>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Zyberfy Dashboard</title>
 
-  <!-- Your existing CSS -->
+  <!-- Your global CSS -->
   <style>
     body {
       margin: 0;
@@ -89,7 +69,6 @@
       border-top: 1px solid #eee;
       background: #fafafa;
     }
-
     .container {
       max-width: 600px;
       margin: 40px auto;
@@ -125,44 +104,22 @@
       text-decoration: none;
       cursor: pointer;
     }
-
-    /* analytics section */
-    .analytics {
-      max-width: 800px;
-      margin: 24px auto;
-      padding: 0 24px 24px;
-    }
-    .analytics h2 {
-      margin-bottom: 12px;
-      color: #333;
-      text-align: center;
-    }
-    .analytics iframe {
-      width: 100%;
-      height: 350px;
-      border: none;
-      border-radius: 4px;
-    }
   </style>
 
-  <!-- PostHog: load the UMD bundle -->
+  <!-- PostHog: load UMD bundle once -->
   <script src="https://cdn.jsdelivr.net/npm/posthog-js@latest/dist/posthog.umd.min.js"></script>
-  <!-- PostHog: initialize with your API key -->
   <script>
     if (window.posthog) {
       posthog.init(
         "phc_HHlLr5iPRAK8q7slEoM3HIdbEvec9JR13ay5tRmVx4V",
-        {
-          api_host: "https://us.posthog.com",
-          autocapture: true,
-          capture_pageview: true
-        }
+        { api_host: "https://us.posthog.com", autocapture: true, capture_pageview: true }
       );
     } else {
       console.error("PostHog failed to load");
     }
   </script>
 </head>
+
 <body>
   <header>
     <div class="logo">Zyberfy</div>
@@ -175,13 +132,10 @@
       <a href="{{ url_for('dashboard') }}">Home</a>
       <a href="{{ url_for('analytics') }}">Analytics</a>
       <a href="{{ url_for('logout') }}">Logout</a>
-      <div class="billing-status">
-        Billing: Active
-      </div>
+      <div class="billing-status">Billing: Active</div>
     </div>
   </header>
 
-  <!-- main dashboard card -->
   <div class="container">
     <h1>Welcome, {{ first_name or 'User' }}!</h1>
 
@@ -199,26 +153,17 @@
     </div>
   </div>
 
-  <!-- embedded analytics right below the dashboard card -->
-  <div class="analytics">
-    <h2>Real-time Activity</h2>
-    <iframe
-      src="https://app.posthog.com/insight/{{ config['POSTHOG_INSIGHT_ID'] }}?embed=true"
-      allowfullscreen
-    ></iframe>
-  </div>
-
   <script>
     function toggleDropdown() {
-      const dd = document.getElementById('dropdown');
-      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
-      dd.style.flexDirection = 'column';
+      const dd = document.getElementById("dropdown");
+      dd.style.display = dd.style.display === "flex" ? "none" : "flex";
+      dd.style.flexDirection = "column";
     }
-    document.addEventListener('click', e => {
-      const dd = document.getElementById('dropdown'),
-            hb = document.querySelector('.hamburger');
+    document.addEventListener("click", (e) => {
+      const dd = document.getElementById("dropdown"),
+            hb = document.querySelector(".hamburger");
       if (!dd.contains(e.target) && !hb.contains(e.target)) {
-        dd.style.display = 'none';
+        dd.style.display = "none";
       }
     });
   </script>
