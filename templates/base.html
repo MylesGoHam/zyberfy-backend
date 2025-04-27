@@ -48,49 +48,18 @@
       </button>
 
       <!-- dropdown menu -->
-      <nav
-        id="mobile-menu"
-        class="hidden absolute right-4 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-      >
-        <a
-          href="{{ url_for('home') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Home</a
-        >
-        <a
-          href="{{ url_for('dashboard') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Dashboard</a
-        >
-        <a
-          href="{{ url_for('analytics') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Analytics</a
-        >
-        <a
-          href="{{ url_for('automation') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Automation</a
-        >
-        {% if 'email' in session %}
-        <a
-          href="{{ url_for('logout') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Logout</a
-        >
-        {% else %}
-        <a
-          href="{{ url_for('login') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Login</a
-        >
-        <a
-          href="{{ url_for('memberships') }}"
-          class="block px-4 py-2 hover:bg-gray-100"
-          >Sign Up</a
-        >
-        {% endif %}
-      </nav>
+<nav id="mobile-menu" class="hidden bg-white border-t border-gray-200 md:hidden">
+  <a href="{{ url_for('home') }}"            class="block px-4 py-2 hover:bg-gray-100">Home</a>
+  <a href="{{ url_for('dashboard') }}"       class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
+  <a href="{{ url_for('analytics') }}"       class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+  <a href="{{ url_for('automation_page') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+  {% if session.get('email') %}
+    <a href="{{ url_for('logout') }}"        class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+  {% else %}
+    <a href="{{ url_for('login') }}"         class="block px-4 py-2 hover:bg-gray-100">Login</a>
+    <a href="{{ url_for('memberships') }}"   class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
+  {% endif %}
+</nav>
     </div>
   </header>
 
