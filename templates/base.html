@@ -1,37 +1,61 @@
-{% block title %}Dashboard – Zyberfy{% endblock %}
-{% block content %}
-<div class="max-w-5xl mx-auto p-6 space-y-6">
-  <h2 class="text-2xl font-semibold">Welcome, {{ first_name }}!</h2>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="p-6 bg-white rounded-lg shadow">
-      <h3 class="text-sm text-gray-500 uppercase">Plan Status</h3>
-      <p class="mt-2 text-2xl font-bold">{{ plan_status }}</p>
+  <title>{% block title %}Zyberfy{% endblock %}</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/layout.css') }}"
+  />
+
+  {% block extra_styles %}{% endblock %}
+</head>
+<body class="antialiased bg-gray-50 text-gray-800">
+
+  <!-- Header / Nav -->
+  <header class="bg-white shadow-md">
+    <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
+      <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">
+        Zyberfy
+      </a>
+      <button id="nav-toggle" class="focus:outline-none" aria-label="Toggle menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
     </div>
-    <div class="p-6 bg-white rounded-lg shadow">
-      <h3 class="text-sm text-gray-500 uppercase">Automation</h3>
-      {% if automation_complete %}
-        <p class="mt-2 text-green-600 font-medium">Configured ✓</p>
+    <nav id="mobile-menu" class="hidden bg-white border-t border-gray-200 md:hidden">
+      <a href="{{ url_for('home') }}"        class="block px-4 py-2 hover:bg-gray-100">Home</a>
+      <a href="{{ url_for('dashboard') }}"   class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
+      <a href="{{ url_for('analytics') }}"   class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+      <a href="{{ url_for('automation_page') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+      {% if session.get('email') %}
+        <a href="{{ url_for('logout') }}"    class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       {% else %}
-        <p class="mt-2 text-red-600 font-medium">Not configured</p>
+        <a href="{{ url_for('login') }}"     class="block px-4 py-2 hover:bg-gray-100">Login</a>
+        <a href="{{ url_for('memberships') }}" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
       {% endif %}
-    </div>
-  </div>
+    </nav>
+  </header>
 
-  <div class="p-6 bg-white rounded-lg shadow">
-    <h3 class="text-lg font-medium mb-4">Your Automation Settings</h3>
-    {% if automation %}
-      <p><strong>Tone:</strong> {{ automation.tone }}</p>
-      <p><strong>Style:</strong> {{ automation.style }}</p>
-      <div class="mt-4 space-x-2">
-        <a href="{{ url_for('automation_page') }}"
-           class="px-4 py-2 bg-blue-600 text-white rounded">Edit Automation</a>
-        <button id="gen-prop"
-                class="px-4 py-2 bg-green-600 text-white rounded">Generate Proposal</button>
-      </div>
-    {% else %}
-      <p>You haven’t set up your automation yet. <a href="{{ url_for('automation_page') }}" class="text-blue-600 underline">Get started</a>.</p>
-    {% endif %}
-  </div>
-</div>
-{% endblock %}
+  {% block content %}{% endblock %}
+
+  {% block scripts %}
+  <script>
+    document.getElementById("nav-toggle").addEventListener("click", () => {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    });
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".fade-in")
+              .forEach(el => el.classList.add("opacity-100"));
+    });
+  </script>
+  {% endblock %}
+</body>
+</html>
