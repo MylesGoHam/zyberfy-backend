@@ -277,15 +277,33 @@ def proposal():
 
 @app.route('/analytics')
 def analytics():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
     conn = get_db_connection()
-    # … compute total_pageviews, total_converted, drop_offs …
-    # … compute line_labels, line_data …
-    kpis = {
-        "Pageviews": total_pageviews,
-        "Conversions": total_converted,
-        "Drop-Offs": drop_offs,
-        "Conversion Rate (%)": round((total_converted/total_pageviews)*100,1) if total_pageviews else 0
-    }
+    rows = conn.execute(
+        "SELECT event_type, COUNT(*) AS cnt "
+        "FROM analytics_events "
+        "WHERE user_id = ? "
+        "GROUP BY event_type",
+        (session['email'],)
+    ).fetchall()
+    conn.close()
+
+    # Map event → count
+    kpis = { r['event_type']: r['cnt'] for r in rows }
+
+    # Pull out the ones we care about
+    pageviews   = kpis.get('pageview', 0)
+    saves       = kpis.get('saved_automation', 0)
+    conversions = kpis.get('sent_proposal', 0)
+
+    return render_template(
+        'analytics.html',
+        pageviews=pageviews,
+        saves=saves,
+        conversions=conversions
+    )
     conn.close()
     return render_template(
         "analytics.html",

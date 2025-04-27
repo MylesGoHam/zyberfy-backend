@@ -47,21 +47,19 @@
 
   {% block scripts %}
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      // mobile menu toggle
-      const toggle = document.getElementById("nav-toggle");
-      const menu   = document.getElementById("mobile-menu");
-      if (toggle && menu) {
-        toggle.addEventListener("click", () => {
-          menu.classList.toggle("hidden");
-        });
-      }
-
-      // fade-in helper
-      document.querySelectorAll(".fade-in")
-              .forEach(el => el.classList.add("opacity-100"));
+  const toggle = document.getElementById("nav-toggle");
+  const menu   = document.getElementById("mobile-menu");
+  if (toggle && menu) {
+    toggle.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
     });
-  </script>
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".fade-in")
+            .forEach(el => el.classList.add("opacity-100"));
+  });
+</script>
   {% endblock %}
 </body>
 </html>

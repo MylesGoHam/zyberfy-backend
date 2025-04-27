@@ -1,30 +1,26 @@
 {% extends "base.html" %}
-
 {% block title %}Analytics – Zyberfy{% endblock %}
-{% block body_class %}analytics-page{% endblock %}
 
 {% block content %}
-<header class="site-header">
-  <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
-  <nav class="main-nav">
-    <a href="{{ url_for('dashboard') }}">Home</a>
-    <a href="{{ url_for('analytics') }}">Analytics</a>
-    <a href="{{ url_for('logout') }}">Logout</a>
-  </nav>
-</header>
+<main class="max-w-5xl mx-auto py-8 px-4 space-y-8">
+  <h2 class="text-2xl font-semibold">Analytics Overview</h2>
 
-<main class="container">
-  <div class="metrics-grid"></div>
-
-  <div class="chart-card">
-    <h2>Conversion Rate</h2>
-    <canvas id="donutChart"></canvas>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Pageviews</h3>
+      <p class="mt-2 text-3xl font-bold">{{ pageviews }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Saved Automations</h3>
+      <p class="mt-2 text-3xl font-bold">{{ saves }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Proposals Sent</h3>
+      <p class="mt-2 text-3xl font-bold">{{ conversions }}</p>
+    </div>
   </div>
 
-  <div class="chart-card">
-    <h2>Proposals This Month</h2>
-    <canvas id="lineChart"></canvas>
-  </div>
+  <p class="text-gray-600">*(Next: add charts & conversion-rate %.)*</p>
 </main>
 {% endblock %}
 
