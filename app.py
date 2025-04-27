@@ -18,6 +18,7 @@ from models import (
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
+from models import get_user_automation
 
 # ─── Analytics helper ────────────────────────────────────────────────────────
 def log_event(user_id: str, event_type: str):
@@ -95,14 +96,22 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # record the pageview
+    # record pageview
     log_event(session['email'], 'pageview')
 
-    # … gather whatever context you need for dashboard …
-    ctx = {
-        # e.g. "first_name": ..., "plan_status": ..., "automation_complete": ...
-    }
-    return render_template('dashboard.html', **ctx)
+    # your existing dashboard logic…
+    first_name = session.get('first_name', 'there')
+    plan_status = session.get('plan_status', 'free')
+    automation = get_user_automation(session['email'])
+    automation_complete = bool(automation)
+
+    return render_template(
+        'dashboard.html',
+        first_name=first_name,
+        plan_status=plan_status,
+        automation=automation,
+        automation_complete=automation_complete
+    )
 
 
 @app.route('/memberships', methods=['GET', 'POST'])
