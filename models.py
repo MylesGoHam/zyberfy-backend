@@ -1,14 +1,14 @@
-# models.py
 import sqlite3
 import os
 
+# use this constant everywhere
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
     conn = sqlite3.connect(
         DATABASE,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread=False
+        detect_types=sqlite3.PARSE_DECLTYPES,  # optional, for DATETIME
+        check_same_thread=False                  # only if using multi-threaded server
     )
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -57,27 +57,18 @@ def create_subscriptions_table():
     conn.close()
 
 def create_analytics_events_table():
+    # if you ever had a bad schema, drop & recreate it
     conn = get_db_connection()
-    # for dev purposes, drop old table so our FK change takes effect
     conn.execute("DROP TABLE IF EXISTS analytics_events;")
     conn.execute("""
       CREATE TABLE analytics_events (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id    TEXT    NOT NULL,
+        user_id    INTEGER NOT NULL,
         event_type TEXT    NOT NULL,
         timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(email)
+        FOREIGN KEY(user_id) REFERENCES users(id)
       );
     """)
-    conn.commit()
-    conn.close()
-
-def log_event(user_id, event_type):
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (user_id, event_type)
-    )
     conn.commit()
     conn.close()
 
