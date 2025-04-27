@@ -4,7 +4,6 @@ import sqlite3
 import uuid
 import csv
 
-
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -23,10 +22,10 @@ from models import (
     create_subscriptions_table,
     create_analytics_events_table,
     create_proposals_table,
-    get_user_automation,
-    log_event
+    get_user_automation
 )
 
+from analytics import log_event  # moved to its own file
 from email_utils import send_proposal_email
 from email_assistant import handle_new_proposal
 
@@ -43,6 +42,7 @@ def generate_qr_code(public_id):
         print(f"[QR] Saved QR to {path}")
     except Exception as e:
         print(f"[ERROR] QR generation failed: {e}")
+        
 
 
 
@@ -97,14 +97,23 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 # ─── Authentication gating ──────────────────────────────────────────────────
 # allow anonymous access to these paths:
 PUBLIC_PATHS = {
-    "/", "/login", "/terms", "/ping", "/stripe_webhook", "/analytics"
+    "/", "/login", "/signup", "/test_proposal"
 }
+
+# Add dynamic match:
 @app.before_request
-def require_login():
-    if request.path.startswith("/static/"):
-        return  # static assets always public
+def restrict_routes():
+    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
+
+    # ✅ Allow all /proposal/* routes
+    if request.path.startswith("/proposal/"):
+        return
+
+    # ✅ Allow public paths even without login
     if request.path in PUBLIC_PATHS:
-        return  # explicitly public endpoints
+        return
+
+    # ❌ Block everything else unless logged in
     if "email" not in session:
         return redirect(url_for("login"))
 
@@ -151,14 +160,14 @@ def login():
                     True,
                     True,
                     "concise",
-                    user.get("first_name", ""),
-                    user.get("company_name", ""),
-                    user.get("position", ""),
-                    user.get("website", ""),
-                    user.get("phone", ""),
-                    user.get("reply_to", ""),
-                    user.get("timezone", ""),
-                    user.get("logo", None)
+                    user["first_name"],
+                    user["company_name"],
+                    user["position"],
+                    user["website"],
+                    user["phone"],
+                    user["reply_to"],
+                    user["timezone"],
+                    user["logo"]
                 ))
                 conn.commit()
 
@@ -735,16 +744,16 @@ def proposal():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
-    user = conn.execute("SELECT email FROM users WHERE public_id = ?", (public_id,)).fetchone()
+    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
     conn.close()
 
-    if not user:
+    if not proposal:
         return "Invalid proposal link.", 404
 
-    show_qr = "email" in session and session["email"] == user["email"]
+    client_email = proposal["user_email"]
+    show_qr = "email" in session and session["email"] == client_email
 
     if request.method == "POST":
-        # Grab form data
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
@@ -753,15 +762,12 @@ def public_proposal(public_id):
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        # Call AI + save + send
-        handle_new_proposal(name, email, company, services, budget, timeline, message, user["email"])
+        handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         flash("Proposal submitted successfully!", "success")
         return redirect(url_for("public_proposal", public_id=public_id))
 
     return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
-
-import qrcode
 
 @app.route("/generate_qr")
 def generate_qr():
