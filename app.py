@@ -288,25 +288,52 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    rows = conn.execute(
-        "SELECT event_type, COUNT(*) AS cnt "
-        "FROM analytics_events "
-        "WHERE user_id = ? "
-        "GROUP BY event_type",
-        (session['email'],)
-    ).fetchall()
-    conn.close()
-
-    kpis        = {r['event_type']: r['cnt'] for r in rows}
+    # 1) Aggregate totals by event_type
+    rows = conn.execute("""
+        SELECT event_type, COUNT(*) AS cnt
+        FROM analytics_events
+        WHERE user_id = ?
+        GROUP BY event_type
+    """, (session['email'],)).fetchall()
+    kpis = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
     conversions = kpis.get('sent_proposal', 0)
+
+    # 2) Conversion rate
+    conversion_rate = (conversions / pageviews * 100) if pageviews else 0
+
+    # 3) Donut data
+    donut_converted = conversions
+    donut_dropped   = pageviews - conversions
+
+    # 4) Last 7 days line chart
+    today = datetime.utcnow().date()
+    dates = [today - timedelta(days=i) for i in reversed(range(7))]
+    line_labels = [d.strftime('%b %-d') for d in dates]
+    line_data = []
+    for d in dates:
+        cnt = conn.execute("""
+            SELECT COUNT(*) as cnt
+            FROM analytics_events
+            WHERE user_id = ?
+              AND event_type = 'pageview'
+              AND date(timestamp) = ?
+        """, (session['email'], d)).fetchone()['cnt']
+        line_data.append(cnt)
+
+    conn.close()
 
     return render_template(
         'analytics.html',
         pageviews=pageviews,
         saves=saves,
-        conversions=conversions
+        conversions=conversions,
+        conversion_rate=round(conversion_rate, 1),
+        donut_converted=donut_converted,
+        donut_dropped=donut_dropped,
+        line_labels=line_labels,
+        line_data=line_data
     )
 
 
