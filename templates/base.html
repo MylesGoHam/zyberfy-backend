@@ -1,16 +1,44 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <title>{% block title %}Zyberfy{% endblock %}</title>
-
-  <!-- Tailwind CDN -->
+  <title>Nav Test</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}" />
-  {% block extra_styles %}{% endblock %}
 </head>
+
+<body class="bg-gray-50">
+  <header class="bg-white shadow">
+    <div class="max-w-4xl mx-auto flex items-center justify-between p-4 relative">
+      <a href="#" class="text-2xl font-bold text-blue-600">Logo</a>
+
+      <!-- burger only on small -->
+      <button id="nav-toggle" class="md:hidden">
+        ☰
+      </button>
+
+      <!-- one nav for all -->
+      <nav
+        id="main-nav"
+        class="hidden absolute top-full left-0 w-full bg-white border border-gray-200
+               md:static md:flex md:space-x-6 md:border-0 md:bg-transparent"
+      >
+        <a href="#" class="block p-2 hover:bg-gray-100 md:hover:bg-transparent">Home</a>
+        <a href="#" class="block p-2 hover:bg-gray-100 md:hover:bg-transparent">About</a>
+        <a href="#" class="block p-2 hover:bg-gray-100 md:hover:bg-transparent">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <script>
+    // wait for browser to parse the DOM
+    document.getElementById('nav-toggle').addEventListener('click', () => {
+      document.getElementById('main-nav').classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>
 
 <body class="antialiased bg-gray-50 text-gray-800">
   <header class="bg-white shadow">
