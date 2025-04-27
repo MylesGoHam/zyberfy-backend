@@ -1,35 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Analytics – Zyberfy{% endblock %}
 
-{% block content %}
-  <header>
-    <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
-    <div class="hamburger" role="button" aria-label="Menu" tabindex="0">
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-    </div>
-    <nav id="dropdown" class="dropdown">
-      <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('analytics') }}">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-  </header>
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+{% endblock %}
 
-  <div class="container">
-    <!-- KPI cards row -->
-    <div class="metrics-grid"></div>
-
-    <!-- Donut chart card -->
-    <div class="chart-card">
-      <h2>Conversion Rate</h2>
-      <canvas id="donutChart"></canvas>
-    </div>
-
-    <!-- Line chart card -->
-    <div class="chart-card">
-      <h2>Proposals This Month</h2>
-      <canvas id="lineChart"></canvas>
-    </div>
-  </div>
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+  <!-- your analytics chart code… -->
 {% endblock %}
 
 {% block scripts %}

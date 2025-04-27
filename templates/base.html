@@ -1,20 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- … other tags … -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Zyberfy{% endblock %}</title>
 
-  <!-- global stylesheet -->
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='css/global.css') }}">
+  {# global resets, utilities, etc. #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
 
-  <!-- other head content -->
+  {# all your per-page layout rules, scoped under body.classes #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+
+  {# any extra per-page CSS you might need #}
+  {% block extra_styles %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   {% block content %}{% endblock %}
 
-  <!-- load Chart.js before any page scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-
+  {# per-page scripts (analytics charts, etc.) #}
   {% block scripts %}{% endblock %}
 </body>
 </html>

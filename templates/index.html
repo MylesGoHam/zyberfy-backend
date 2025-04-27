@@ -1,43 +1,12 @@
 {% extends "base.html" %}
+
 {% block title %}Home – Zyberfy{% endblock %}
+{% block body_class %}index-page{% endblock %}
 
 {% block content %}
-  <!-- Header -->
-  <header>
-    <div class="logo">Zyberfy</div>
-    <div onclick="toggleDropdown()" class="hamburger">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-    </div>
-    <nav id="dropdownMenu" class="dropdown">
-      <a href="{{ url_for('login') }}">Login</a>
-    </nav>
-  </header>
-
-  <!-- Hero Section -->
-  <div class="hero">
-    <h1>Close Faster, Work Less</h1>
-    <p>Deliver premium, automated proposals in seconds. Designed for high-end service businesses.</p>
-    <a href="{{ url_for('login') }}" class="cta-button">Get Started</a>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    &copy; 2025 <strong>Zyberfy</strong>. All rights reserved.
-  </footer>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  function toggleDropdown() {
-    const dd = document.getElementById("dropdownMenu");
-    dd.style.display = getComputedStyle(dd).display === "flex" ? "none" : "flex";
-  }
-  document.addEventListener("click", e => {
-    const dd = document.getElementById("dropdownMenu"),
-          hb = document.querySelector(".hamburger");
-    if (!dd.contains(e.target) && !hb.contains(e.target)) dd.style.display = "none";
-  });
-</script>
+<div class="hero">
+  <h1>Close Faster, Work Less</h1>
+  <p>Deliver premium, automated proposals in seconds.</p>
+  <a class="index-cta" href="{{ url_for('memberships') }}">Get Started</a>
+</div>
 {% endblock %}
