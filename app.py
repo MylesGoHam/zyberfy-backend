@@ -81,9 +81,11 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
+    # if not logged in, send to login
     if 'email' not in session:
         return redirect(url_for('login'))
 
+    # fetch user + automation settings
     conn = get_db_connection()
     user = conn.execute(
         "SELECT * FROM users WHERE email = ?", (session['email'],)
@@ -93,12 +95,13 @@ def dashboard():
     ).fetchone()
     conn.close()
 
+    # render dashboard.html with all the context it needs
     return render_template(
         'dashboard.html',
-        first_name=user['first_name'] if user else '',
-        plan_status=user['plan_status'] if user else 'None',
-        automation=automation,
-        automation_complete=(automation is not None)
+        first_name       = user    ['first_name']         if user else '',
+        plan_status      = user    ['plan_status']        if user else 'None',
+        automation       = automation,
+        automation_complete = bool(automation)
     )
 
 
@@ -277,47 +280,22 @@ def proposal():
 @app.route('/analytics')
 def analytics():
     conn = get_db_connection()
-
-    # Totals
-    total_converted = conn.execute(
-        "SELECT COUNT(*) FROM analytics_events WHERE event_type = 'converted'"
-    ).fetchone()[0]
-    total_pageviews = conn.execute(
-        "SELECT COUNT(*) FROM analytics_events WHERE event_type = 'pageview'"
-    ).fetchone()[0]
-    drop_offs = total_pageviews - total_converted
-
-    # 30-day series
-    thirty_days_ago = datetime.utcnow() - timedelta(days=29)
-    rows = conn.execute("""
-      SELECT DATE(timestamp) AS day, COUNT(*) AS count
-      FROM analytics_events
-      WHERE event_type='converted' AND timestamp >= ?
-      GROUP BY day ORDER BY day
-    """, (thirty_days_ago,)).fetchall()
-
-    conn.close()
-
-    labels, data = [], []
-    for i in range(30):
-      day = (thirty_days_ago + timedelta(days=i)).date().isoformat()
-      labels.append(day)
-      data.append(next((r["count"] for r in rows if r["day"] == day), 0))
-
+    # … compute total_pageviews, total_converted, drop_offs …
+    # … compute line_labels, line_data …
     kpis = {
-      "Pageviews": total_pageviews,
-      "Conversions": total_converted,
-      "Drop-Offs": drop_offs,
-      "Conversion Rate (%)": round((total_converted / total_pageviews) * 100, 1) if total_pageviews else 0
+        "Pageviews": total_pageviews,
+        "Conversions": total_converted,
+        "Drop-Offs": drop_offs,
+        "Conversion Rate (%)": round((total_converted/total_pageviews)*100,1) if total_pageviews else 0
     }
-
+    conn.close()
     return render_template(
-      "analytics.html",
-      donut_converted=total_converted,
-      donut_dropped=drop_offs,
-      line_labels=labels,
-      line_data=data,
-      kpis=kpis
+        "analytics.html",
+        donut_converted=total_converted,
+        donut_dropped=drop_offs,
+        line_labels=line_labels,
+        line_data=line_data,
+        kpis=kpis
     )
 
 
