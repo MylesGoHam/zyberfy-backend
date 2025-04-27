@@ -282,36 +282,28 @@ def analytics():
 
     conn = get_db_connection()
     rows = conn.execute(
-        "SELECT event_type, COUNT(*) AS cnt "
-        "FROM analytics_events "
-        "WHERE user_id = ? "
-        "GROUP BY event_type",
+        """
+        SELECT event_type, COUNT(*) AS cnt
+        FROM analytics_events
+        WHERE user_id = ?
+        GROUP BY event_type
+        """,
         (session['email'],)
     ).fetchall()
     conn.close()
 
-    # Map event → count
-    kpis = { r['event_type']: r['cnt'] for r in rows }
-
-    # Pull out the ones we care about
+    # build a dict of counts
+    kpis = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
     conversions = kpis.get('sent_proposal', 0)
 
+    # for now we won’t draw charts, just show the raw numbers
     return render_template(
         'analytics.html',
         pageviews=pageviews,
         saves=saves,
         conversions=conversions
-    )
-    conn.close()
-    return render_template(
-        "analytics.html",
-        donut_converted=total_converted,
-        donut_dropped=drop_offs,
-        line_labels=line_labels,
-        line_data=line_data,
-        kpis=kpis
     )
 
 
