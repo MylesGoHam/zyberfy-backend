@@ -14,11 +14,11 @@ from models import (
     create_users_table,
     create_automation_settings_table,
     create_subscriptions_table,
-    create_analytics_events_table
+    create_analytics_events_table,
+    get_user_automation
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
-from models import get_user_automation
 
 # ─── Analytics helper ────────────────────────────────────────────────────────
 def log_event(user_id: str, event_type: str):
