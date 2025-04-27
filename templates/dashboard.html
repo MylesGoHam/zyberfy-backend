@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Dashboard – Zyberfy{% endblock %}
 
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
 {% block content %}
 <header class="site-header">
   <h1>Welcome, {{ first_name }}!</h1>
@@ -26,7 +31,7 @@
     {% else %}
       <div class="empty-state">
         <p>You haven’t set up your automation yet.</p>
-        <a class="button" href="{{ url_for('automation_page') }}">Configure Automation</a>
+        <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
       </div>
     {% endif %}
   </section>
