@@ -1,11 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Welcome – Zyberfy{% endblock %}
+
+{% block title %}Home – Zyberfy{% endblock %}
 {% block body_class %}home-page{% endblock %}
 
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+{% endblock %}
+
 {% block content %}
-  <section class="hero">
-    <h1>Close Faster, Work Less</h1>
-    <p>Deliver premium, automated proposals in seconds…</p>
-    <a href="{{ url_for('memberships') }}">Get Started</a>
-  </section>
+<header class="site-header">
+  <a class="logo" href="{{ url_for('home') }}">Zyberfy</a>
+  <nav>
+    <a href="{{ url_for('home') }}">Home</a>
+    <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('memberships') }}">Sign Up</a>
+  </nav>
+</header>
+
+<main class="hero">
+  <h1>Close Faster, Work Less</h1>
+  <p>Deliver premium, automated proposals in seconds.</p>
+  <a class="button-primary" href="{{ url_for('memberships') }}">Get Started</a>
+</main>
 {% endblock %}
