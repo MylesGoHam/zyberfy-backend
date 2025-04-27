@@ -1,49 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Analytics Test{% endblock %}
+{% block title %}Analytics – Zyberfy{% endblock %}
+
 {% block content %}
-✅ Analytics page renders!
-{% endblock %}
+<main class="max-w-5xl mx-auto py-8 px-4 space-y-8">
+  <h2 class="text-2xl font-semibold">Analytics Overview</h2>
 
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const kpis           = {{ kpis|tojson }};
-  const donutConverted = {{ donut_converted|tojson }};
-  const donutDropped   = {{ donut_dropped|tojson }};
-  const lineLabels     = {{ line_labels|tojson }};
-  const lineData       = {{ line_data|tojson }};
-
-  console.log("▶ analytics data", { kpis, lineLabels, lineData });
-
-  // KPI cards
-  const grid = document.querySelector('.metrics-grid');
-  Object.entries(kpis).forEach(([label, value]) => {
-    const card = document.createElement('div');
-    card.className = 'metric';
-    card.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
-    grid.append(card);
-  });
-
-  // Donut chart
-  new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Converted', 'Dropped'],
-      datasets: [{
-        data: [donutConverted, donutDropped],
-        backgroundColor: ['#1e40af','#ddd'],
-        borderWidth: 0
-      }]
-    },
-    options: { cutout:'70%', plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false }
-  });
-
-  // Line chart
-  new Chart(document.getElementById('lineChart'), {
-    type: 'line',
-    data: { labels: lineLabels, datasets:[{ data: lineData, fill:false, pointRadius:3, borderWidth:2, tension:0.3 }]},
-    options:{ scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} }, plugins:{legend:{display:false}}, maintainAspectRatio:false }
-  });
-});
-</script>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Pageviews</h3>
+      <p class="mt-2 text-3xl font-bold">{{ pageviews }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Saved Automations</h3>
+      <p class="mt-2 text-3xl font-bold">{{ saves }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Proposals Sent</h3>
+      <p class="mt-2 text-3xl font-bold">{{ conversions }}</p>
+    </div>
+  </div>
+</main>
 {% endblock %}
