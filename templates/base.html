@@ -26,7 +26,7 @@
         Zyberfy
       </a>
 
-      <!-- desktop menu (hidden on small) -->
+      <!-- desktop menu (hidden on small screens) -->
       <nav class="hidden md:flex space-x-6">
         <a href="{{ url_for('home') }}"        class="hover:text-blue-600">Home</a>
         <a href="{{ url_for('login') }}"       class="hover:text-blue-600">Login</a>
@@ -46,7 +46,7 @@
       </button>
     </div>
 
-    <!-- mobile menu (hidden on md+) -->
+    <!-- mobile menu (hidden on md+ screens) -->
     <nav id="mobile-menu" class="hidden bg-white border-t border-gray-200 md:hidden">
       <a href="{{ url_for('home') }}"        class="block px-4 py-2 hover:bg-gray-100">Home</a>
       <a href="{{ url_for('login') }}"       class="block px-4 py-2 hover:bg-gray-100">Login</a>
@@ -63,7 +63,7 @@
       document.getElementById("mobile-menu").classList.toggle("hidden");
     });
 
-    // fade in elements
+    // fade in on load
     window.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".fade-in")
               .forEach(el => el.classList.add("opacity-100"));
