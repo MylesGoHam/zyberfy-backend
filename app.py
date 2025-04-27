@@ -8,7 +8,6 @@ from flask import (
 from dotenv import load_dotenv
 import openai
 import stripe
-
 from models import (
     get_db_connection,
     create_users_table,
@@ -20,34 +19,17 @@ from models import (
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
 
-# ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_email: str, event_type: str):
-    conn = get_db_connection()
-    # look up the numeric user_id
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?",
-        (user_email,)
-    ).fetchone()
-    if user:
-        conn.execute(
-            "INSERT INTO analytics_events (user_id, event_type, timestamp) "
-            "VALUES (?, ?, CURRENT_TIMESTAMP)",
-            (user["id"], event_type)
-        )
-        conn.commit()
-    conn.close()
-
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key  = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key  = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL  = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL     = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD  = os.getenv("ADMIN_PASSWORD")
+stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key     = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -70,6 +52,16 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
+# ─── Analytics helper ────────────────────────────────────────────────────────
+def log_event(user_email: str, event_type: str):
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
+        (user_email, event_type)
+    )
+    conn.commit()
+    conn.close()
+
 # ─── Routes ──────────────────────────────────────────────────────────────────
 @app.route('/')
 def home():
@@ -88,7 +80,9 @@ def login():
         conn.close()
 
         if user and user['password'] == password:
-            session['email'] = email
+            session['email']      = email
+            session['first_name'] = user['first_name']
+            session['plan_status'] = user['plan_status']
             return redirect(url_for('dashboard'))
 
         flash('Invalid email or password', 'error')
@@ -105,10 +99,9 @@ def dashboard():
     # record pageview
     log_event(session['email'], 'pageview')
 
-    # your existing dashboard logic…
-    first_name = session.get('first_name', 'there')
-    plan_status = session.get('plan_status', 'free')
-    automation = get_user_automation(session['email'])
+    first_name          = session.get('first_name', 'there')
+    plan_status         = session.get('plan_status', 'free')
+    automation          = get_user_automation(session['email'])
     automation_complete = bool(automation)
 
     return render_template(
@@ -300,34 +293,26 @@ def analytics():
         "FROM analytics_events "
         "WHERE user_id = ? "
         "GROUP BY event_type",
-        (  # look up numeric id again
-            conn.execute(
-                "SELECT id FROM users WHERE email = ?",
-                (session['email'],)
-            ).fetchone()['id'],
-        )
+        (session['email'],)
     ).fetchall()
     conn.close()
 
-    kpis = {r['event_type']: r['cnt'] for r in rows}
+    kpis        = {r['event_type']: r['cnt'] for r in rows}
+    pageviews   = kpis.get('pageview', 0)
+    saves       = kpis.get('saved_automation', 0)
+    conversions = kpis.get('sent_proposal', 0)
+
     return render_template(
         'analytics.html',
-        pageviews=kpis.get('pageview', 0),
-        saves=kpis.get('saved_automation', 0),
-        conversions=kpis.get('sent_proposal', 0)
+        pageviews=pageviews,
+        saves=saves,
+        conversions=conversions
     )
 
 
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
-
-
-@app.route('/track', methods=['POST'])
-def track_event():
-    data = request.get_json()
-    log_event(session.get('email'), data.get('event'))
-    return ('', 204)
 
 
 @app.route('/logout')
