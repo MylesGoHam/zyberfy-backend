@@ -1,14 +1,14 @@
+# models.py
 import sqlite3
 import os
 
-# use this constant everywhere
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
     conn = sqlite3.connect(
         DATABASE,
-        detect_types=sqlite3.PARSE_DECLTYPES,  # optional, for DATETIME
-        check_same_thread=False                  # only if using multi-threaded server
+        detect_types=sqlite3.PARSE_DECLTYPES,
+        check_same_thread=False
     )
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -58,8 +58,10 @@ def create_subscriptions_table():
 
 def create_analytics_events_table():
     conn = get_db_connection()
+    # for dev purposes, drop old table so our FK change takes effect
+    conn.execute("DROP TABLE IF EXISTS analytics_events;")
     conn.execute("""
-      CREATE TABLE IF NOT EXISTS analytics_events (
+      CREATE TABLE analytics_events (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id    TEXT    NOT NULL,
         event_type TEXT    NOT NULL,
@@ -81,7 +83,7 @@ def log_event(user_id, event_type):
 
 def get_user_automation(email: str):
     """
-    Fetch this user's automation settings, or None if not set.
+    Fetch the automation_settings row for this user, or None if not set.
     """
     conn = get_db_connection()
     row = conn.execute(
