@@ -8,7 +8,10 @@
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}" />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/layout.css') }}"
+  />
   {% block extra_styles %}{% endblock %}
 </head>
 
@@ -18,7 +21,7 @@
       <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">Zyberfy</a>
 
       <!-- always-visible hamburger -->
-      <button id="nav-toggle" class="focus:outline-none" aria-label="Toggle menu">
+      <button id="nav-toggle" class="focus:outline-none md:hidden" aria-label="Toggle menu">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h16"/>
@@ -39,9 +42,9 @@
         {% endif %}
       </nav>
 
-      <!-- mobile dropdown (and desktop, once toggled) -->
+      <!-- dropdown (for mobile & toggled desktop) -->
       <nav id="mobile-menu"
-           class="hidden absolute top-full left-0 w-full bg-white border-t border-gray-200 z-20">
+           class="hidden absolute top-full left-0 w-full bg-white border-t border-gray-200 z-20 md:hidden">
         <a href="{{ url_for('home') }}"            class="block px-4 py-2 hover:bg-gray-100">Home</a>
         <a href="{{ url_for('dashboard') }}"       class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
         <a href="{{ url_for('analytics') }}"       class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
@@ -60,14 +63,13 @@
 
   {% block scripts %}
   <script>
-    // toggle dropdown
+    // only on mobile (md:hidden) we show the burger – toggle dropdown
     document.getElementById("nav-toggle").addEventListener("click", () => {
       document.getElementById("mobile-menu").classList.toggle("hidden");
     });
     // fade-in helper
     window.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".fade-in")
-              .forEach(el => el.classList.add("opacity-100"));
+      document.querySelectorAll(".fade-in").forEach(el => el.classList.add("opacity-100"));
     });
   </script>
   {% endblock %}

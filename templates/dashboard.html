@@ -2,38 +2,38 @@
 {% block title %}Dashboard – Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto py-8 px-4">
-  <h2 class="text-2xl font-semibold mb-6">Welcome, {{ first_name or 'User' }}!</h2>
+  <main class="max-w-5xl mx-auto py-8 px-4 space-y-6">
+    <h2 class="text-2xl font-semibold">Welcome, {{ first_name }}!</h2>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-lg shadow">
-      <p class="text-sm text-gray-500">Plan Status</p>
-      <p class="mt-2 text-3xl font-bold">{{ plan_status }}</p>
-    </div>
-    <div class="bg-white p-6 rounded-lg shadow">
-      <p class="text-sm text-gray-500">Automation</p>
-      <p class="mt-2 text-2xl font-semibold text-green-600">
-        {{ 'Configured ✔' if automation_complete else 'Not Configured' }}
-      </p>
-    </div>
-  </div>
-
-  <div class="bg-white p-6 rounded-lg shadow">
-    <h3 class="text-xl font-semibold mb-4">Your Automation Settings</h3>
-    {% if automation_complete %}
-      <p><strong>Tone:</strong> {{ automation.tone }}</p>
-      <p><strong>Style:</strong> {{ automation.style }}</p>
-      <div class="mt-4 space-x-2">
-        <a href="{{ url_for('automation_page') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Edit Automation</a>
-        <a href="{{ url_for('generate_proposal') }}"
-           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Generate Proposal</a>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="p-6 bg-white rounded-lg shadow">
+        <h3 class="text-sm text-gray-500">Plan Status</h3>
+        <p class="mt-2 text-xl font-bold">{{ plan_status|capitalize }}</p>
       </div>
-    {% else %}
-      <p class="text-gray-600">You haven’t set up your automation yet.</p>
-      <a href="{{ url_for('automation_page') }}"
-         class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Configure Now</a>
-    {% endif %}
-  </div>
-</div>
+      <div class="p-6 bg-white rounded-lg shadow">
+        <h3 class="text-sm text-gray-500">Automation</h3>
+        <p class="mt-2 text-xl {{ 'text-green-600' if automation_complete else 'text-red-600' }}">
+          {{ automation_complete and 'Configured ✓' or 'Not set up' }}
+        </p>
+      </div>
+    </div>
+
+    <section class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-lg font-medium mb-4">Your Automation Settings</h3>
+      {% if automation %}
+        <p><strong>Tone:</strong> {{ automation.tone }}</p>
+        <p><strong>Style:</strong> {{ automation.style }}</p>
+        <div class="mt-4 space-x-2">
+          <a href="{{ url_for('automation_page') }}"
+             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Edit Automation</a>
+          <button id="gen-prop"
+            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            Generate Proposal
+          </button>
+        </div>
+      {% else %}
+        <p>No settings yet. <a href="{{ url_for('automation_page') }}" class="text-blue-600">Set up now</a>.</p>
+      {% endif %}
+    </section>
+  </main>
 {% endblock %}
