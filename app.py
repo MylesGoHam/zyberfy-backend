@@ -19,6 +19,17 @@ from models import (
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
 
+# ─── Analytics helper ────────────────────────────────────────────────────────
+def log_event(user_id: str, event_type: str):
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_id, event_type, timestamp) "
+        "VALUES (?, ?, CURRENT_TIMESTAMP)",
+        (user_id, event_type)
+    )
+    conn.commit()
+    conn.close()
+
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -81,28 +92,17 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
-    # if not logged in, send to login
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # fetch user + automation settings
-    conn = get_db_connection()
-    user = conn.execute(
-        "SELECT * FROM users WHERE email = ?", (session['email'],)
-    ).fetchone()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone()
-    conn.close()
+    # record the pageview
+    log_event(session['email'], 'pageview')
 
-    # render dashboard.html with all the context it needs
-    return render_template(
-        'dashboard.html',
-        first_name       = user    ['first_name']         if user else '',
-        plan_status      = user    ['plan_status']        if user else 'None',
-        automation       = automation,
-        automation_complete = (automation is not None)
-    )
+    # … gather whatever context you need for dashboard …
+    ctx = {
+        # e.g. "first_name": ..., "plan_status": ..., "automation_complete": ...
+    }
+    return render_template('dashboard.html', **ctx)
 
 
 @app.route('/memberships', methods=['GET', 'POST'])
@@ -133,16 +133,14 @@ def memberships():
     return render_template('memberships.html')
 
 
-@app.route('/automation')
+@app.route('/automation', methods=['POST'])
 def automation_page():
     if 'email' not in session:
         return redirect(url_for('login'))
-    conn = get_db_connection()
-    automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone()
-    conn.close()
-    return render_template('automation.html', automation=automation)
+
+    # … validate & write automation settings …
+    log_event(session['email'], 'saved_automation')
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/save-automation', methods=['POST'])
@@ -266,6 +264,8 @@ def proposal():
         )
         status_code = getattr(resp_obj, 'status_code', resp_obj)
         if 200 <= status_code < 300:
+            # record that we sent a proposal
+            log_event(session['email'], 'sent_proposal')
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
 
@@ -290,7 +290,6 @@ def analytics():
     ).fetchall()
     conn.close()
 
-    # Map event → count
     kpis = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
@@ -314,7 +313,7 @@ def track_event():
     data = request.get_json()
     conn = get_db_connection()
     conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?,?)",
+        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
         (session.get('email'), data.get('event'))
     )
     conn.commit()
@@ -326,6 +325,7 @@ def track_event():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
 
 @app.route('/ping')
 def ping():
