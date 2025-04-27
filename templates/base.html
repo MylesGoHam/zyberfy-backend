@@ -21,16 +21,16 @@
   <!-- top nav -->
   <header class="bg-white shadow-md">
     <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
-      <!-- logo only -->
+      <!-- logo -->
       <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">
         Zyberfy
       </a>
 
-      <!-- desktop menu -->
+      <!-- desktop menu (hidden on small) -->
       <nav class="hidden md:flex space-x-6">
-        <a href="{{ url_for('home') }}" class="hover:text-blue-600">Home</a>
-        <a href="{{ url_for('login') }}" class="hover:text-blue-600">Login</a>
-        <a href="{{ url_for('register') }}" class="hover:text-blue-600">Sign Up</a>
+        <a href="{{ url_for('home') }}"        class="hover:text-blue-600">Home</a>
+        <a href="{{ url_for('login') }}"       class="hover:text-blue-600">Login</a>
+        <a href="{{ url_for('memberships') }}" class="hover:text-blue-600">Sign Up</a>
       </nav>
 
       <!-- hamburger (always visible) -->
@@ -39,42 +39,18 @@
         class="focus:outline-none"
         aria-label="Toggle menu"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
     </div>
 
-    <!-- mobile menu -->
-    <nav
-      id="mobile-menu"
-      class="hidden bg-white border-t border-gray-200 md:hidden"
-    >
-      <a
-        href="{{ url_for('home') }}"
-        class="block px-4 py-2 hover:bg-gray-100"
-        >Home</a
-      >
-      <a
-        href="{{ url_for('login') }}"
-        class="block px-4 py-2 hover:bg-gray-100"
-        >Login</a
-      >
-      <a
-        href="{{ url_for('register') }}"
-        class="block px-4 py-2 hover:bg-gray-100"
-        >Sign Up</a
-      >
+    <!-- mobile menu (hidden on md+) -->
+    <nav id="mobile-menu" class="hidden bg-white border-t border-gray-200 md:hidden">
+      <a href="{{ url_for('home') }}"        class="block px-4 py-2 hover:bg-gray-100">Home</a>
+      <a href="{{ url_for('login') }}"       class="block px-4 py-2 hover:bg-gray-100">Login</a>
+      <a href="{{ url_for('memberships') }}" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
     </nav>
   </header>
 
@@ -83,19 +59,14 @@
   {% block scripts %}
   <script>
     // mobile nav toggle
-    document
-      .getElementById("nav-toggle")
-      .addEventListener("click", () => {
-        document
-          .getElementById("mobile-menu")
-          .classList.toggle("hidden");
-      });
+    document.getElementById("nav-toggle").addEventListener("click", () => {
+      document.getElementById("mobile-menu").classList.toggle("hidden");
+    });
 
-    // trigger fade-in on load
+    // fade in elements
     window.addEventListener("DOMContentLoaded", () => {
-      document
-        .querySelectorAll(".fade-in")
-        .forEach((el) => el.classList.add("opacity-100"));
+      document.querySelectorAll(".fade-in")
+              .forEach(el => el.classList.add("opacity-100"));
     });
   </script>
   {% endblock %}
