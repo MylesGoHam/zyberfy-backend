@@ -1,42 +1,103 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>{% block title %}Zyberfy{% endblock %}</title>
 
-  <!-- global utilities -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- your own utilities / overrides -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/layout.css') }}"
+  />
 
-  <!-- page‐specific layout overrides -->
   {% block extra_styles %}{% endblock %}
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
-  <header class="site‐wide‐header">
-    <a href="{{ url_for('home') }}" class="logo">Zyberfy</a>
-    <nav class="site‐nav">
-      <a href="{{ url_for('home') }}">Home</a>
-      {% if not session.get('email') %}
-       <nav>
-           <nav>
-     <a href="{{ url_for('login')       }}">Log In</a>
-     <a href="{{ url_for('memberships') }}">Sign Up</a>
-   </nav>
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('analytics') }}">Analytics</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %}
+<body class="antialiased bg-gray-50 text-gray-800">
+  <!-- top nav -->
+  <header class="bg-white shadow-md">
+    <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
+      <!-- logo only -->
+      <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">
+        Zyberfy
+      </a>
+
+      <!-- desktop menu -->
+      <nav class="hidden md:flex space-x-6">
+        <a href="{{ url_for('home') }}" class="hover:text-blue-600">Home</a>
+        <a href="{{ url_for('login') }}" class="hover:text-blue-600">Login</a>
+        <a href="{{ url_for('signup') }}" class="hover:text-blue-600">Sign Up</a>
+      </nav>
+
+      <!-- hamburger -->
+      <button
+        id="nav-toggle"
+        class="md:hidden focus:outline-none"
+        aria-label="Toggle menu"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- mobile menu -->
+    <nav
+      id="mobile-menu"
+      class="hidden bg-white border-t border-gray-200 md:hidden"
+    >
+      <a
+        href="{{ url_for('home') }}"
+        class="block px-4 py-2 hover:bg-gray-100"
+        >Home</a
+      >
+      <a
+        href="{{ url_for('login') }}"
+        class="block px-4 py-2 hover:bg-gray-100"
+        >Login</a
+      >
+      <a
+        href="{{ url_for('signup') }}"
+        class="block px-4 py-2 hover:bg-gray-100"
+        >Sign Up</a
+      >
     </nav>
   </header>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+  {% block content %}{% endblock %}
 
-  <!-- Chart.js (only used on analytics page) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-  {% block scripts %}{% endblock %}
+  {% block scripts %}
+  <script>
+    // mobile nav toggle
+    document
+      .getElementById("nav-toggle")
+      .addEventListener("click", () => {
+        document
+          .getElementById("mobile-menu")
+          .classList.toggle("hidden");
+      });
+
+    // trigger fade-in on load
+    window.addEventListener("DOMContentLoaded", () => {
+      document
+        .querySelectorAll(".fade-in")
+        .forEach((el) => el.classList.add("opacity-100"));
+    });
+  </script>
+  {% endblock %}
 </body>
 </html>

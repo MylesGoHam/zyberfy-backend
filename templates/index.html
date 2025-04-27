@@ -1,25 +1,22 @@
 {% extends "base.html" %}
-
-{% block title %}Home – Zyberfy{% endblock %}
-{% block body_class %}home-page{% endblock %}
-
-{% block extra_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-{% endblock %}
+{% block title %}Welcome – Zyberfy{% endblock %}
 
 {% block content %}
-<header class="site-header">
-  <a class="logo" href="{{ url_for('home') }}">Zyberfy</a>
-  <nav>
-    <a href="{{ url_for('home') }}">Home</a>
-    <a href="{{ url_for('login') }}">Login</a>
-    <a href="{{ url_for('memberships') }}">Sign Up</a>
-  </nav>
-</header>
-
-<main class="hero">
-  <h1>Close Faster, Work Less</h1>
-  <p>Deliver premium, automated proposals in seconds.</p>
-  <a class="button-primary" href="{{ url_for('memberships') }}">Get Started</a>
-</main>
+  <main class="flex flex-col items-center justify-center min-h-[70vh] px-4">
+    <h1
+      class="fade-in opacity-0 text-4xl md:text-5xl font-extrabold text-center mb-4 transition-opacity duration-1000"
+    >
+      Close Faster, Work Less
+    </h1>
+    <p
+      class="fade-in opacity-0 text-lg text-gray-600 mb-8 transition-opacity delay-200 duration-1000"
+    >
+      Deliver premium, automated proposals in seconds.
+    </p>
+    <a
+      href="{{ url_for('signup') }}"
+      class="fade-in opacity-0 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-opacity delay-400 duration-1000 animate-bounce"
+      >Get Started</a
+    >
+  </main>
 {% endblock %}
