@@ -13,30 +13,32 @@
 </head>
 
 <body class="antialiased bg-gray-50 text-gray-800">
-  <header class="bg-white shadow-md">
+  <header class="bg-white shadow">
     <div class="max-w-5xl mx-auto flex items-center justify-between p-4 relative">
+      <!-- Logo -->
       <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">Zyberfy</a>
 
-      <!-- burger: visible only on small -->
-      <button id="nav-toggle" class="md:hidden focus:outline-none" aria-label="Toggle menu">
+      <!-- Burger: only on small -->
+      <button id="nav-toggle" class="md:hidden focus:outline-none">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
 
-      <!-- unified nav: dropdown on small, horizontal on md+ -->
+      <!-- Unified Nav -->
       <nav id="main-nav"
-           class="hidden absolute top-full left-0 w-full bg-white border-t border-gray-200 z-20
-                  md:static md:flex md:space-x-6 md:border-0 md:bg-transparent">
+           class="hidden absolute top-full left-0 w-full bg-white border-t border-gray-200
+                  md:static md:flex md:space-x-8 md:border-0 md:bg-transparent z-20">
         <a href="{{ url_for('home') }}"            class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Home</a>
         <a href="{{ url_for('dashboard') }}"       class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Dashboard</a>
         <a href="{{ url_for('analytics') }}"       class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Analytics</a>
         <a href="{{ url_for('automation_page') }}" class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Automation</a>
         {% if session.get('email') %}
-          <a href="{{ url_for('logout') }}"        class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Logout</a>
+          <a href="{{ url_for('logout') }}"      class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Logout</a>
         {% else %}
-          <a href="{{ url_for('login') }}"         class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Login</a>
-          <a href="{{ url_for('memberships') }}"   class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Sign Up</a>
+          <a href="{{ url_for('login') }}"       class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Login</a>
+          <a href="{{ url_for('memberships') }}" class="block px-4 py-2 hover:bg-gray-100 md:hover:bg-transparent">Sign Up</a>
         {% endif %}
       </nav>
     </div>
@@ -46,12 +48,16 @@
 
   {% block scripts %}
   <script>
-    document.getElementById("nav-toggle").addEventListener("click", () => {
-      document.getElementById("main-nav").classList.toggle("hidden");
-    });
+    // toggle the unified nav on small screens
+    document.getElementById("nav-toggle")
+      .addEventListener("click", () => {
+        document.getElementById("main-nav").classList.toggle("hidden");
+      });
+
+    // fade-in helper
     window.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".fade-in")
-              .forEach(el => el.classList.add("opacity-100"));
+        .forEach(el => el.classList.add("opacity-100"));
     });
   </script>
   {% endblock %}
