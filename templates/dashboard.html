@@ -2,79 +2,38 @@
 {% block title %}Dashboard – Zyberfy{% endblock %}
 
 {% block content %}
-<main class="max-w-5xl mx-auto p-6">
-  <!-- Greeting + quick nav -->
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
-    <h2 class="text-2xl font-semibold">Welcome, {{ first_name }}!</h2>
-    <nav class="mt-4 md:mt-0 space-x-4 text-blue-600">
-      <a href="{{ url_for('dashboard') }}" class="hover:underline">Home</a>
-      <a href="{{ url_for('analytics') }}" class="hover:underline">Analytics</a>
-      <a href="{{ url_for('logout') }}" class="hover:underline">Logout</a>
-    </nav>
-  </div>
+<div class="max-w-5xl mx-auto py-8 px-4">
+  <h2 class="text-2xl font-semibold mb-6">Welcome, {{ first_name or 'User' }}!</h2>
 
-  <!-- Dashboard cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-      <h3 class="text-lg font-medium mb-2">Plan Status</h3>
-      <p class="text-3xl font-bold">{{ plan_status|capitalize }}</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow">
+      <p class="text-sm text-gray-500">Plan Status</p>
+      <p class="mt-2 text-3xl font-bold">{{ plan_status }}</p>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-      <h3 class="text-lg font-medium mb-2">Automation</h3>
-      {% if automation_complete %}
-      <p class="text-green-600 font-semibold">Configured ✓</p>
-      {% else %}
-      <p class="text-red-500 font-semibold">Not Set Up</p>
-      {% endif %}
+    <div class="bg-white p-6 rounded-lg shadow">
+      <p class="text-sm text-gray-500">Automation</p>
+      <p class="mt-2 text-2xl font-semibold text-green-600">
+        {{ 'Configured ✔' if automation_complete else 'Not Configured' }}
+      </p>
     </div>
   </div>
 
-  <!-- Automation settings preview -->
-  <section class="bg-white p-6 rounded-lg shadow">
+  <div class="bg-white p-6 rounded-lg shadow">
     <h3 class="text-xl font-semibold mb-4">Your Automation Settings</h3>
-    {% if automation %}
-    <ul class="space-y-2">
-      <li><span class="font-medium">Tone:</span> {{ automation.tone }}</li>
-      <li><span class="font-medium">Style:</span> {{ automation.style }}</li>
-      {% if automation.additional_notes %}
-      <li><span class="font-medium">Notes:</span> {{ automation.additional_notes }}</li>
-      {% endif %}
-    </ul>
-    <div class="mt-6 flex space-x-4">
-      <a href="{{ url_for('automation_page') }}"
-         class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-         Edit Automation
-      </a>
-      <button id="gen-prop"
-         class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-         Generate Proposal
-      </button>
-    </div>
+    {% if automation_complete %}
+      <p><strong>Tone:</strong> {{ automation.tone }}</p>
+      <p><strong>Style:</strong> {{ automation.style }}</p>
+      <div class="mt-4 space-x-2">
+        <a href="{{ url_for('automation_page') }}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Edit Automation</a>
+        <a href="{{ url_for('generate_proposal') }}"
+           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Generate Proposal</a>
+      </div>
     {% else %}
-    <p class="text-gray-600">You haven’t set up your automation preferences yet.</p>
-    <a href="{{ url_for('automation_page') }}"
-       class="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-       Configure Now
-    </a>
+      <p class="text-gray-600">You haven’t set up your automation yet.</p>
+      <a href="{{ url_for('automation_page') }}"
+         class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Configure Now</a>
     {% endif %}
-  </section>
-</main>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  <script>
-    document.getElementById('gen-prop')?.addEventListener('click', () => {
-      // You can wire this up to your existing AJAX / fetch call
-      fetch("{{ url_for('generate_proposal') }}", { method: 'POST' })
-        .then(r => r.json())
-        .then(res => {
-          if(res.success) {
-            alert(res.proposal);
-          } else {
-            alert("Error: " + res.error);
-          }
-        });
-    });
-  </script>
+  </div>
+</div>
 {% endblock %}
