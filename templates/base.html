@@ -30,13 +30,13 @@
       <nav class="hidden md:flex space-x-6">
         <a href="{{ url_for('home') }}" class="hover:text-blue-600">Home</a>
         <a href="{{ url_for('login') }}" class="hover:text-blue-600">Login</a>
-        <a href="{{ url_for('memberships') }}" class="hover:text-blue-600">Sign Up</a>
+        <a href="{{ url_for('register') }}" class="hover:text-blue-600">Sign Up</a>
       </nav>
 
-      <!-- hamburger -->
+      <!-- hamburger (always visible) -->
       <button
         id="nav-toggle"
-        class="md:hidden focus:outline-none"
+        class="focus:outline-none"
         aria-label="Toggle menu"
       >
         <svg
@@ -71,7 +71,7 @@
         >Login</a
       >
       <a
-        href="{{ url_for('memberships') }}"
+        href="{{ url_for('register') }}"
         class="block px-4 py-2 hover:bg-gray-100"
         >Sign Up</a
       >
