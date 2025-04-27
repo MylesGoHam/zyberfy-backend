@@ -290,6 +290,28 @@ def analytics():
     ).fetchall()
     conn.close()
 
+    counts = { r['event_type']: r['cnt'] for r in rows }
+    pageviews   = counts.get('pageview', 0)
+    saves       = counts.get('saved_automation', 0)
+    conversions = counts.get('sent_proposal', 0)
+
+    return render_template(
+        'analytics.html',
+        pageviews=pageviews,
+        saves=saves,
+        conversions=conversions
+    )
+
+    conn = get_db_connection()
+    rows = conn.execute(
+        "SELECT event_type, COUNT(*) AS cnt "
+        "FROM analytics_events "
+        "WHERE user_id = ? "
+        "GROUP BY event_type",
+        (session['email'],)
+    ).fetchall()
+    conn.close()
+
     # turn rows into a dict
     counts = { r['event_type']: r['cnt'] for r in rows }
     pageviews   = counts.get('pageview', 0)
