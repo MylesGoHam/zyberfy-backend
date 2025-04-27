@@ -4,23 +4,28 @@
 {% block body_class %}analytics-page{% endblock %}
 
 {% block content %}
-  <header class="analytics-header">
-    <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
-  </header>
+<header class="site-header">
+  <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
+  <nav class="main-nav">
+    <a href="{{ url_for('dashboard') }}">Home</a>
+    <a href="{{ url_for('analytics') }}">Analytics</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+</header>
 
-  <div class="analytics-container">
-    <div class="metrics-grid"></div>
+<main class="container">
+  <div class="metrics-grid"></div>
 
-    <div class="chart-card">
-      <h2>Conversion Rate</h2>
-      <canvas id="donutChart"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <h2>Proposals This Month</h2>
-      <canvas id="lineChart"></canvas>
-    </div>
+  <div class="chart-card">
+    <h2>Conversion Rate</h2>
+    <canvas id="donutChart"></canvas>
   </div>
+
+  <div class="chart-card">
+    <h2>Proposals This Month</h2>
+    <canvas id="lineChart"></canvas>
+  </div>
+</main>
 {% endblock %}
 
 {% block scripts %}
@@ -32,29 +37,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const lineLabels     = {{ line_labels|tojson }};
   const lineData       = {{ line_data|tojson }};
 
+  console.log("▶ analytics data", { kpis, lineLabels, lineData });
+
   // KPI cards
   const grid = document.querySelector('.metrics-grid');
-  for (const [label, value] of Object.entries(kpis)) {
-    const c = document.createElement('div');
-    c.className = 'metric';
-    c.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
-    grid.append(c);
-  }
+  Object.entries(kpis).forEach(([label, value]) => {
+    const card = document.createElement('div');
+    card.className = 'metric';
+    card.innerHTML = `<div class="value">${value}</div><div class="label">${label}</div>`;
+    grid.append(card);
+  });
 
-  // charts
+  // Donut chart
   new Chart(document.getElementById('donutChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Converted','Dropped'],
-      datasets: [{ data: [donutConverted,donutDropped], backgroundColor:['#1e40af','#ddd'], borderWidth:0 }]
+      labels: ['Converted', 'Dropped'],
+      datasets: [{
+        data: [donutConverted, donutDropped],
+        backgroundColor: ['#1e40af','#ddd'],
+        borderWidth: 0
+      }]
     },
     options: { cutout:'70%', plugins:{legend:{position:'bottom'}}, maintainAspectRatio:false }
   });
 
+  // Line chart
   new Chart(document.getElementById('lineChart'), {
     type: 'line',
-    data: { labels: lineLabels, datasets:[{ data: lineData, fill:false, pointRadius:3, borderWidth:2, tension:0.3 }] },
-    options: { scales:{x:{grid:{display:false}}, y:{beginAtZero:true}}, plugins:{legend:{display:false}}, maintainAspectRatio:false }
+    data: { labels: lineLabels, datasets:[{ data: lineData, fill:false, pointRadius:3, borderWidth:2, tension:0.3 }]},
+    options:{ scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} }, plugins:{legend:{display:false}}, maintainAspectRatio:false }
   });
 });
 </script>
