@@ -1,59 +1,10 @@
-/* 1) Make all cards a consistent height and center the canvases */
-.chart-card {
-    background: #fff;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    height: 280px;            /* same as your JS options expect */
-    display: flex;
-    flex-direction: column;
-  }
-  .chart-card canvas {
-    flex: 1;                  /* fill the remaining space */
-  }
-  
-  /* 2) Tweak your KPI grid spacing and card styling */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;                /* more breathing room */
-    margin-bottom: 24px;
-  }
-  .metric {
-    background: #fff;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    text-align: center;
-  }
-  .metric .value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #1e40af;           /* match your donut color */
-  }
-  .metric .label {
-    font-size: 0.85rem;
-    color: #555;
-  }
-  
-  /* 3) Refine your header/nav */
-  header {
-    background: #fff;
-    padding: 16px 24px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    position: relative;
-  }
-  header a.back {
-    font-size: 0.9rem;
-    color: #1e40af;
-    margin-right: 16px;
-  }
-  
-  /* 4) Container max-width and centering */
-  .container {
-    max-width: 900px;
-    margin: 32px auto;
-    padding: 0 16px;
-  }
+/* resets, typography, color vars, spacing, utilities */
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:system-ui, sans-serif; line-height:1.4; color:#111; }
+a { color:#1e40af; text-decoration:none; }
+a:hover { text-decoration:underline; }
+button, .button, .button-primary { cursor:pointer; }
+.container { max-width:960px; margin:0 auto; padding:1rem; }
+.button { display:inline-block; padding:0.5rem 1rem; background:#fff; border:1px solid #1e40af; color:#1e40af; border-radius:4px; }
+.button-primary { background:#1e40af; color:#fff; border:none; border-radius:4px; }
+.flash { padding:0.5rem; background:#def; margin-bottom:1rem; }

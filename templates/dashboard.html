@@ -4,30 +4,36 @@
 {% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
-  <div class="container">
+  <section class="dashboard-welcome">
     <h1>Welcome, {{ first_name }}!</h1>
+    {% with msg = get_flashed_messages() %}
+      {% if msg %}
+        <div class="flash">{{ msg[0] }}</div>
+      {% endif %}
+    {% endwith %}
+  </section>
 
+  <section class="automation-summary">
     {% if automation_complete %}
-      <section class="automation-summary">
-        <h2>Your Automation Settings</h2>
-        <dl>
-          <dt>Tone</dt><dd>{{ automation.tone }}</dd>
-          <dt>Style</dt><dd>{{ automation.style }}</dd>
-          {% if automation.additional_notes %}
-            <dt>Notes</dt><dd>{{ automation.additional_notes }}</dd>
-          {% endif %}
-        </dl>
-        <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
-      </section>
+      <h2>Your Automation Settings</h2>
+      <dl>
+        <dt>Tone</dt><dd>{{ automation.tone }}</dd>
+        <dt>Style</dt><dd>{{ automation.style }}</dd>
+        {% if automation.additional_notes %}
+          <dt>Notes</dt><dd>{{ automation.additional_notes }}</dd>
+        {% endif %}
+      </dl>
+      <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
+
     {% else %}
-      <section class="empty-state">
+      <div class="empty-state">
         <p>You haven’t set up your automation yet.</p>
         <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
-      </section>
+      </div>
     {% endif %}
+  </section>
 
-    <section class="generate-proposal">
-      <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>
-    </section>
-  </div>
+  <section class="generate-proposal">
+    <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>
+  </section>
 {% endblock %}
