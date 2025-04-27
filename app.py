@@ -101,7 +101,7 @@ def dashboard():
         first_name       = user    ['first_name']         if user else '',
         plan_status      = user    ['plan_status']        if user else 'None',
         automation       = automation,
-        automation_complete = bool(automation)
+        automation_complete = (automation is not None)
     )
 
 
