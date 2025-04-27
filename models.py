@@ -60,21 +60,25 @@ def create_analytics_events_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS analytics_events (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id    INTEGER NOT NULL,
-        event_type TEXT    NOT NULL,
-        timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id)
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email   TEXT    NOT NULL,
+        event_type   TEXT    NOT NULL,
+        timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_email) REFERENCES users(email)
       );
     """)
     conn.commit()
     conn.close()
 
-def log_event(user_id, event_type):
+def get_user_automation(email: str):
+    """
+    Fetch this user's automation settings row, or None if not set.
+    """
     conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (user_id, event_type)
-    )
-    conn.commit()
+    row = conn.execute(
+        "SELECT email, tone, style, additional_notes "
+        "FROM automation_settings WHERE email = ?",
+        (email,)
+    ).fetchone()
     conn.close()
+    return row
