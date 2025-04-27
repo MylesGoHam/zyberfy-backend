@@ -2,52 +2,37 @@
 {% block title %}Dashboard – Zyberfy{% endblock %}
 
 {% block content %}
-  <header>
-    <div class="logo">Zyberfy</div>
-    <div class="hamburger" role="button" aria-label="Menu" tabindex="0">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-    </div>
-    <nav id="dropdown" class="dropdown">
-      <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('analytics') }}">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-      <div class="billing-status">Billing: {{ plan_status|capitalize }}</div>
-    </nav>
-  </header>
+<header class="site-header">
+  <h1>Welcome, {{ first_name }}!</h1>
+  <nav>
+    <a href="{{ url_for('dashboard') }}">Home</a>
+    <a href="{{ url_for('analytics') }}">Analytics</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+</header>
 
-  <div class="container">
-    <h1>Welcome, {{ first_name or 'User' }}!</h1>
-
-    {% if not automation_complete %}
-      <p class="info">You haven’t set up your automation preferences yet.</p>
-      <div class="buttons">
-        <a href="{{ url_for('automation_page') }}" class="btn">Set Up Automation</a>
-      </div>
+<div class="container">
+  <section class="automation-summary">
+    {% if automation_complete %}
+      <h2>Your Automation Settings</h2>
+      <dl>
+        <dt>Tone</dt><dd>{{ automation.tone }}</dd>
+        <dt>Style</dt><dd>{{ automation.style }}</dd>
+        {% if automation.additional_notes %}
+        <dt>Notes</dt><dd>{{ automation.additional_notes }}</dd>
+        {% endif %}
+      </dl>
+      <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
     {% else %}
-      <p class="info">✅ Your automation settings are saved.</p>
+      <div class="empty-state">
+        <p>You haven’t set up your automation yet.</p>
+        <a class="button" href="{{ url_for('automation_page') }}">Configure Automation</a>
+      </div>
     {% endif %}
+  </section>
 
-    <div class="buttons">
-      <a href="{{ url_for('proposal') }}" class="btn">Generate Proposal</a>
-    </div>
-  </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  const dd = document.getElementById("dropdown");
-  const hb = document.querySelector(".hamburger");
-  hb.addEventListener("click", () => {
-    const open = getComputedStyle(dd).display !== "none";
-    dd.style.display = open ? "none" : "flex";
-    dd.style.flexDirection = "column";
-  });
-  document.addEventListener("click", e => {
-    if (!dd.contains(e.target) && !hb.contains(e.target)) {
-      dd.style.display = "none";
-    }
-  });
-</script>
+  <section class="generate-proposal">
+    <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>
+  </section>
+</div>
 {% endblock %}
