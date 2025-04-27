@@ -5,7 +5,7 @@
 <main class="max-w-5xl mx-auto py-8 px-4 space-y-8">
   <h2 class="text-2xl font-semibold">Analytics Overview</h2>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
     <div class="p-6 bg-white rounded-lg shadow">
       <h3 class="text-sm text-gray-500">Pageviews</h3>
       <p class="mt-2 text-3xl font-bold">{{ pageviews }}</p>
@@ -18,6 +18,70 @@
       <h3 class="text-sm text-gray-500">Proposals Sent</h3>
       <p class="mt-2 text-3xl font-bold">{{ conversions }}</p>
     </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-sm text-gray-500">Conversion Rate</h3>
+      <p class="mt-2 text-3xl font-bold">{{ conversion_rate }}%</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-lg font-medium mb-2">Conversion Breakdown</h3>
+      <canvas id="donutChart" width="200" height="200"></canvas>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-lg font-medium mb-2">Pageviews (Last 7 Days)</h3>
+      <canvas id="lineChart" width="400" height="200"></canvas>
+    </div>
   </div>
 </main>
+{% endblock %}
+
+{% block scripts %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Donut
+      new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Converted', 'Dropped'],
+          datasets: [{
+            data: [{{ donut_converted }}, {{ donut_dropped }}],
+            backgroundColor: ['#1e40af','#ddd'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: '70%',
+          plugins: { legend: { position: 'bottom' } },
+          maintainAspectRatio: false
+        }
+      });
+
+      // Line
+      new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+          labels: {{ line_labels|tojson }},
+          datasets: [{
+            data: {{ line_data|tojson }},
+            fill: false,
+            pointRadius: 3,
+            borderWidth: 2,
+            tension: 0.3
+          }]
+        },
+        options: {
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true }
+          },
+          plugins: { legend: { display: false } },
+          maintainAspectRatio: false
+        }
+      });
+    });
+  </script>
 {% endblock %}
