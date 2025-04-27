@@ -1,40 +1,41 @@
+{# templates/dashboard.html #}
 {% extends "base.html" %}
 
 {% block title %}Dashboard – Zyberfy{% endblock %}
-{% block body_class %}dashboard{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
-<header class="site-header">
-  <h1>Welcome, {{ first_name }}!</h1>
-  <nav>
-    <a href="{{ url_for('dashboard') }}">Home</a>
-    <a href="{{ url_for('analytics') }}">Analytics</a>
-    <a href="{{ url_for('logout') }}">Logout</a>
-  </nav>
-</header>
+  <header class="site-header">
+    <h1>Welcome, {{ first_name }}!</h1>
+    <nav>
+      <a href="{{ url_for('dashboard') }}">Home</a>
+      <a href="{{ url_for('analytics') }}">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
 
-<div class="container">
-  <section class="automation-summary">
-    {% if automation_complete %}
-      <h2>Your Automation Settings</h2>
-      <dl>
-        <dt>Tone</dt><dd>{{ automation.tone }}</dd>
-        <dt>Style</dt><dd>{{ automation.style }}</dd>
-        {% if automation.additional_notes %}
-        <dt>Notes</dt><dd>{{ automation.additional_notes }}</dd>
-        {% endif %}
-      </dl>
-      <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
-    {% else %}
-      <div class="empty-state">
-        <p>You haven’t set up your automation yet.</p>
-        <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
-      </div>
-    {% endif %}
-  </section>
+  <div class="container">
+    <section class="automation-summary">
+      {% if automation_complete %}
+        <h2>Your Automation Settings</h2>
+        <dl>
+          <dt>Tone</dt><dd>{{ automation.tone }}</dd>
+          <dt>Style</dt><dd>{{ automation.style }}</dd>
+          {% if automation.additional_notes %}
+            <dt>Notes</dt><dd>{{ automation.additional_notes }}</dd>
+          {% endif %}
+        </dl>
+        <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
+      {% else %}
+        <div class="empty-state">
+          <p>You haven’t set up your automation yet.</p>
+          <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
+        </div>
+      {% endif %}
+    </section>
 
-  <section class="generate-proposal">
-    <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>
-  </section>
-</div>
+    <section class="generate-proposal">
+      <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>
+    </section>
+  </div>
 {% endblock %}
