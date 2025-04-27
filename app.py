@@ -1,4 +1,3 @@
-# app.py
 import os
 import logging
 from flask import (
@@ -22,14 +21,20 @@ from email_utils import send_proposal_email
 from datetime import datetime, timedelta
 
 # ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_id: str, event_type: str):
+def log_event(user_email: str, event_type: str):
     conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type, timestamp) "
-        "VALUES (?, ?, CURRENT_TIMESTAMP)",
-        (user_id, event_type)
-    )
-    conn.commit()
+    # look up the numeric user_id
+    user = conn.execute(
+        "SELECT id FROM users WHERE email = ?",
+        (user_email,)
+    ).fetchone()
+    if user:
+        conn.execute(
+            "INSERT INTO analytics_events (user_id, event_type, timestamp) "
+            "VALUES (?, ?, CURRENT_TIMESTAMP)",
+            (user["id"], event_type)
+        )
+        conn.commit()
     conn.close()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
@@ -38,11 +43,11 @@ logger = logging.getLogger(__name__)
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key     = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
+stripe.api_key  = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key  = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL  = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL     = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD  = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -84,8 +89,6 @@ def login():
 
         if user and user['password'] == password:
             session['email'] = email
-            session['first_name'] = user['first_name']
-            session['plan_status'] = user['plan_status']
             return redirect(url_for('dashboard'))
 
         flash('Invalid email or password', 'error')
@@ -102,6 +105,7 @@ def dashboard():
     # record pageview
     log_event(session['email'], 'pageview')
 
+    # your existing dashboard logic…
     first_name = session.get('first_name', 'there')
     plan_status = session.get('plan_status', 'free')
     automation = get_user_automation(session['email'])
@@ -296,20 +300,21 @@ def analytics():
         "FROM analytics_events "
         "WHERE user_id = ? "
         "GROUP BY event_type",
-        (session['email'],)
+        (  # look up numeric id again
+            conn.execute(
+                "SELECT id FROM users WHERE email = ?",
+                (session['email'],)
+            ).fetchone()['id'],
+        )
     ).fetchall()
     conn.close()
 
     kpis = {r['event_type']: r['cnt'] for r in rows}
-    pageviews   = kpis.get('pageview', 0)
-    saves       = kpis.get('saved_automation', 0)
-    conversions = kpis.get('sent_proposal', 0)
-
     return render_template(
         'analytics.html',
-        pageviews=pageviews,
-        saves=saves,
-        conversions=conversions
+        pageviews=kpis.get('pageview', 0),
+        saves=kpis.get('saved_automation', 0),
+        conversions=kpis.get('sent_proposal', 0)
     )
 
 
@@ -321,13 +326,7 @@ def terms():
 @app.route('/track', methods=['POST'])
 def track_event():
     data = request.get_json()
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (session.get('email'), data.get('event'))
-    )
-    conn.commit()
-    conn.close()
+    log_event(session.get('email'), data.get('event'))
     return ('', 204)
 
 
