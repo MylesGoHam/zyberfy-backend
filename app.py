@@ -137,13 +137,11 @@ def memberships():
 def automation_page():
     if 'email' not in session:
         return redirect(url_for('login'))
-
     conn = get_db_connection()
     automation = conn.execute(
         "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone()
     conn.close()
-
     return render_template('automation.html', automation=automation)
 
 
