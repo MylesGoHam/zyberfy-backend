@@ -1,22 +1,14 @@
-{# templates/dashboard.html #}
 {% extends "base.html" %}
 
 {% block title %}Dashboard – Zyberfy{% endblock %}
 {% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
-  <header class="site-header">
-    <h1>Welcome, {{ first_name }}!</h1>
-    <nav>
-      <a href="{{ url_for('dashboard') }}">Home</a>
-      <a href="{{ url_for('analytics') }}">Analytics</a>
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-  </header>
-
   <div class="container">
-    <section class="automation-summary">
-      {% if automation_complete %}
+    <h1>Welcome, {{ first_name }}!</h1>
+
+    {% if automation_complete %}
+      <section class="automation-summary">
         <h2>Your Automation Settings</h2>
         <dl>
           <dt>Tone</dt><dd>{{ automation.tone }}</dd>
@@ -26,13 +18,13 @@
           {% endif %}
         </dl>
         <a class="button" href="{{ url_for('automation_page') }}">Edit Automation</a>
-      {% else %}
-        <div class="empty-state">
-          <p>You haven’t set up your automation yet.</p>
-          <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
-        </div>
-      {% endif %}
-    </section>
+      </section>
+    {% else %}
+      <section class="empty-state">
+        <p>You haven’t set up your automation yet.</p>
+        <a class="button-primary" href="{{ url_for('automation_page') }}">Configure Automation</a>
+      </section>
+    {% endif %}
 
     <section class="generate-proposal">
       <a class="button-primary" href="{{ url_for('proposal') }}">Generate Proposal</a>

@@ -5,19 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Zyberfy{% endblock %}</title>
 
-  {# global resets, utilities, etc. #}
+  <!-- global utilities -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
 
-  {# all your per-page layout rules, scoped under body.classes #}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-
-  {# any extra per-page CSS you might need #}
+  <!-- per-page layout overrides -->
   {% block extra_styles %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+
+  <!-- ── GLOBAL HEADER / NAV ───────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="logo"><a href="{{ url_for('home') }}">Zyberfy</a></div>
+    <button class="hamburger" aria-label="Menu" onclick="toggleGlobalNav()">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+    <nav id="global-nav" class="dropdown">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('memberships') }}">Sign Up</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('analytics') }}">Analytics</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
+
   {% block content %}{% endblock %}
 
-  {# per-page scripts (analytics charts, etc.) #}
+  <script>
+    function toggleGlobalNav() {
+      const nav = document.getElementById('global-nav');
+      nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+    }
+    document.addEventListener('click', (e) => {
+      const nav = document.getElementById('global-nav'),
+            hb  = document.querySelector('.hamburger');
+      if (!nav.contains(e.target) && !hb.contains(e.target)) nav.style.display = 'none';
+    });
+  </script>
+
   {% block scripts %}{% endblock %}
 </body>
 </html>
