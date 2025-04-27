@@ -1,70 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mx-auto py-8 space-y-8">
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Analytics Overview</h1>
 
-  <h2 class="text-2xl font-bold">Analytics Overview</h2>
-
-  <!-- KPI cards (unchanged) -->
-  <div class="grid grid-cols-4 gap-6">
-    <!-- … your Pageviews / Saved / Proposals / Conversion Rate cards … -->
+  <!-- KPI cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="p-6 bg-white rounded-lg shadow">
+      <div class="text-sm text-gray-500">Pageviews</div>
+      <div class="mt-2 text-3xl font-bold">{{ pageviews }}</div>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <div class="text-sm text-gray-500">Saved Automations</div>
+      <div class="mt-2 text-3xl font-bold">{{ saves }}</div>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <div class="text-sm text-gray-500">Proposals Sent</div>
+      <div class="mt-2 text-3xl font-bold">{{ conversions }}</div>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow">
+      <div class="text-sm text-gray-500">Conversion Rate</div>
+      <div class="mt-2 text-3xl font-bold">{{ conversion_rate }}%</div>
+    </div>
   </div>
 
-  <!-- Charts row with fixed-height boxes -->
-  <div class="grid grid-cols-2 gap-6">
-    <!-- Conversion Breakdown -->
-    <div class="bg-white p-6 rounded-lg shadow h-64">
-      <h3 class="text-lg font-medium mb-4">Conversion Breakdown</h3>
-      <canvas id="donutChart" class="w-full h-full"></canvas>
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Donut -->
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h2 class="text-lg font-medium mb-4">Conversion Breakdown</h2>
+      <div class="relative" style="height:250px;">
+        <canvas id="donutChart"></canvas>
+      </div>
     </div>
 
-    <!-- Pageviews (Last 7 Days) -->
-    <div class="bg-white p-6 rounded-lg shadow h-64">
-      <h3 class="text-lg font-medium mb-4">Pageviews (Last 7 Days)</h3>
-      <canvas id="lineChart" class="w-full h-full"></canvas>
+    <!-- Line -->
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h2 class="text-lg font-medium mb-4">Pageviews (Last 7 Days)</h2>
+      <div class="relative" style="height:250px;">
+        <canvas id="lineChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // -- Donut chart --
-  new Chart(document.getElementById('donutChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Converted', 'Dropped'],
-      datasets: [{
-        data: [{{ donut_converted }}, {{ donut_dropped }}],
-        backgroundColor: ['#4F46E5', '#CBD5E1']
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,    // ← allow filling parent height
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    // KPIs from Flask
+    const pageviews       = {{ pageviews }};
+    const saves           = {{ saves }};
+    const conversions     = {{ conversions }};
+    const conversionRate  = {{ conversion_rate }};
+    const donutConverted  = {{ donut_converted }};
+    const donutDropped    = {{ donut_dropped }};
+    const lineLabels      = {{ line_labels|tojson }};
+    const lineData        = {{ line_data|tojson }};
 
-  // -- Line chart --
-  new Chart(document.getElementById('lineChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Pageviews',
-        data: {{ line_data|tojson }},
-        tension: 0.3,
-        fill: false,
-        borderColor: '#4F46E5'
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,    // ← allow filling parent height
-      scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-</script>
+    // Donut chart
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted', 'Dropped'],
+        datasets: [{
+          data: [donutConverted, donutDropped],
+          backgroundColor: ['#6366F1', '#D1D5DB'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' },
+          datalabels: {
+            color: '#000',
+            formatter: (value) => value,
+          }
+        },
+        maintainAspectRatio: false,
+        cutout: '60%',
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // Line chart
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Pageviews',
+          data: lineData,
+          fill: false,
+          borderWidth: 2,
+          tension: 0.4,
+          pointBackgroundColor: '#6366F1',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            align: 'top',
+            formatter: (value) => value,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        },
+        maintainAspectRatio: false
+      },
+      plugins: [ChartDataLabels]
+    });
+  </script>
 {% endblock %}
