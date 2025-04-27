@@ -15,21 +15,10 @@ from models import (
     create_automation_settings_table,
     create_subscriptions_table,
     create_analytics_events_table,
+    log_event,
     get_user_automation
 )
 from email_utils import send_proposal_email
-from datetime import datetime, timedelta
-
-# ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_id: str, event_type: str):
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type, timestamp) "
-        "VALUES (?, ?, CURRENT_TIMESTAMP)",
-        (user_id, event_type)
-    )
-    conn.commit()
-    conn.close()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -83,6 +72,8 @@ def login():
 
         if user and user['password'] == password:
             session['email'] = email
+            session['first_name'] = user['first_name'] or ''
+            session['plan_status'] = user['plan_status'] or 'free'
             return redirect(url_for('dashboard'))
 
         flash('Invalid email or password', 'error')
@@ -99,7 +90,6 @@ def dashboard():
     # record pageview
     log_event(session['email'], 'pageview')
 
-    # your existing dashboard logic…
     first_name = session.get('first_name', 'there')
     plan_status = session.get('plan_status', 'free')
     automation = get_user_automation(session['email'])
@@ -147,7 +137,6 @@ def automation_page():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # … validate & write automation settings …
     log_event(session['email'], 'saved_automation')
     return redirect(url_for('dashboard'))
 
@@ -273,7 +262,6 @@ def proposal():
         )
         status_code = getattr(resp_obj, 'status_code', resp_obj)
         if 200 <= status_code < 300:
-            # record that we sent a proposal
             log_event(session['email'], 'sent_proposal')
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
@@ -320,13 +308,7 @@ def terms():
 @app.route('/track', methods=['POST'])
 def track_event():
     data = request.get_json()
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (session.get('email'), data.get('event'))
-    )
-    conn.commit()
-    conn.close()
+    log_event(session.get('email'), data.get('event'))
     return ('', 204)
 
 
