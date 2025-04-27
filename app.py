@@ -277,34 +277,7 @@ def proposal():
 
 @app.route('/analytics')
 def analytics():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    rows = conn.execute(
-        """
-        SELECT event_type, COUNT(*) AS cnt
-        FROM analytics_events
-        WHERE user_id = ?
-        GROUP BY event_type
-        """,
-        (session['email'],)
-    ).fetchall()
-    conn.close()
-
-    # build a dict of counts
-    kpis = {r['event_type']: r['cnt'] for r in rows}
-    pageviews   = kpis.get('pageview', 0)
-    saves       = kpis.get('saved_automation', 0)
-    conversions = kpis.get('sent_proposal', 0)
-
-    # for now we won’t draw charts, just show the raw numbers
-    return render_template(
-        'analytics.html',
-        pageviews=pageviews,
-        saves=saves,
-        conversions=conversions
-    )
+    return "✅ analytics route hit!"
 
 
 @app.route('/terms')
