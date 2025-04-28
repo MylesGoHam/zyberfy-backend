@@ -1,121 +1,62 @@
 {% extends "base.html" %}
 
+{% block title %}Analytics{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Analytics Overview</h1>
+  <div class="container mx-auto mt-8">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Analytics Overview</h1>
+      <a href="{{ url_for('dashboard') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">← Back to Dashboard</a>
+    </div>
 
-  <!-- KPI cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="p-6 bg-white rounded-lg shadow">
-      <div class="text-sm text-gray-500">Pageviews</div>
-      <div class="mt-2 text-3xl font-bold">{{ pageviews }}</div>
-    </div>
-    <div class="p-6 bg-white rounded-lg shadow">
-      <div class="text-sm text-gray-500">Saved Automations</div>
-      <div class="mt-2 text-3xl font-bold">{{ saves }}</div>
-    </div>
-    <div class="p-6 bg-white rounded-lg shadow">
-      <div class="text-sm text-gray-500">Proposals Sent</div>
-      <div class="mt-2 text-3xl font-bold">{{ conversions }}</div>
-    </div>
-    <div class="p-6 bg-white rounded-lg shadow">
-      <div class="text-sm text-gray-500">Conversion Rate</div>
-      <div class="mt-2 text-3xl font-bold">{{ conversion_rate }}%</div>
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Donut -->
-    <div class="p-6 bg-white rounded-lg shadow">
-      <h2 class="text-lg font-medium mb-4">Conversion Breakdown</h2>
-      <div class="relative" style="height:250px;">
-        <canvas id="donutChart"></canvas>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="p-4 bg-white shadow rounded">
+        <h2 class="text-lg font-semibold">Pageviews</h2>
+        <p class="text-3xl">{{ pageviews }}</p>
+      </div>
+      <div class="p-4 bg-white shadow rounded">
+        <h2 class="text-lg font-semibold">Saves</h2>
+        <p class="text-3xl">{{ saves }}</p>
+      </div>
+      <div class="p-4 bg-white shadow rounded">
+        <h2 class="text-lg font-semibold">Proposals Sent</h2>
+        <p class="text-3xl">{{ conversions }}</p>
       </div>
     </div>
 
-    <!-- Line -->
-    <div class="p-6 bg-white rounded-lg shadow">
-      <h2 class="text-lg font-medium mb-4">Pageviews (Last 7 Days)</h2>
-      <div class="relative" style="height:250px;">
-        <canvas id="lineChart"></canvas>
-      </div>
+    <!-- Donut chart -->
+    <div class="mb-8">
+      <canvas id="donutChart"></canvas>
+    </div>
+
+    <!-- Line chart -->
+    <div>
+      <canvas id="lineChart"></canvas>
     </div>
   </div>
-</div>
-{% endblock %}
 
-{% block scripts %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script>
-    // KPIs from Flask
-    const pageviews       = {{ pageviews }};
-    const saves           = {{ saves }};
-    const conversions     = {{ conversions }};
-    const conversionRate  = {{ conversion_rate }};
-    const donutConverted  = {{ donut_converted }};
-    const donutDropped    = {{ donut_dropped }};
-    const lineLabels      = {{ line_labels|tojson }};
-    const lineData        = {{ line_data|tojson }};
-
-    // Donut chart
+    // Donut
     new Chart(document.getElementById('donutChart'), {
       type: 'doughnut',
       data: {
         labels: ['Converted', 'Dropped'],
-        datasets: [{
-          data: [donutConverted, donutDropped],
-          backgroundColor: ['#6366F1', '#D1D5DB'],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { position: 'bottom' },
-          datalabels: {
-            color: '#000',
-            formatter: (value) => value,
-          }
-        },
-        maintainAspectRatio: false,
-        cutout: '60%',
-      },
-      plugins: [ChartDataLabels]
+        datasets: [{ data: [{{ donut_converted }}, {{ donut_dropped }}] }]
+      }
     });
 
-    // Line chart
+    // Line
     new Chart(document.getElementById('lineChart'), {
       type: 'line',
       data: {
-        labels: lineLabels,
+        labels: {{ line_labels|tojson }},
         datasets: [{
           label: 'Pageviews',
-          data: lineData,
+          data: {{ line_data|tojson }},
           fill: false,
-          borderWidth: 2,
-          tension: 0.4,
-          pointBackgroundColor: '#6366F1',
-          pointRadius: 4
+          tension: 0.1
         }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          datalabels: {
-            align: 'top',
-            formatter: (value) => value,
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        },
-        maintainAspectRatio: false
-      },
-      plugins: [ChartDataLabels]
+      }
     });
   </script>
 {% endblock %}
