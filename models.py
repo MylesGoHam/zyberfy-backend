@@ -1,6 +1,7 @@
 import sqlite3
 import os
 
+# use this everywhere
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
