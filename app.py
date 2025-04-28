@@ -16,6 +16,7 @@ from models import (
     create_subscriptions_table,
     create_analytics_events_table,
     get_user_automation,
+    log_event
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
@@ -26,11 +27,11 @@ logger = logging.getLogger(__name__)
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key  = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key  = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL  = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL     = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD  = os.getenv("ADMIN_PASSWORD")
+stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key     = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -42,17 +43,7 @@ create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
 
-# ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_email: str, event_type: str):
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (user_email, event_type)
-    )
-    conn.commit()
-    conn.close()
-
-# ─── Seed Admin ──────────────────────────────────────────────────────────────
+# Seed admin if configured
 if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn = get_db_connection()
     conn.execute(
@@ -98,7 +89,6 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # record a pageview
     log_event(session['email'], 'pageview')
 
     first_name          = session.get('first_name', 'there')
@@ -156,7 +146,7 @@ def automation_page():
         )
         conn = get_db_connection()
         exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?",
+            "SELECT 1 FROM automation_settings WHERE email = ?", 
             (session['email'],)
         ).fetchone()
 
@@ -169,8 +159,7 @@ def automation_page():
             )
         else:
             conn.execute(
-                "INSERT INTO automation_settings "
-                "(email, tone, style, additional_notes) "
+                "INSERT INTO automation_settings (email, tone, style, additional_notes) "
                 "VALUES (?, ?, ?, ?)",
                 (session['email'], tone, style, notes)
             )
@@ -181,7 +170,6 @@ def automation_page():
         log_event(session['email'], 'saved_automation')
         return redirect(url_for('dashboard'))
 
-    # GET: render form (pre-filled if saved)
     automation = get_user_automation(session['email']) or {}
     return render_template('automation.html', automation=automation)
 
@@ -196,6 +184,7 @@ def save_automation():
         request.form.get('style'),
         request.form.get('additional_notes'),
     )
+
     conn = get_db_connection()
     exists = conn.execute(
         "SELECT 1 FROM automation_settings WHERE email = ?",
@@ -210,14 +199,13 @@ def save_automation():
         )
     else:
         conn.execute(
-            "INSERT INTO automation_settings "
-            "(email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
+            "INSERT INTO automation_settings (email, tone, style, additional_notes) "
+            "VALUES (?, ?, ?, ?)",
             (session['email'], tone, style, notes)
         )
 
     conn.commit()
     conn.close()
-
     log_event(session['email'], 'saved_automation')
     return jsonify(success=True)
 
@@ -229,7 +217,7 @@ def generate_proposal():
 
     conn = get_db_connection()
     automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?",
+        "SELECT * FROM automation_settings WHERE email = ?", 
         (session['email'],)
     ).fetchone()
     conn.close()
@@ -248,7 +236,7 @@ def generate_proposal():
         resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
                 {"role": "user",   "content": prompt}
             ],
             max_tokens=300,
@@ -258,8 +246,8 @@ def generate_proposal():
     except Exception:
         logger.exception("OpenAI failure; using fallback.")
         fallback = (
-            f"Hi there,\n\n"
-            f"Here's a {automation['tone']} & {automation['style']} proposal.\n\n"
+            f"Hi there,\n\nThanks for reaching out! Here's a "
+            f"{automation['tone']} & {automation['style']} proposal.\n\n"
             f"{automation['additional_notes'] or ''}\n\n"
             "Best regards,\nThe Zyberfy Team"
         )
@@ -278,13 +266,13 @@ def proposal():
 
         conn = get_db_connection()
         automation = conn.execute(
-            "SELECT * FROM automation_settings WHERE email = ?",
+            "SELECT * FROM automation_settings WHERE email = ?", 
             (session['email'],)
         ).fetchone()
         conn.close()
 
         prompt = (
-            f"Write a business proposal to {lead_name} (budget ${budget}), "
+            f"Write a business proposal email to {lead_name}, budget ${budget}, "
             f"in a {automation['tone']} tone & {automation['style']} style. "
             f"Notes: {automation['additional_notes'] or 'none'}"
         )
@@ -292,7 +280,7 @@ def proposal():
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
                     {"role": "user",   "content": prompt}
                 ],
                 max_tokens=350,
@@ -336,16 +324,16 @@ def analytics():
     """, (session['email'],)).fetchall()
     conn.close()
 
-    kpis        = {r['event_type']: r['cnt'] for r in rows}
+    kpis       = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
     generated   = kpis.get('generated_proposal', 0)
     conversions = kpis.get('sent_proposal', 0)
-
     conversion_rate = (conversions / generated * 100) if generated else 0
     donut_converted = conversions
     donut_dropped   = max(0, generated - conversions)
 
+    # build 7-day sparkline
     today       = datetime.utcnow().date()
     dates       = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
@@ -368,7 +356,7 @@ def analytics():
         saves=saves,
         generated=generated,
         conversions=conversions,
-        conversion_rate=round(conversion_rate, 1),
+        conversion_rate=round(conversion_rate,1),
         donut_converted=donut_converted,
         donut_dropped=donut_dropped,
         line_labels=line_labels,
