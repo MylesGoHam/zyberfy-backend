@@ -133,10 +133,10 @@ def memberships():
     return render_template('memberships.html')
 
 
-@app.route('/automation', methods=['GET', 'POST'])
+@app.route('/automation', methods=['GET','POST'])
 def automation():
     if 'email' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('automation'))
 
     if request.method == 'POST':
         # pull the submitted form values
