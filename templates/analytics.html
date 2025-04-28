@@ -1,15 +1,16 @@
+<!-- templates/analytics.html -->
 {% extends "base.html" %}
 {% block content %}
-  <h1>Set Up Your Automation</h1>
+  <div class="max-w-5xl mx-auto p-4">
+    <a href="{{ url_for('dashboard') }}"
+       class="inline-block mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded">
+      ← Back to Dashboard
+    </a>
 
-  <!-- show any flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, msg in messages %}
-        <div class="alert alert-{{ category }}">{{ msg }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+    <h1 class="text-2xl font-bold mb-4">Analytics Overview</h1>
+    <!-- rest of your analytics cards/charts… -->
+  </div>
+{% endblock %}
 
   <form method="POST" action="{{ url_for('automation') }}">
     <div class="form-group">
