@@ -8,13 +8,15 @@ from flask import (
 from dotenv import load_dotenv
 import openai
 import stripe
+
 from models import (
     get_db_connection,
     create_users_table,
     create_automation_settings_table,
     create_subscriptions_table,
     create_analytics_events_table,
-    get_user_automation
+    get_user_automation,
+    log_event
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
@@ -52,16 +54,6 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
-# ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_email: str, event_type: str):
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-        (user_email, event_type)
-    )
-    conn.commit()
-    conn.close()
-
 # ─── Routes ──────────────────────────────────────────────────────────────────
 @app.route('/')
 def home():
@@ -80,8 +72,8 @@ def login():
         conn.close()
 
         if user and user['password'] == password:
-            session['email']      = email
-            session['first_name'] = user['first_name']
+            session['email']       = email
+            session['first_name']  = user['first_name']
             session['plan_status'] = user['plan_status']
             return redirect(url_for('dashboard'))
 
@@ -141,16 +133,6 @@ def memberships():
     return render_template('memberships.html')
 
 
-@app.route('/automation', methods=['POST'])
-def automation_page():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    # … validate & write automation settings …
-    log_event(session['email'], 'saved_automation')
-    return redirect(url_for('dashboard'))
-
-
 @app.route('/save-automation', methods=['POST'])
 def save_automation():
     if 'email' not in session:
@@ -180,6 +162,7 @@ def save_automation():
     conn.commit()
     conn.close()
 
+    log_event(session['email'], 'saved_automation')
     return jsonify(success=True)
 
 
@@ -288,7 +271,7 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    # 1) Aggregate totals by event_type
+    # 1) totals
     rows = conn.execute("""
         SELECT event_type, COUNT(*) AS cnt
         FROM analytics_events
@@ -300,21 +283,21 @@ def analytics():
     saves       = kpis.get('saved_automation', 0)
     conversions = kpis.get('sent_proposal', 0)
 
-    # 2) Conversion rate
+    # 2) conversion %
     conversion_rate = (conversions / pageviews * 100) if pageviews else 0
 
-    # 3) Donut data
+    # 3) donut slices
     donut_converted = conversions
     donut_dropped   = pageviews - conversions
 
-    # 4) Last 7 days line chart
+    # 4) 7-day series
     today = datetime.utcnow().date()
     dates = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
     line_data = []
     for d in dates:
         cnt = conn.execute("""
-            SELECT COUNT(*) as cnt
+            SELECT COUNT(*) AS cnt
             FROM analytics_events
             WHERE user_id = ?
               AND event_type = 'pageview'
@@ -355,7 +338,6 @@ def ping():
 
 @app.route('/debug_templates')
 def debug_templates():
-    import os
     tpl_dir = os.path.join(app.root_path, 'templates')
     files = sorted(os.listdir(tpl_dir))
     items = "".join(f"<li>{f}</li>" for f in files)
