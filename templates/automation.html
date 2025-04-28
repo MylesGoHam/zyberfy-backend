@@ -1,79 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Automation Settings – Zyberfy{% endblock %}
-
+{% block title %}Automation Setup{% endblock %}
 {% block content %}
-<main class="max-w-3xl mx-auto py-8 px-4 space-y-6">
-  <h2 class="text-2xl font-semibold mb-4">Automation Settings</h2>
-
-  <form id="automation-form" class="space-y-4">
-    <div>
-      <label class="block font-medium">Tone</label>
-      <select name="tone" class="mt-1 block w-full rounded border-gray-300">
-        {% for t in ["Friendly","Professional","Casual","Formal"] %}
-          <option value="{{ t }}" {{ automation and automation.tone==t and 'selected' or '' }}>{{ t }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div>
-      <label class="block font-medium">Style</label>
-      <select name="style" class="mt-1 block w-full rounded border-gray-300">
-        {% for s in ["Detailed","Concise","Bulleted","Storytelling"] %}
-          <option value="{{ s }}" {{ automation and automation.style==s and 'selected' or '' }}>{{ s }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div>
-      <label class="block font-medium">Extra Notes</label>
-      <textarea name="additional_notes" rows="3"
-        class="mt-1 block w-full rounded border-gray-300">{{ automation.additional_notes if automation else '' }}</textarea>
-    </div>
-
-    <button
-      type="submit"
-      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-      Save Settings
-    </button>
-  </form>
-
-  <div id="status" class="mt-4 text-green-600 hidden">✔️ Settings saved.</div>
-</main>
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  <script>
-    // track pageview
-    fetch('/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'pageview_automation' })
-    });
-
-    // handle form submit
-    document.getElementById('automation-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      let form = e.target;
-      let data = new FormData(form);
-      let payload = {};
-      data.forEach((v,k)=>payload[k]=v);
-
-      let res = await fetch('/save-automation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        document.getElementById('status').classList.remove('hidden');
-        // track save
-        fetch('/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event: 'saved_automation' })
-        });
-      }
-    });
-  </script>
+  <div class="max-w-md mx-auto py-10">
+    <h2 class="text-xl font-semibold mb-4">Automation Settings</h2>
+    <form method="POST" action="{{ url_for('automation') }}" class="space-y-4">
+      <div>
+        <label>Tone</label>
+        <input name="tone" required
+               value="{{ automation.tone or '' }}"
+               class="w-full border px-3 py-2 rounded"/>
+      </div>
+      <div>
+        <label>Style</label>
+        <input name="style" required
+               value="{{ automation.style or '' }}"
+               class="w-full border px-3 py-2 rounded"/>
+      </div>
+      <div>
+        <label>Additional Notes</label>
+        <textarea name="additional_notes"
+                  class="w-full border px-3 py-2 rounded">{{ automation.additional_notes or '' }}</textarea>
+      </div>
+      <button type="submit"
+              class="bg-blue-600 text-white px-4 py-2 rounded">
+        Save & Return
+      </button>
+    </form>
+  </div>
 {% endblock %}
