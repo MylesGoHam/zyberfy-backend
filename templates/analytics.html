@@ -1,54 +1,27 @@
-<!-- templates/analytics.html -->
 {% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
 {% block content %}
-  <div class="max-w-5xl mx-auto p-4">
-    <a href="{{ url_for('dashboard') }}"
-       class="inline-block mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded">
-      ← Back to Dashboard
-    </a>
+  <div class="max-w-4xl mx-auto py-10 space-y-6">
+    <h2 class="text-2xl font-semibold">Site Analytics</h2>
 
-    <h1 class="text-2xl font-bold mb-4">Analytics Overview</h1>
-    <!-- rest of your analytics cards/charts… -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-white p-4 shadow rounded">
+        <h3 class="font-medium">Pageviews</h3>
+        <p class="text-xl">{{ pageviews }}</p>
+      </div>
+      <div class="bg-white p-4 shadow rounded">
+        <h3 class="font-medium">Saves</h3>
+        <p class="text-xl">{{ saves }}</p>
+      </div>
+      <div class="bg-white p-4 shadow rounded">
+        <h3 class="font-medium">Proposals Sent</h3>
+        <p class="text-xl">{{ conversions }}</p>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <a href="{{ url_for('dashboard') }}"
+         class="text-gray-700 hover:underline">&larr; Back to Dashboard</a>
+    </div>
   </div>
-{% endblock %}
-
-  <form method="POST" action="{{ url_for('automation') }}">
-    <div class="form-group">
-      <label for="tone">Tone</label>
-      <input
-        type="text"
-        id="tone"
-        name="tone"
-        class="form-control"
-        value="{{ automation.tone or '' }}"
-        required
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="style">Style</label>
-      <input
-        type="text"
-        id="style"
-        name="style"
-        class="form-control"
-        value="{{ automation.style or '' }}"
-        required
-      >
-    </div>
-
-    <div class="form-group">
-      <label for="additional_notes">Additional Notes</label>
-      <textarea
-        id="additional_notes"
-        name="additional_notes"
-        class="form-control"
-        rows="4"
-      >{{ automation.additional_notes or '' }}</textarea>
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-      Save &amp; Return
-    </button>
-  </form>
 {% endblock %}
