@@ -1,27 +1,26 @@
-{% extends "base.html" %}
-{% block title %}Analytics{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Analytics · Zyberfy{% endblock %}
+
 {% block content %}
-  <div class="max-w-4xl mx-auto py-10 space-y-6">
-    <h2 class="text-2xl font-semibold">Site Analytics</h2>
-
-    <div class="grid grid-cols-3 gap-4">
-      <div class="bg-white p-4 shadow rounded">
-        <h3 class="font-medium">Pageviews</h3>
-        <p class="text-xl">{{ pageviews }}</p>
-      </div>
-      <div class="bg-white p-4 shadow rounded">
-        <h3 class="font-medium">Saves</h3>
-        <p class="text-xl">{{ saves }}</p>
-      </div>
-      <div class="bg-white p-4 shadow rounded">
-        <h3 class="font-medium">Proposals Sent</h3>
-        <p class="text-xl">{{ conversions }}</p>
-      </div>
+  <h2 class="text-2xl mb-4">Site Analytics</h2>
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="p-6 bg-white rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-1">Pageviews</h3>
+      <p class="text-3xl">{{ pageviews }}</p>
     </div>
-
-    <div class="mt-6">
-      <a href="{{ url_for('dashboard') }}"
-         class="text-gray-700 hover:underline">&larr; Back to Dashboard</a>
+    <div class="p-6 bg-white rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-1">Saves</h3>
+      <p class="text-3xl">{{ saves }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-1">Proposals Sent</h3>
+      <p class="text-3xl">{{ conversions }}</p>
     </div>
   </div>
+
+  <a href="{{ url_for('dashboard') }}" class="inline-block mb-8 text-gray-700 hover:underline">
+    ← Back to Dashboard
+  </a>
+
+  <!-- Your charts here… -->
 {% endblock %}
