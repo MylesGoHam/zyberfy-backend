@@ -1,11 +1,12 @@
-{% extends "base.html" %}
-{% block title %}Welcome to Zyberfy{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Welcome · Zyberfy{% endblock %}
+
 {% block content %}
-  <div class="max-w-2xl mx-auto text-center py-20">
-    <h1 class="text-4xl font-bold mb-4">Zyberfy</h1>
-    <p class="mb-6">Automate your proposals in seconds.</p>
-    <a href="{{ url_for('login') }}" 
-       class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg shadow">
+  <div class="text-center py-20">
+    <h1 class="text-4xl font-bold mb-4">Close Faster, Work Less</h1>
+    <p class="mb-8">Deliver premium, automated proposals in seconds.</p>
+    <a href="{{ url_for('login') }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
       Get Started
     </a>
   </div>
