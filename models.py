@@ -17,10 +17,9 @@ def create_users_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        first_name TEXT,
+        email       TEXT PRIMARY KEY,
+        password    TEXT    NOT NULL,
+        first_name  TEXT,
         plan_status TEXT
       );
     """)
@@ -31,11 +30,11 @@ def create_automation_settings_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS automation_settings (
-        email TEXT PRIMARY KEY,
-        tone TEXT,
-        style TEXT,
-        additional_notes TEXT,
-        FOREIGN KEY(email) REFERENCES users(email)
+        email             TEXT PRIMARY KEY,
+        tone              TEXT,
+        style             TEXT,
+        additional_notes  TEXT,
+        FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
       );
     """)
     conn.commit()
@@ -45,11 +44,11 @@ def create_subscriptions_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS subscriptions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL,
-        plan TEXT NOT NULL,
-        status TEXT NOT NULL,
-        FOREIGN KEY(email) REFERENCES users(email)
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        email    TEXT    NOT NULL,
+        plan     TEXT    NOT NULL,
+        status   TEXT    NOT NULL,
+        FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
       );
     """)
     conn.commit()
@@ -59,20 +58,26 @@ def create_analytics_events_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS analytics_events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT NOT NULL,
-        event_type TEXT NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(email)
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email  TEXT    NOT NULL,
+        event_type  TEXT    NOT NULL,
+        timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_email) REFERENCES users(email) ON DELETE CASCADE
       );
     """)
     conn.commit()
     conn.close()
 
+def log_event(user_email: str, event_type: str):
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (user_email, event_type) VALUES (?, ?)",
+        (user_email, event_type)
+    )
+    conn.commit()
+    conn.close()
+
 def get_user_automation(email: str):
-    """
-    Fetch the automation_settings row for this user, or None if not set.
-    """
     conn = get_db_connection()
     row = conn.execute(
         "SELECT email, tone, style, additional_notes "
