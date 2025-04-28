@@ -1,20 +1,36 @@
-{% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Dashboard · Zyberfy{% endblock %}
+
 {% block content %}
-  <div class="max-w-4xl mx-auto py-10 space-y-6">
-    <h2 class="text-2xl">Welcome, {{ first_name }}!</h2>
-
-    {% if not automation_complete %}
-      <p class="text-red-600">
-        You haven’t set up your automation settings yet.
-        <a href="{{ url_for('automation') }}"
-           class="text-blue-600 underline">Set them up now</a>.
-      </p>
-    {% else %}
-      <p class="text-green-600">Your automation settings are saved.</p>
-    {% endif %}
-
-    <a href="{{ url_for('analytics') }}"
-       class="text-gray-700 hover:underline">View Analytics →</a>
+  <h2 class="text-2xl mb-4">Welcome, {{ first_name }}!</h2>
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="p-6 bg-white rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-2">Plan Status</h3>
+      <p class="text-lg">{{ plan_status|capitalize }}</p>
+    </div>
+    <div class="p-6 bg-white rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-2">Automation</h3>
+      {% if automation_complete %}
+        <span class="text-green-600">Configured ✔︎</span>
+      {% else %}
+        <span class="text-gray-600">None</span>
+      {% endif %}
+    </div>
   </div>
+
+  {% if not automation_complete %}
+    <a href="{{ url_for('automation') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+      Configure Automation
+    </a>
+  {% else %}
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+      <h3 class="font-semibold mb-2">Your Automation Settings</h3>
+      <p><strong>Tone:</strong> {{ automation.tone or 'None' }}</p>
+      <p><strong>Style:</strong> {{ automation.style or 'None' }}</p>
+      <a href="{{ url_for('automation') }}"
+         class="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
+        Edit Automation
+      </a>
+    </div>
+  {% endif %}
 {% endblock %}
