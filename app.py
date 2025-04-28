@@ -133,67 +133,22 @@ def memberships():
     return render_template('memberships.html')
 
 
-@app.route('/automation', methods=['GET','POST'])
+@app.route('/automation', methods=['GET', 'POST'])
 def automation():
     if 'email' not in session:
-        return redirect(url_for('automation'))
+        return redirect(url_for('login'))
 
     if request.method == 'POST':
-        # pull the submitted form values
-        tone  = request.form.get('tone')
-        style = request.form.get('style')
-        notes = request.form.get('additional_notes')
-
+        tone, style, notes = (
+            request.form.get('tone'),
+            request.form.get('style'),
+            request.form.get('additional_notes'),
+        )
         conn = get_db_connection()
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?",
-            (session['email'],)
-        ).fetchone()
-
-        if exists:
-            conn.execute(
-                "UPDATE automation_settings "
-                "SET tone = ?, style = ?, additional_notes = ? "
-                "WHERE email = ?",
-                (tone, style, notes, session['email'])
-            )
-        else:
-            conn.execute(
-                "INSERT INTO automation_settings "
-                "(email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
-                (session['email'], tone, style, notes)
-            )
-
-        conn.commit()
-        conn.close()
-
-        # log + flash + redirect
-        log_event(session['email'], 'saved_automation')
-        flash("✅ Your automation settings have been saved!", "success")
-        return redirect(url_for('dashboard'))
-
-    # GET: render the form
-    automation = get_user_automation(session['email']) or {}
-    return render_template('automation.html', automation=automation)
-
-
-@app.route('/save-automation', methods=['POST'])
-def save_automation():
-    if 'email' not in session:
-        return jsonify(success=False, error='Unauthorized'), 403
-
-    tone  = request.form.get('tone')
-    style = request.form.get('style')
-    notes = request.form.get('additional_notes')
-
-    logger.info(f"Attempting to save automation for {session['email']} → tone={tone}, style={style}")
-    conn = get_db_connection()
-    try:
         exists = conn.execute(
             "SELECT 1 FROM automation_settings WHERE email = ?", 
             (session['email'],)
         ).fetchone()
-
         if exists:
             conn.execute(
                 "UPDATE automation_settings "
@@ -201,25 +156,22 @@ def save_automation():
                 "WHERE email=?",
                 (tone, style, notes, session['email'])
             )
-            logger.info("Updated existing automation_settings row")
         else:
             conn.execute(
-                "INSERT INTO automation_settings (email, tone, style, additional_notes) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO automation_settings "
+                "(email, tone, style, additional_notes) VALUES (?,?,?,?)",
                 (session['email'], tone, style, notes)
             )
-            logger.info("Inserted new automation_settings row")
-
         conn.commit()
-    except Exception as e:
-        logger.exception("Failed to save automation settings")
-        return jsonify(success=False, error=str(e)), 500
-    finally:
         conn.close()
 
-    # Log the event, too
-    log_event(session['email'], 'saved_automation')
-    return jsonify(success=True)
+        log_event(session['email'], 'saved_automation')
+        return redirect(url_for('dashboard'))
+
+    # GET: render form
+    automation = get_user_automation(session['email']) or {}
+    return render_template('automation.html', automation=automation)
+
 
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
@@ -228,13 +180,12 @@ def generate_proposal():
 
     conn = get_db_connection()
     automation = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", 
-        (session['email'],)
+        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone()
     conn.close()
 
     if not automation:
-        return jsonify(success=False, error='No automation settings found'), 400
+        return jsonify(success=False, error='No automation settings'), 400
 
     log_event(session['email'], 'generated_proposal')
 
@@ -247,13 +198,15 @@ def generate_proposal():
         resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                {"role": "user",   "content": prompt}
+                {"role": "system",
+                 "content": "You are a helpful assistant writing business proposals."},
+                {"role": "user", "content": prompt}
             ],
             max_tokens=300,
             temperature=0.7
         )
-        return jsonify(success=True, proposal=resp.choices[0].message.content.strip())
+        return jsonify(success=True,
+                       proposal=resp.choices[0].message.content.strip())
     except Exception:
         logger.exception("OpenAI failure; using fallback.")
         fallback = (
@@ -277,8 +230,7 @@ def proposal():
 
         conn = get_db_connection()
         automation = conn.execute(
-            "SELECT * FROM automation_settings WHERE email = ?", 
-            (session['email'],)
+            "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
         ).fetchone()
         conn.close()
 
@@ -291,8 +243,9 @@ def proposal():
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                    {"role": "user",   "content": prompt}
+                    {"role": "system",
+                     "content": "You are a helpful assistant writing business proposals."},
+                    {"role": "user", "content": prompt}
                 ],
                 max_tokens=350,
                 temperature=0.7
@@ -333,32 +286,29 @@ def analytics():
          WHERE user_id = ?
       GROUP BY event_type
     """, (session['email'],)).fetchall()
-    conn.close()
-
     kpis       = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
     generated   = kpis.get('generated_proposal', 0)
     conversions = kpis.get('sent_proposal', 0)
+
     conversion_rate = (conversions / generated * 100) if generated else 0
     donut_converted = conversions
     donut_dropped   = max(0, generated - conversions)
 
-    # build 7-day sparkline
     today       = datetime.utcnow().date()
     dates       = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
-    line_data   = []
-    conn = get_db_connection()
-    for d in dates:
-        cnt = conn.execute("""
+    line_data   = [
+        conn.execute("""
             SELECT COUNT(*) AS cnt
               FROM analytics_events
              WHERE user_id = ?
                AND event_type = 'pageview'
                AND date(timestamp) = ?
         """, (session['email'], d)).fetchone()['cnt']
-        line_data.append(cnt)
+        for d in dates
+    ]
     conn.close()
 
     return render_template(
@@ -367,7 +317,7 @@ def analytics():
         saves=saves,
         generated=generated,
         conversions=conversions,
-        conversion_rate=round(conversion_rate,1),
+        conversion_rate=round(conversion_rate, 1),
         donut_converted=donut_converted,
         donut_dropped=donut_dropped,
         line_labels=line_labels,
@@ -389,15 +339,6 @@ def logout():
 @app.route('/ping')
 def ping():
     return "pong"
-
-
-@app.route('/debug_templates')
-def debug_templates():
-    import os
-    tpl_dir = os.path.join(app.root_path, 'templates')
-    files   = sorted(os.listdir(tpl_dir))
-    items   = "".join(f"<li>{f}</li>" for f in files)
-    return f"<h2>Templates folder contains:</h2><ul>{items}</ul>"
 
 
 if __name__ == '__main__':
