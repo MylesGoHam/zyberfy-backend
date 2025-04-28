@@ -54,6 +54,15 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
+    def log_event(user_email: str, event_type: str):
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO analytics_events (email, event_type) VALUES (?, ?)",
+        (user_email, event_type)
+    )
+    conn.commit()
+    conn.close()
+
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.route('/')
@@ -159,11 +168,9 @@ def automation_page():
             )
         else:
             conn.execute(
-                "INSERT INTO automation_settings "
-                "(email, tone, style, additional_notes) "
-                "VALUES (?, ?, ?, ?)",
-                (session['email'], tone, style, notes)
-            )
+  "INSERT INTO analytics_events (email, event_type) VALUES (?, ?)",
+  (user_email, event_type)
+)
         conn.commit()
         conn.close()
 
@@ -185,25 +192,33 @@ def save_automation():
         request.form.get('style'),
         request.form.get('additional_notes'),
     )
+
     conn = get_db_connection()
-    if conn.execute(
-        "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
-    ).fetchone():
+    exists = conn.execute(
+        "SELECT 1 FROM automation_settings WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+
+    if exists:
         conn.execute(
             "UPDATE automation_settings "
-            "SET tone=?, style=?, additional_notes=? WHERE email=?",
+            "SET tone = ?, style = ?, additional_notes = ? "
+            "WHERE email = ?",
             (tone, style, notes, session['email'])
         )
     else:
         conn.execute(
-            "INSERT INTO automation_settings "
-            "(email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
+            "INSERT INTO automation_settings (email, tone, style, additional_notes) "
+            "VALUES (?, ?, ?, ?)",
             (session['email'], tone, style, notes)
         )
+
     conn.commit()
     conn.close()
 
+    # Log that we saved the automation settings
     log_event(session['email'], 'saved_automation')
+
     return jsonify(success=True)
 
 
