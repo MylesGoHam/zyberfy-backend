@@ -1,26 +1,94 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block title %}Analytics · Zyberfy{% endblock %}
 
 {% block content %}
-  <h2 class="text-2xl mb-4">Site Analytics</h2>
-  <div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="p-6 bg-white rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-1">Pageviews</h3>
-      <p class="text-3xl">{{ pageviews }}</p>
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h2 class="text-2xl font-semibold mb-6">Site Analytics</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- Pageviews -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Pageviews</h3>
+      <p class="mt-1 text-2xl font-semibold">{{ pageviews }}</p>
     </div>
-    <div class="p-6 bg-white rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-1">Saves</h3>
-      <p class="text-3xl">{{ saves }}</p>
+
+    <!-- Saves -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Saves</h3>
+      <p class="mt-1 text-2xl font-semibold">{{ saves }}</p>
     </div>
-    <div class="p-6 bg-white rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-1">Proposals Sent</h3>
-      <p class="text-3xl">{{ conversions }}</p>
+
+    <!-- Proposals Generated -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Proposals Generated</h3>
+      <p class="mt-1 text-2xl font-semibold">{{ generated }}</p>
+    </div>
+
+    <!-- Proposals Sent -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Proposals Sent</h3>
+      <p class="mt-1 text-2xl font-semibold">{{ sent }}</p>
     </div>
   </div>
 
-  <a href="{{ url_for('dashboard') }}" class="inline-block mb-8 text-gray-700 hover:underline">
-    ← Back to Dashboard
-  </a>
+  <!-- Conversion Rate -->
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h3 class="text-sm font-medium text-gray-500">Conversion Rate</h3>
+    <p class="mt-1 text-2xl font-semibold">{{ conversion_rate }}%</p>
+  </div>
 
-  <!-- Your charts here… -->
+  <!-- Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Donut Chart -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Conversion Breakdown</h3>
+      <canvas id="donutChart"></canvas>
+    </div>
+    <!-- Line Chart -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Pageviews (Last 7 Days)</h3>
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <p class="mt-8 text-gray-600 hover:underline">
+    <a href="{{ url_for('dashboard') }}">&larr; Back to Dashboard</a>
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Donut
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted', 'Dropped'],
+        datasets: [{
+          data: [{{ donut_converted }}, {{ donut_dropped }}],
+          backgroundColor: ['#4F46E5', '#D1D5DB']
+        }]
+      }
+    });
+
+    // Line
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: {{ line_labels|tojson }},
+        datasets: [{
+          label: 'Pageviews',
+          data: {{ line_data|tojson }},
+          fill: false,
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        scales: { y: { beginAtZero: true, precision: 0 } }
+      }
+    });
+  </script>
 {% endblock %}
