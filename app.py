@@ -134,17 +134,61 @@ def memberships():
 
 
 @app.route('/automation', methods=['GET', 'POST'])
-def automation_page():
+def automation():
     if 'email' not in session:
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        tone, style, notes = (
-            request.form.get('tone'),
-            request.form.get('style'),
-            request.form.get('additional_notes'),
-        )
+        # pull the submitted form values
+        tone  = request.form.get('tone')
+        style = request.form.get('style')
+        notes = request.form.get('additional_notes')
+
         conn = get_db_connection()
+        exists = conn.execute(
+            "SELECT 1 FROM automation_settings WHERE email = ?",
+            (session['email'],)
+        ).fetchone()
+
+        if exists:
+            conn.execute(
+                "UPDATE automation_settings "
+                "SET tone = ?, style = ?, additional_notes = ? "
+                "WHERE email = ?",
+                (tone, style, notes, session['email'])
+            )
+        else:
+            conn.execute(
+                "INSERT INTO automation_settings "
+                "(email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
+                (session['email'], tone, style, notes)
+            )
+
+        conn.commit()
+        conn.close()
+
+        # log + flash + redirect
+        log_event(session['email'], 'saved_automation')
+        flash("✅ Your automation settings have been saved!", "success")
+        return redirect(url_for('dashboard'))
+
+    # GET: render the form
+    automation = get_user_automation(session['email']) or {}
+    return render_template('automation.html', automation=automation)
+
+
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return jsonify(success=False, error='Unauthorized'), 403
+
+    tone  = request.form.get('tone')
+    style = request.form.get('style')
+    notes = request.form.get('additional_notes')
+
+    logger.info(f"Attempting to save automation for {session['email']} → tone={tone}, style={style}")
+    conn = get_db_connection()
+    try:
         exists = conn.execute(
             "SELECT 1 FROM automation_settings WHERE email = ?", 
             (session['email'],)
@@ -157,58 +201,25 @@ def automation_page():
                 "WHERE email=?",
                 (tone, style, notes, session['email'])
             )
+            logger.info("Updated existing automation_settings row")
         else:
             conn.execute(
                 "INSERT INTO automation_settings (email, tone, style, additional_notes) "
                 "VALUES (?, ?, ?, ?)",
                 (session['email'], tone, style, notes)
             )
+            logger.info("Inserted new automation_settings row")
 
         conn.commit()
+    except Exception as e:
+        logger.exception("Failed to save automation settings")
+        return jsonify(success=False, error=str(e)), 500
+    finally:
         conn.close()
 
-        log_event(session['email'], 'saved_automation')
-        return redirect(url_for('dashboard'))
-
-    automation = get_user_automation(session['email']) or {}
-    return render_template('automation.html', automation=automation)
-
-
-@app.route('/save-automation', methods=['POST'])
-def save_automation():
-    if 'email' not in session:
-        return jsonify(success=False, error='Unauthorized'), 403
-
-    tone, style, notes = (
-        request.form.get('tone'),
-        request.form.get('style'),
-        request.form.get('additional_notes'),
-    )
-
-    conn = get_db_connection()
-    exists = conn.execute(
-        "SELECT 1 FROM automation_settings WHERE email = ?",
-        (session['email'],)
-    ).fetchone()
-
-    if exists:
-        conn.execute(
-            "UPDATE automation_settings "
-            "SET tone=?, style=?, additional_notes=? WHERE email=?",
-            (tone, style, notes, session['email'])
-        )
-    else:
-        conn.execute(
-            "INSERT INTO automation_settings (email, tone, style, additional_notes) "
-            "VALUES (?, ?, ?, ?)",
-            (session['email'], tone, style, notes)
-        )
-
-    conn.commit()
-    conn.close()
+    # Log the event, too
     log_event(session['email'], 'saved_automation')
     return jsonify(success=True)
-
 
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
