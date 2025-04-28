@@ -55,6 +55,7 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.close()
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -88,7 +89,6 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # record a pageview each time dashboard is hit
     log_event(session['email'], 'pageview')
 
     first_name          = session.get('first_name', 'there')
@@ -133,7 +133,6 @@ def memberships():
     return render_template('memberships.html')
 
 
-# ─── Automation setup (GET + POST in one) ────────────────────────────────────
 @app.route('/automation', methods=['GET', 'POST'])
 def automation_page():
     if 'email' not in session:
@@ -145,7 +144,6 @@ def automation_page():
             request.form.get('style'),
             request.form.get('additional_notes'),
         )
-
         conn = get_db_connection()
         exists = conn.execute(
             "SELECT 1 FROM automation_settings WHERE email = ?", 
@@ -172,7 +170,7 @@ def automation_page():
         log_event(session['email'], 'saved_automation')
         return redirect(url_for('dashboard'))
 
-    # GET → render form, pre-populated if they’ve already saved
+    # GET: render the form, pre-populated if already saved
     automation = get_user_automation(session['email']) or {}
     return render_template('automation.html', automation=automation)
 
@@ -209,7 +207,181 @@ def save_automation():
     return jsonify(success=True)
 
 
-# … rest of your routes unchanged (generate-proposal, proposal, analytics, terms, logout, ping, debug_templates) …
+@app.route('/generate-proposal', methods=['POST'])
+def generate_proposal():
+    if 'email' not in session:
+        return jsonify(success=False, error='Unauthorized'), 403
+
+    conn = get_db_connection()
+    automation = conn.execute(
+        "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
+    ).fetchone()
+    conn.close()
+
+    if not automation:
+        return jsonify(success=False, error='No automation settings found'), 400
+
+    log_event(session['email'], 'generated_proposal')
+
+    prompt = (
+        f"Write a concise business proposal email in a {automation['tone']} tone "
+        f"and {automation['style']} style.\n\n"
+        f"Extra notes: {automation['additional_notes'] or 'none'}"
+    )
+    try:
+        resp = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a helpful assistant writing business proposals."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+        return jsonify(success=True,
+                       proposal=resp.choices[0].message.content.strip())
+    except Exception:
+        logger.exception("OpenAI failure; using fallback.")
+        fallback = (
+            f"Hi there,\n\nThanks for reaching out! Here's a "
+            f"{automation['tone']} & {automation['style']} proposal.\n\n"
+            f"{automation['additional_notes'] or ''}\n\n"
+            "Best regards,\nThe Zyberfy Team"
+        )
+        return jsonify(success=True, proposal=fallback, fallback=True)
+
+
+@app.route('/proposal', methods=['GET', 'POST'])
+def proposal():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        lead_name  = request.form['name']
+        lead_email = PERSONAL_EMAIL or request.form['email']
+        budget     = request.form['budget']
+
+        conn = get_db_connection()
+        automation = conn.execute(
+            "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
+        ).fetchone()
+        conn.close()
+
+        prompt = (
+            f"Write a business proposal email to {lead_name}, budget ${budget}, "
+            f"in a {automation['tone']} tone & {automation['style']} style. "
+            f"Notes: {automation['additional_notes'] or 'none'}"
+        )
+        try:
+            resp = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system",
+                     "content": "You are a helpful assistant writing business proposals."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=350,
+                temperature=0.7
+            )
+            email_body = resp.choices[0].message.content.strip()
+        except Exception as e:
+            flash(f"Error generating proposal: {e}", "error")
+            return redirect(url_for('proposal'))
+
+        subject = f"Proposal for {lead_name} (Budget: ${budget})"
+        resp_obj = send_proposal_email(
+            to_email=lead_email,
+            subject=subject,
+            content=email_body,
+            cc_client=False
+        )
+        status_code = getattr(resp_obj, 'status_code', resp_obj)
+        if 200 <= status_code < 300:
+            log_event(session['email'], 'sent_proposal')
+            flash(f"✅ Proposal sent to {lead_email}", "success")
+            return render_template('thank_you.html')
+
+        flash("❌ Failed to send proposal email.", "error")
+        return redirect(url_for('proposal'))
+
+    return render_template('proposal.html')
+
+
+@app.route('/analytics')
+def analytics():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    rows = conn.execute("""
+        SELECT event_type, COUNT(*) AS cnt
+          FROM analytics_events
+         WHERE user_id = ?
+      GROUP BY event_type
+    """, (session['email'],)).fetchall()
+    kpis       = {r['event_type']: r['cnt'] for r in rows}
+    pageviews   = kpis.get('pageview', 0)
+    saves       = kpis.get('saved_automation', 0)
+    generated   = kpis.get('generated_proposal', 0)
+    conversions = kpis.get('sent_proposal', 0)
+
+    conversion_rate = (conversions / generated * 100) if generated else 0
+    donut_converted = conversions
+    donut_dropped   = max(0, generated - conversions)
+
+    today       = datetime.utcnow().date()
+    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
+    line_labels = [d.strftime('%b %-d') for d in dates]
+    line_data   = []
+    for d in dates:
+        cnt = conn.execute("""
+            SELECT COUNT(*) AS cnt
+              FROM analytics_events
+             WHERE user_id = ?
+               AND event_type = 'pageview'
+               AND date(timestamp) = ?
+        """, (session['email'], d)).fetchone()['cnt']
+        line_data.append(cnt)
+    conn.close()
+
+    return render_template(
+        'analytics.html',
+        pageviews=pageviews,
+        saves=saves,
+        generated=generated,
+        conversions=conversions,
+        conversion_rate=round(conversion_rate, 1),
+        donut_converted=donut_converted,
+        donut_dropped=donut_dropped,
+        line_labels=line_labels,
+        line_data=line_data
+    )
+
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+@app.route('/ping')
+def ping():
+    return "pong"
+
+
+@app.route('/debug_templates')
+def debug_templates():
+    import os
+    tpl_dir = os.path.join(app.root_path, 'templates')
+    files   = sorted(os.listdir(tpl_dir))
+    items   = "".join(f"<li>{f}</li>" for f in files)
+    return f"<h2>Templates folder contains:</h2><ul>{items}</ul>"
 
 
 if __name__ == '__main__':
