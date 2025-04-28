@@ -132,47 +132,64 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
+    # look up numeric user_id
+    user = conn.execute(
+        "SELECT id FROM users WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+    user_id = user['id'] if user else None
+
+    # if somehow missing, redirect back
+    if not user_id:
+        conn.close()
+        flash("User not found", "error")
+        return redirect(url_for('dashboard'))
+
+    # now group by the real id
     rows = conn.execute("""
-      SELECT event_type, COUNT(*) AS cnt
-        FROM analytics_events
-       WHERE user_id = ?
-    GROUP BY event_type
-    """,(session['email'],)).fetchall()
-    kpis       = {r['event_type']:r['cnt'] for r in rows}
-    pageviews   = kpis.get('pageview',0)
-    saves       = kpis.get('saved_automation',0)
-    generated   = kpis.get('generated_proposal',0)
-    conversions = kpis.get('sent_proposal',0)
+        SELECT event_type, COUNT(*) AS cnt
+          FROM analytics_events
+         WHERE user_id = ?
+      GROUP BY event_type
+    """, (user_id,)).fetchall()
 
-    conv_rate = (conversions/generated*100) if generated else 0
-    donut_conv = conversions
-    donut_drop = max(0, generated-conversions)
+    kpis       = {r['event_type']: r['cnt'] for r in rows}
+    pageviews   = kpis.get('pageview', 0)
+    saves       = kpis.get('saved_automation', 0)
+    generated   = kpis.get('generated_proposal', 0)
+    conversions = kpis.get('sent_proposal', 0)
 
-    today = datetime.utcnow().date()
-    dates = [today-timedelta(days=i) for i in reversed(range(7))]
-    labels = [d.strftime('%b %-d') for d in dates]
-    data   = []
+    conversion_rate = (conversions / generated * 100) if generated else 0
+    donut_converted = conversions
+    donut_dropped   = max(0, generated - conversions)
+
+    today       = datetime.utcnow().date()
+    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
+    line_labels = [d.strftime('%b %-d') for d in dates]
+    line_data   = []
     for d in dates:
         cnt = conn.execute("""
-          SELECT COUNT(*) AS cnt
-            FROM analytics_events
-           WHERE user_id=? 
-             AND event_type='pageview'
-             AND date(timestamp)=?
-        """,(session['email'],d)).fetchone()['cnt']
-        data.append(cnt)
+            SELECT COUNT(*) AS cnt
+              FROM analytics_events
+             WHERE user_id = ?
+               AND event_type = 'pageview'
+               AND date(timestamp) = ?
+        """, (user_id, d)).fetchone()['cnt']
+        line_data.append(cnt)
+
     conn.close()
 
-    return render_template('analytics.html',
-      pageviews=pageviews,
-      saves=saves,
-      generated=generated,
-      conversions=conversions,
-      conversion_rate=round(conv_rate,1),
-      donut_converted=donut_conv,
-      donut_dropped=donut_drop,
-      line_labels=labels,
-      line_data=data
+    return render_template(
+        'analytics.html',
+        pageviews=pageviews,
+        saves=saves,
+        generated=generated,
+        conversions=conversions,
+        conversion_rate=round(conversion_rate, 1),
+        donut_converted=donut_converted,
+        donut_dropped=donut_dropped,
+        line_labels=line_labels,
+        line_data=line_data
     )
 
 
