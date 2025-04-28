@@ -33,7 +33,8 @@
       <a href="{{ url_for('home') }}"            class="block px-4 py-2 hover:bg-gray-100">Home</a>
       <a href="{{ url_for('dashboard') }}"       class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
       <a href="{{ url_for('analytics') }}"       class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-      <a href="{{ url_for('automation_page') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+      <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">
+      Automation</a>
       {% if session.get('email') %}
         <a href="{{ url_for('logout') }}"        class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       {% else %}
@@ -44,7 +45,7 @@
   </header>
 
   {% block content %}{% endblock %}
-
+ 
   {% block scripts %}
   <script>
   const toggle = document.getElementById("nav-toggle");
