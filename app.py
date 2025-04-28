@@ -15,7 +15,8 @@ from models import (
     create_automation_settings_table,
     create_subscriptions_table,
     create_analytics_events_table,
-    get_user_automation
+    get_user_automation,
+    log_event
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
@@ -53,23 +54,6 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
-# ─── Analytics helper ────────────────────────────────────────────────────────
-def log_event(user_email: str, event_type: str):
-    conn = get_db_connection()
-    # look up the user’s integer id
-    row = conn.execute(
-        "SELECT id FROM users WHERE email = ?",
-        (user_email,)
-    ).fetchone()
-    if row:
-        user_id = row["id"]
-        conn.execute(
-            "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-            (user_id, event_type)
-        )
-        conn.commit()
-    conn.close()
-
 # ─── Routes ──────────────────────────────────────────────────────────────────
 @app.route('/')
 def home():
@@ -104,6 +88,7 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
+    # record a pageview each time dashboard is hit
     log_event(session['email'], 'pageview')
 
     first_name          = session.get('first_name', 'there')
@@ -117,50 +102,6 @@ def dashboard():
         plan_status=plan_status,
         automation=automation,
         automation_complete=automation_complete
-    )
-
-
-# ─── Automation setup ────────────────────────────────────────────────────────
-@app.route('/automation', methods=['GET', 'POST'])
-def automation_page():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        # grab form data and save
-        tone, style, notes = (
-            request.form.get('tone'),
-            request.form.get('style'),
-            request.form.get('additional_notes'),
-        )
-        conn = get_db_connection()
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?",
-            (session['email'],)
-        ).fetchone()
-        if exists:
-            conn.execute(
-                "UPDATE automation_settings "
-                "SET tone=?, style=?, additional_notes=? WHERE email=?",
-                (tone, style, notes, session['email'])
-            )
-        else:
-            conn.execute(
-                "INSERT INTO automation_settings (email, tone, style, additional_notes) "
-                "VALUES (?, ?, ?, ?)",
-                (session['email'], tone, style, notes)
-            )
-        conn.commit()
-        conn.close()
-
-        log_event(session['email'], 'saved_automation')
-        return redirect(url_for('dashboard'))
-
-    # GET → render the “set up automation” form
-    automation = get_user_automation(session['email']) or {}
-    return render_template(
-        'automation.html',
-        automation=automation
     )
 
 
@@ -185,14 +126,90 @@ def memberships():
             )
             return redirect(session_obj.url, code=303)
         except Exception as e:
-            logger.exception("Stripe checkout creation failed: %s", e)
+            logger.exception("Stripe checkout failed: %s", e)
             flash("Could not start payment. Please try again.", "error")
             return redirect(url_for('memberships'))
 
     return render_template('memberships.html')
 
 
-# … rest of your routes remain untouched …
+# ─── Automation setup (GET + POST in one) ────────────────────────────────────
+@app.route('/automation', methods=['GET', 'POST'])
+def automation_page():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        tone, style, notes = (
+            request.form.get('tone'),
+            request.form.get('style'),
+            request.form.get('additional_notes'),
+        )
+
+        conn = get_db_connection()
+        exists = conn.execute(
+            "SELECT 1 FROM automation_settings WHERE email = ?", 
+            (session['email'],)
+        ).fetchone()
+
+        if exists:
+            conn.execute(
+                "UPDATE automation_settings "
+                "SET tone=?, style=?, additional_notes=? "
+                "WHERE email=?",
+                (tone, style, notes, session['email'])
+            )
+        else:
+            conn.execute(
+                "INSERT INTO automation_settings "
+                "(email, tone, style, additional_notes) "
+                "VALUES (?, ?, ?, ?)",
+                (session['email'], tone, style, notes)
+            )
+        conn.commit()
+        conn.close()
+
+        log_event(session['email'], 'saved_automation')
+        return redirect(url_for('dashboard'))
+
+    # GET → render form, pre-populated if they’ve already saved
+    automation = get_user_automation(session['email']) or {}
+    return render_template('automation.html', automation=automation)
+
+
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return jsonify(success=False, error='Unauthorized'), 403
+
+    tone, style, notes = (
+        request.form.get('tone'),
+        request.form.get('style'),
+        request.form.get('additional_notes'),
+    )
+    conn = get_db_connection()
+    if conn.execute(
+        "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
+    ).fetchone():
+        conn.execute(
+            "UPDATE automation_settings "
+            "SET tone=?, style=?, additional_notes=? WHERE email=?",
+            (tone, style, notes, session['email'])
+        )
+    else:
+        conn.execute(
+            "INSERT INTO automation_settings "
+            "(email, tone, style, additional_notes) VALUES (?, ?, ?, ?)",
+            (session['email'], tone, style, notes)
+        )
+    conn.commit()
+    conn.close()
+
+    log_event(session['email'], 'saved_automation')
+    return jsonify(success=True)
+
+
+# … rest of your routes unchanged (generate-proposal, proposal, analytics, terms, logout, ping, debug_templates) …
 
 
 if __name__ == '__main__':
