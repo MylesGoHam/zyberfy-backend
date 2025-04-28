@@ -8,7 +8,6 @@ from flask import (
 from dotenv import load_dotenv
 import openai
 import stripe
-
 from models import (
     get_db_connection,
     create_users_table,
@@ -27,23 +26,23 @@ logger = logging.getLogger(__name__)
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key  = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key  = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL  = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL     = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD  = os.getenv("ADMIN_PASSWORD")
+stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key     = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
-# ─── Initialize DB ──────────────────────────────────────────────────────────
+# ─── Force DB Init ──────────────────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
 
-# Seed an admin user if configured
+# Seed admin if configured
 if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn = get_db_connection()
     conn.execute(
@@ -60,7 +59,8 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 def home():
     return render_template('index.html')
 
-@app.route('/login', methods=['GET','POST'])
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email    = request.form['email']
@@ -82,61 +82,30 @@ def login():
 
     return render_template('login.html')
 
+
 @app.route('/dashboard')
 def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
-    # record a pageview
+    # record a pageview each time dashboard is hit
     log_event(session['email'], 'pageview')
+
+    first_name          = session.get('first_name', 'there')
+    plan_status         = session.get('plan_status', 'free')
+    automation          = get_user_automation(session['email'])
+    automation_complete = bool(automation)
 
     return render_template(
         'dashboard.html',
-        first_name=session.get('first_name','there'),
-        plan_status=session.get('plan_status','free'),
-        automation=get_user_automation(session['email']),
-        automation_complete=bool(get_user_automation(session['email']))
+        first_name=first_name,
+        plan_status=plan_status,
+        automation=automation,
+        automation_complete=automation_complete
     )
 
-@app.route('/automation', methods=['GET','POST'])
-def automation_page():
-    if 'email' not in session:
-        return redirect(url_for('login'))
 
-    if request.method == 'POST':
-        tone, style, notes = (
-            request.form.get('tone'),
-            request.form.get('style'),
-            request.form.get('additional_notes')
-        )
-        conn = get_db_connection()
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
-        ).fetchone()
-        if exists:
-            conn.execute(
-                "UPDATE automation_settings "
-                "SET tone=?, style=?, additional_notes=? "
-                "WHERE email=?",
-                (tone, style, notes, session['email'])
-            )
-        else:
-            conn.execute(
-                "INSERT INTO automation_settings "
-                "(email, tone, style, additional_notes) VALUES (?,?,?,?)",
-                (session['email'], tone, style, notes)
-            )
-        conn.commit()
-        conn.close()
-
-        log_event(session['email'], 'saved_automation')
-        return redirect(url_for('dashboard'))
-
-    # GET → show the form, prefilled if already saved
-    automation = get_user_automation(session['email'])
-    return render_template('automation.html', automation=automation)
-
-@app.route('/memberships', methods=['GET','POST'])
+@app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
     if request.method == 'POST':
         if not request.form.get('terms'):
@@ -153,7 +122,7 @@ def memberships():
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
                 success_url=url_for('dashboard', _external=True),
-                cancel_url =url_for('memberships', _external=True),
+                cancel_url=url_for('memberships', _external=True),
             )
             return redirect(session_obj.url, code=303)
         except Exception as e:
@@ -163,31 +132,80 @@ def memberships():
 
     return render_template('memberships.html')
 
+
+@app.route('/automation', methods=['POST'])
+def automation_page():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    # … your existing automation‐settings logic …
+    # then log the event
+    log_event(session['email'], 'saved_automation')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/save-automation', methods=['POST'])
+def save_automation():
+    if 'email' not in session:
+        return jsonify(success=False, error='Unauthorized'), 403
+
+    tone, style, notes = (
+        request.form.get('tone'),
+        request.form.get('style'),
+        request.form.get('additional_notes'),
+    )
+    conn = get_db_connection()
+    if conn.execute(
+        "SELECT 1 FROM automation_settings WHERE email = ?", (session['email'],)
+    ).fetchone():
+        conn.execute(
+            "UPDATE automation_settings "
+            "SET tone=?, style=?, additional_notes=? WHERE email=?",
+            (tone, style, notes, session['email'])
+        )
+    else:
+        conn.execute(
+            "INSERT INTO automation_settings (email, tone, style, additional_notes) "
+            "VALUES (?, ?, ?, ?)",
+            (session['email'], tone, style, notes)
+        )
+    conn.commit()
+    conn.close()
+
+    # log it here too, for your AJAX flow
+    log_event(session['email'], 'saved_automation')
+    return jsonify(success=True)
+
+
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
     if 'email' not in session:
         return jsonify(success=False, error='Unauthorized'), 403
 
     conn = get_db_connection()
-    auto = conn.execute(
+    automation = conn.execute(
         "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
     ).fetchone()
     conn.close()
 
-    if not auto:
+    if not automation:
         return jsonify(success=False, error='No automation settings found'), 400
 
+    # log that they hit “Generate” (even before sending)
+    log_event(session['email'], 'generated_proposal')
+
     prompt = (
-        f"Write a concise business proposal email in a {auto['tone']} tone "
-        f"and {auto['style']} style.\n\n"
-        f"Extra notes: {auto['additional_notes'] or 'none'}"
+        f"Write a concise business proposal email in a {automation['tone']} tone "
+        f"and {automation['style']} style.\n\n"
+        f"Extra notes: {automation['additional_notes'] or 'none'}"
     )
     try:
         resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role":"system","content":"You are a helpful assistant."},
-                {"role":"user","content":prompt}
+                {"role": "system",
+                 "content": "You are a helpful assistant writing business proposals."},
+                {"role": "user", "content": prompt}
             ],
             max_tokens=300,
             temperature=0.7
@@ -197,12 +215,15 @@ def generate_proposal():
     except Exception:
         logger.exception("OpenAI failure; using fallback.")
         fallback = (
-            f"Hi there,\n\nHere’s a {auto['tone']} / {auto['style']} proposal:\n"
-            f"{auto['additional_notes'] or ''}\n\nBest,\nZyberfy"
+            f"Hi there,\n\nThanks for reaching out! Here's a "
+            f"{automation['tone']} & {automation['style']} proposal.\n\n"
+            f"{automation['additional_notes'] or ''}\n\n"
+            "Best regards,\nThe Zyberfy Team"
         )
         return jsonify(success=True, proposal=fallback, fallback=True)
 
-@app.route('/proposal', methods=['GET','POST'])
+
+@app.route('/proposal', methods=['GET', 'POST'])
 def proposal():
     if 'email' not in session:
         return redirect(url_for('login'))
@@ -213,22 +234,23 @@ def proposal():
         budget     = request.form['budget']
 
         conn = get_db_connection()
-        auto = conn.execute(
+        automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?", (session['email'],)
         ).fetchone()
         conn.close()
 
         prompt = (
-            f"Write a business proposal email to {lead_name} "
-            f"(budget ${budget}) in a {auto['tone']} tone & {auto['style']} style. "
-            f"Notes: {auto['additional_notes'] or 'none'}"
+            f"Write a business proposal email to {lead_name}, budget ${budget}, "
+            f"in a {automation['tone']} tone & {automation['style']} style. "
+            f"Notes: {automation['additional_notes'] or 'none'}"
         )
         try:
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role":"system","content":"You are a helpful assistant."},
-                    {"role":"user","content":prompt}
+                    {"role": "system",
+                     "content": "You are a helpful assistant writing business proposals."},
+                    {"role": "user", "content": prompt}
                 ],
                 max_tokens=350,
                 temperature=0.7
@@ -239,22 +261,25 @@ def proposal():
             return redirect(url_for('proposal'))
 
         subject = f"Proposal for {lead_name} (Budget: ${budget})"
-        result  = send_proposal_email(
+        resp_obj = send_proposal_email(
             to_email=lead_email,
             subject=subject,
             content=email_body,
             cc_client=False
         )
-        status = getattr(result, 'status_code', result)
-        if 200 <= status < 300:
+        status_code = getattr(resp_obj, 'status_code', resp_obj)
+
+        if 200 <= status_code < 300:
+            # only count it when it truly sends
             log_event(session['email'], 'sent_proposal')
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
 
-        flash("❌ Failed to send proposal.", "error")
+        flash("❌ Failed to send proposal email.", "error")
         return redirect(url_for('proposal'))
 
     return render_template('proposal.html')
+
 
 @app.route('/analytics')
 def analytics():
@@ -262,67 +287,80 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
+    # KPI totals
     rows = conn.execute("""
-      SELECT event_type, COUNT(*) AS cnt
-        FROM analytics_events
-       WHERE user_email = ?
-       GROUP BY event_type
+        SELECT event_type, COUNT(*) AS cnt
+          FROM analytics_events
+         WHERE user_id = ?
+      GROUP BY event_type
     """, (session['email'],)).fetchall()
-    conn.close()
-
-    kpis        = {r['event_type']: r['cnt'] for r in rows}
+    kpis       = {r['event_type']: r['cnt'] for r in rows}
     pageviews   = kpis.get('pageview', 0)
     saves       = kpis.get('saved_automation', 0)
+    generated   = kpis.get('generated_proposal', 0)
     conversions = kpis.get('sent_proposal', 0)
-    rate        = round((conversions / pageviews * 100) if pageviews else 0, 1)
 
-    # prepare the 7‐day line data
-    today       = datetime.utcnow().date()
-    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
-    line_labels = [d.strftime('%b %-d') for d in dates]
-    conn        = get_db_connection()
-    line_data   = [
-        conn.execute("""
-          SELECT COUNT(*) AS cnt
-            FROM analytics_events
-           WHERE user_email = ?
-             AND event_type = 'pageview'
-             AND date(timestamp) = ?
+    # conversion % of “sent” per “generate”
+    conversion_rate = (conversions / generated * 100) if generated else 0
+
+    # donut
+    donut_converted = conversions
+    donut_dropped   = max(0, generated - conversions)
+
+    # 7-day line
+    today      = datetime.utcnow().date()
+    dates      = [today - timedelta(days=i) for i in reversed(range(7))]
+    line_labels= [d.strftime('%b %-d') for d in dates]
+    line_data  = []
+    for d in dates:
+        cnt = conn.execute("""
+            SELECT COUNT(*) AS cnt
+              FROM analytics_events
+             WHERE user_id = ?
+               AND event_type = 'pageview'
+               AND date(timestamp) = ?
         """, (session['email'], d)).fetchone()['cnt']
-        for d in dates
-    ]
+        line_data.append(cnt)
     conn.close()
 
-    return render_template('analytics.html',
+    return render_template(
+        'analytics.html',
         pageviews=pageviews,
         saves=saves,
+        generated=generated,
         conversions=conversions,
-        conversion_rate=rate,
-        donut_converted=conversions,
-        donut_dropped=max(pageviews - conversions, 0),
+        conversion_rate=round(conversion_rate,1),
+        donut_converted=donut_converted,
+        donut_dropped=donut_dropped,
         line_labels=line_labels,
         line_data=line_data
     )
 
+
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
+
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
 @app.route('/ping')
 def ping():
     return "pong"
 
+
 @app.route('/debug_templates')
 def debug_templates():
+    import os
     tpl_dir = os.path.join(app.root_path, 'templates')
     files   = sorted(os.listdir(tpl_dir))
     items   = "".join(f"<li>{f}</li>" for f in files)
-    return f"<h2>Templates folder:</h2><ul>{items}</ul>"
+    return f"<h2>Templates folder contains:</h2><ul>{items}</ul>"
+
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
