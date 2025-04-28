@@ -1,62 +1,53 @@
 {% extends "base.html" %}
-
-{% block title %}Analytics{% endblock %}
-
 {% block content %}
-  <div class="container mx-auto mt-8">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">Analytics Overview</h1>
-      <a href="{{ url_for('dashboard') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">← Back to Dashboard</a>
+  <h1>Set Up Your Automation</h1>
+
+  <!-- show any flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('automation') }}">
+    <div class="form-group">
+      <label for="tone">Tone</label>
+      <input
+        type="text"
+        id="tone"
+        name="tone"
+        class="form-control"
+        value="{{ automation.tone or '' }}"
+        required
+      >
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="p-4 bg-white shadow rounded">
-        <h2 class="text-lg font-semibold">Pageviews</h2>
-        <p class="text-3xl">{{ pageviews }}</p>
-      </div>
-      <div class="p-4 bg-white shadow rounded">
-        <h2 class="text-lg font-semibold">Saves</h2>
-        <p class="text-3xl">{{ saves }}</p>
-      </div>
-      <div class="p-4 bg-white shadow rounded">
-        <h2 class="text-lg font-semibold">Proposals Sent</h2>
-        <p class="text-3xl">{{ conversions }}</p>
-      </div>
+    <div class="form-group">
+      <label for="style">Style</label>
+      <input
+        type="text"
+        id="style"
+        name="style"
+        class="form-control"
+        value="{{ automation.style or '' }}"
+        required
+      >
     </div>
 
-    <!-- Donut chart -->
-    <div class="mb-8">
-      <canvas id="donutChart"></canvas>
+    <div class="form-group">
+      <label for="additional_notes">Additional Notes</label>
+      <textarea
+        id="additional_notes"
+        name="additional_notes"
+        class="form-control"
+        rows="4"
+      >{{ automation.additional_notes or '' }}</textarea>
     </div>
 
-    <!-- Line chart -->
-    <div>
-      <canvas id="lineChart"></canvas>
-    </div>
-  </div>
-
-  <script>
-    // Donut
-    new Chart(document.getElementById('donutChart'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Converted', 'Dropped'],
-        datasets: [{ data: [{{ donut_converted }}, {{ donut_dropped }}] }]
-      }
-    });
-
-    // Line
-    new Chart(document.getElementById('lineChart'), {
-      type: 'line',
-      data: {
-        labels: {{ line_labels|tojson }},
-        datasets: [{
-          label: 'Pageviews',
-          data: {{ line_data|tojson }},
-          fill: false,
-          tension: 0.1
-        }]
-      }
-    });
-  </script>
+    <button type="submit" class="btn btn-primary">
+      Save &amp; Return
+    </button>
+  </form>
 {% endblock %}
