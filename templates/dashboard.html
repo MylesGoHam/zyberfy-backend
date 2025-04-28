@@ -1,47 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Dashboard – Zyberfy{% endblock %}
-
+{% block title %}Dashboard{% endblock %}
 {% block content %}
-  <main class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-    <h2 class="text-2xl font-semibold">Welcome, {{ first_name }}!</h2>
+  <div class="max-w-4xl mx-auto py-10 space-y-6">
+    <h2 class="text-2xl">Welcome, {{ first_name }}!</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="p-6 bg-white rounded-lg shadow">
-        <h3 class="text-sm text-gray-500">Plan Status</h3>
-        <p class="mt-2 text-xl font-bold">{{ plan_status|capitalize }}</p>
-      </div>
-      <div class="p-6 bg-white rounded-lg shadow">
-        <h3 class="text-sm text-gray-500">Automation</h3>
-        <p class="mt-2 text-xl {{ 'text-green-600' if automation_complete else 'text-red-600' }}">
-          {{ automation_complete and 'Configured ✓' or 'Not set up' }}
-        </p>
-      </div>
-    </div>
+    {% if not automation_complete %}
+      <p class="text-red-600">
+        You haven’t set up your automation settings yet.
+        <a href="{{ url_for('automation') }}"
+           class="text-blue-600 underline">Set them up now</a>.
+      </p>
+    {% else %}
+      <p class="text-green-600">Your automation settings are saved.</p>
+    {% endif %}
 
-    <!-- 🚀 Shortcut to Analytics -->
-    <div class="text-center">
-      <a href="{{ url_for('analytics') }}"
-         class="inline-block mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg">
-        View Analytics
-      </a>
-    </div>
-
-    <section class="p-6 bg-white rounded-lg shadow">
-      <h3 class="text-lg font-medium mb-4">Your Automation Settings</h3>
-      {% if automation %}
-        <p><strong>Tone:</strong> {{ automation.tone }}</p>
-        <p><strong>Style:</strong> {{ automation.style }}</p>
-        <div class="mt-4 space-x-2">
-          <a href="{{ url_for('automation_page') }}"
-             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Edit Automation</a>
-          <button id="gen-prop"
-            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Generate Proposal
-          </button>
-        </div>
-      {% else %}
-        <p>No settings yet. <a href="{{ url_for('automation_page') }}" class="text-blue-600">Set up now</a>.</p>
-      {% endif %}
-    </section>
-  </main>
+    <a href="{{ url_for('analytics') }}"
+       class="text-gray-700 hover:underline">View Analytics →</a>
+  </div>
 {% endblock %}
