@@ -3,9 +3,25 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto p-6 space-y-6">
+
   <!-- KPI Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- ... your existing 4 cards ... -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Pageviews</p>
+      <p class="text-2xl font-semibold">{{ pageviews }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Saves</p>
+      <p class="text-2xl font-semibold">{{ saves }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Proposals Generated</p>
+      <p class="text-2xl font-semibold">{{ generated }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Proposals Sent</p>
+      <p class="text-2xl font-semibold">{{ sent }}</p>
+    </div>
   </div>
 
   <!-- Conversion Rate -->
@@ -14,21 +30,19 @@
     <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
   </div>
 
-  <!-- Charts (3 across on md+) -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Donut -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Conversion Breakdown</p>
       <div class="h-64"><canvas id="donutChart"></canvas></div>
     </div>
-
-    <!-- Pageviews -->
+    <!-- Pageviews line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Pageviews (Last 7 Days)</p>
       <div class="h-64"><canvas id="lineChart"></canvas></div>
     </div>
-
-    <!-- Proposals Generated -->
+    <!-- Generated line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Proposals Generated (Last 7 Days)</p>
       <div class="h-64"><canvas id="genChart"></canvas></div>
@@ -42,54 +56,48 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Donut
-  new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Converted','Dropped'],
-      datasets: [{ data: [{{ donut_converted }}, {{ donut_dropped }}] }]
-    },
-    options:{ maintainAspectRatio:false, responsive:true }
-  });
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Donut
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Sent','Dropped'],
+        datasets: [{
+          data: [{{ donut_converted }}, {{ donut_dropped }}]
+        }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, aspectRatio:1 }
+    });
 
-  // Pageviews Line
-  new Chart(document.getElementById('lineChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Pageviews',
-        data: {{ line_data|tojson }},
-        fill: false,
-        tension: 0.1
-      }]
-    },
-    options:{
-      maintainAspectRatio:false,
-      responsive:true,
-      scales:{ y:{ beginAtZero:true } }
-    }
-  });
+    // Pageviews line
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: {{ line_labels|tojson }},
+        datasets: [{
+          label: 'Pageviews',
+          data: {{ line_data|tojson }},
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, aspectRatio:1.2, scales:{ y:{ beginAtZero:true } } }
+    });
 
-  // Generated Line
-  new Chart(document.getElementById('genChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Generated',
-        data: {{ generated_data|tojson }},
-        fill: false,
-        tension: 0.1
-      }]
-    },
-    options:{
-      maintainAspectRatio:false,
-      responsive:true,
-      scales:{ y:{ beginAtZero:true } }
-    }
-  });
-</script>
+    // Generated line
+    new Chart(document.getElementById('genChart'), {
+      type: 'line',
+      data: {
+        labels: {{ gen_labels|tojson }},
+        datasets: [{
+          label: 'Generated',
+          data: {{ gen_data|tojson }},
+          fill: false,
+          tension: 0.3
+        }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, aspectRatio:1.2, scales:{ y:{ beginAtZero:true } } }
+    });
+  </script>
 {% endblock %}
