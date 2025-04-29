@@ -48,38 +48,46 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Donut
-  new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Converted','Dropped'],
-      datasets: [{
-        data: [{{ conversions }}, {{ generated - conversions }}],
-        backgroundColor: ['#4F46E5','#D1D5DB']
-      }]
-    },
-    options: { maintainAspectRatio: false }
-  });
 
-  // Line
-  new Chart(document.getElementById('lineChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Pageviews',
-        data: {{ line_data|tojson }},
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-</script>
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Donut chart
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted', 'Dropped'],
+        datasets: [{
+          data: [{{ donut_converted }}, {{ donut_dropped }}]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1
+      }
+    });
+
+    // 7-day line chart
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: {{ line_labels|tojson }},
+        datasets: [{
+          label: 'Pageviews',
+          data: {{ line_data|tojson }},
+          fill: false,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1.5,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
 {% endblock %}
