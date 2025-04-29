@@ -101,5 +101,25 @@
     },
     options: { responsive:true, maintainAspectRatio:false, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
   });
+
+  // 7-day sent-proposals line chart
+new Chart(document.getElementById('sentChart'), {
+  type: 'line',
+  data: {
+    labels: {{ line_labels|tojson }},
+    datasets: [{
+      label: 'Sent',
+      data: {{ sent_data|tojson }},
+      fill: false,
+      tension: 0.1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    aspectRatio: 1.5,
+    scales: { y: { beginAtZero: true } }
+  }
+});
 </script>
 {% endblock %}
