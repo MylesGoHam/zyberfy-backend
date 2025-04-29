@@ -263,40 +263,22 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    # look up numeric user_id
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", 
-        (session['email'],)
-    ).fetchone()
-    user_id = user['id'] if user else None
-
-    if not user_id:
+    user = conn.execute("SELECT id FROM users WHERE email = ?", (session['email'],)).fetchone()
+    if not user:
         conn.close()
         flash("User not found", "error")
         return redirect(url_for('dashboard'))
+    user_id = user['id']
 
-    # group counts
-    rows = conn.execute("""
-        SELECT event_type, COUNT(*) AS cnt
-          FROM analytics_events
-         WHERE user_id = ?
-      GROUP BY event_type
-    """, (user_id,)).fetchall()
+    # … your existing totals code here … #
 
-    kpis       = {r['event_type']: r['cnt'] for r in rows}
-    pageviews   = kpis.get('pageview', 0)
-    saves       = kpis.get('saved_automation', 0)
-    generated   = kpis.get('generated_proposal', 0)
-    sent        = kpis.get('sent_proposal', 0)
-
-    conversion_rate = (sent / generated * 100) if generated else 0
-    donut_converted = sent
-    donut_dropped   = max(0, generated - sent)
-
-    today       = datetime.utcnow().date()
-    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
+    # build the last‐7‐days labels
+    today  = datetime.utcnow().date()
+    dates  = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
-    line_data   = []
+
+    # pageviews per day (you already have this)
+    pageviews_data = []
     for d in dates:
         cnt = conn.execute("""
             SELECT COUNT(*) AS cnt
@@ -305,20 +287,29 @@ def analytics():
                AND event_type = 'pageview'
                AND date(timestamp) = ?
         """, (user_id, d)).fetchone()['cnt']
-        line_data.append(cnt)
+        pageviews_data.append(cnt)
+
+    # — NEW: proposals‐generated per day —
+    generated_data = []
+    for d in dates:
+        cnt = conn.execute("""
+            SELECT COUNT(*) AS cnt
+              FROM analytics_events
+             WHERE user_id = ?
+               AND event_type = 'generated_proposal'
+               AND date(timestamp) = ?
+        """, (user_id, d)).fetchone()['cnt']
+        generated_data.append(cnt)
 
     conn.close()
-    return render_template(
-        'analytics.html',
-        pageviews=pageviews,
-        saves=saves,
-        generated=generated,
-        sent=sent,
-        conversion_rate=round(conversion_rate, 1),
-        donut_converted=donut_converted,
-        donut_dropped=donut_dropped,
-        line_labels=line_labels,
-        line_data=line_data
+
+    return render_template('analytics.html',
+        # … your existing context …
+        line_labels     = line_labels,
+        line_data       = pageviews_data,
+        generated_data  = generated_data,    # <-- pass it in
+        donut_converted = conversions,
+        donut_dropped   = max(0, generated - conversions),
     )
 
 
