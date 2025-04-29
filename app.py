@@ -263,21 +263,37 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    user = conn.execute("SELECT id FROM users WHERE email = ?", (session['email'],)).fetchone()
+    # look up numeric user_id
+    user = conn.execute(
+        "SELECT id FROM users WHERE email = ?", 
+        (session['email'],)
+    ).fetchone()
     if not user:
         conn.close()
         flash("User not found", "error")
         return redirect(url_for('dashboard'))
     user_id = user['id']
 
-    # … your existing totals code here … #
+    # totals
+    rows = conn.execute("""
+        SELECT event_type, COUNT(*) AS cnt
+          FROM analytics_events
+         WHERE user_id = ?
+      GROUP BY event_type
+    """, (user_id,)).fetchall()
+    kpis         = {r['event_type']: r['cnt'] for r in rows}
+    pageviews    = kpis.get('pageview', 0)
+    configs      = kpis.get('saved_automation', 0)
+    generated    = kpis.get('generated_proposal', 0)
+    conversions  = kpis.get('sent_proposal', 0)
+    conversion_rate = (conversions / generated * 100) if generated else 0
 
-    # build the last‐7‐days labels
-    today  = datetime.utcnow().date()
-    dates  = [today - timedelta(days=i) for i in reversed(range(7))]
+    # build our last-7-days labels
+    today       = datetime.utcnow().date()
+    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
 
-    # pageviews per day (you already have this)
+    # pageviews per day
     pageviews_data = []
     for d in dates:
         cnt = conn.execute("""
@@ -289,7 +305,7 @@ def analytics():
         """, (user_id, d)).fetchone()['cnt']
         pageviews_data.append(cnt)
 
-    # — NEW: proposals‐generated per day —
+    # proposals-generated per day
     generated_data = []
     for d in dates:
         cnt = conn.execute("""
@@ -303,13 +319,18 @@ def analytics():
 
     conn.close()
 
-    return render_template('analytics.html',
-        # … your existing context …
-        line_labels     = line_labels,
-        line_data       = pageviews_data,
-        generated_data  = generated_data,    # <-- pass it in
-        donut_converted = conversions,
-        donut_dropped   = max(0, generated - conversions),
+    return render_template(
+        'analytics.html',
+        pageviews=pageviews,
+        configs=configs,
+        generated=generated,
+        conversions=conversions,
+        conversion_rate=round(conversion_rate, 1),
+        donut_converted=conversions,
+        donut_dropped=max(0, generated - conversions),
+        line_labels=line_labels,
+        line_data=pageviews_data,
+        generated_data=generated_data
     )
 
 
