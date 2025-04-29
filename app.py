@@ -288,7 +288,7 @@ def analytics():
         cnt1 = conn.execute("""
             SELECT COUNT(*) AS cnt
               FROM analytics_events
-             WHERE user_id=? AND event_type='pageview'
+             WHERE user_id=? AND event_type='sent_proposal'
                AND date(timestamp)=?
         """, (user_id, d)).fetchone()['cnt']
         cnt2 = conn.execute("""
