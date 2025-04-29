@@ -37,13 +37,13 @@
     <!-- Donut -->
     <div class="bg-white p-4 rounded-lg shadow">
       <h2 class="text-lg font-medium mb-2">Conversion Breakdown</h2>
-      <canvas id="donutChart"></canvas>
+      <canvas id="donutChart" style="height:300px;"></canvas>
     </div>
 
     <!-- Line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <h2 class="text-lg font-medium mb-2">Pageviews (Last 7 Days)</h2>
-      <canvas id="lineChart"></canvas>
+      <canvas id="lineChart" style="height:300px;"></canvas>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
       data: {
         labels: ['Converted', 'Dropped'],
         datasets: [{
-          data: [{{ donut_converted }}, {{ donut_dropped }}],
+          data: [{{ donut_converted }}, {{ donut_dropped }}]
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
@@ -85,9 +85,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true }
-        }
+        scales: { y: { beginAtZero: true } }
       }
     });
   </script>
