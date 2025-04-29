@@ -106,6 +106,35 @@ def dashboard():
         automation_complete=automation_complete
     )
 
+@app.route('/memberships', methods=['GET', 'POST'])
+def memberships():
+    if request.method == 'POST':
+        # (this is your existing Stripe+terms logic)
+        if not request.form.get('terms'):
+            flash("You must agree to the Terms of Service.", "error")
+            return redirect(url_for('memberships'))
+
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        if not price_id:
+            flash("Payment configuration missing. Try again later.", "error")
+            return redirect(url_for('memberships'))
+
+        try:
+            session_obj = stripe.checkout.Session.create(
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
+            )
+            return redirect(session_obj.url, code=303)
+        except Exception as e:
+            logger.exception("Stripe checkout failed: %s", e)
+            flash("Could not start payment. Please try again.", "error")
+            return redirect(url_for('memberships'))
+
+    # GET: just render the sign-up form
+    return render_template('memberships.html')
+
 
 @app.route('/automation', methods=['GET', 'POST'])
 def automation():
