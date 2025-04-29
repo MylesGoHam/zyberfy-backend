@@ -2,78 +2,75 @@
 {% block title %}Analytics · Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8">
-  <h2 class="text-2xl font-semibold mb-6">Site Analytics</h2>
+<div class="max-w-5xl mx-auto p-6 space-y-6">
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <!-- Pageviews -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-sm font-medium text-gray-500">Pageviews</h3>
-      <p class="mt-1 text-2xl font-semibold">{{ pageviews }}</p>
+  <h1 class="text-3xl font-bold">Site Analytics</h1>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-sm text-gray-600">Pageviews</h2>
+      <p class="text-2xl font-semibold">{{ pageviews }}</p>
     </div>
-
-    <!-- Saves -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-sm font-medium text-gray-500">Saves</h3>
-      <p class="mt-1 text-2xl font-semibold">{{ saves }}</p>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-sm text-gray-600">Saves</h2>
+      <p class="text-2xl font-semibold">{{ configs }}</p>
     </div>
-
-    <!-- Proposals Generated -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-sm font-medium text-gray-500">Proposals Generated</h3>
-      <p class="mt-1 text-2xl font-semibold">{{ generated }}</p>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-sm text-gray-600">Proposals Generated</h2>
+      <p class="text-2xl font-semibold">{{ generated }}</p>
     </div>
-
-    <!-- Proposals Sent -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-sm font-medium text-gray-500">Proposals Sent</h3>
-      <p class="mt-1 text-2xl font-semibold">{{ sent }}</p>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-sm text-gray-600">Proposals Sent</h2>
+      <p class="text-2xl font-semibold">{{ conversions }}</p>
     </div>
   </div>
 
   <!-- Conversion Rate -->
-  <div class="bg-white rounded-lg shadow p-6 mb-8">
-    <h3 class="text-sm font-medium text-gray-500">Conversion Rate</h3>
-    <p class="mt-1 text-2xl font-semibold">{{ conversion_rate }}%</p>
+  <div class="bg-white p-4 rounded-lg shadow">
+    <h2 class="text-sm text-gray-600">Conversion Rate</h2>
+    <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
   </div>
 
   <!-- Charts -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Donut Chart -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-medium mb-4">Conversion Breakdown</h3>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Donut -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-lg font-medium mb-2">Conversion Breakdown</h2>
       <canvas id="donutChart"></canvas>
     </div>
-    <!-- Line Chart -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-medium mb-4">Pageviews (Last 7 Days)</h3>
+
+    <!-- Line -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-lg font-medium mb-2">Pageviews (Last 7 Days)</h2>
       <canvas id="lineChart"></canvas>
     </div>
   </div>
 
-  <p class="mt-8 text-gray-600 hover:underline">
-    <a href="{{ url_for('dashboard') }}">&larr; Back to Dashboard</a>
+  <p class="text-gray-500 hover:underline cursor-pointer"
+     onclick="window.location='{{ url_for('dashboard') }}'">
+    &larr; Back to Dashboard
   </p>
 </div>
 {% endblock %}
 
 {% block scripts %}
-  {{ super() }}
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Donut
+    // Donut chart
     new Chart(document.getElementById('donutChart'), {
       type: 'doughnut',
       data: {
         labels: ['Converted', 'Dropped'],
         datasets: [{
           data: [{{ donut_converted }}, {{ donut_dropped }}],
-          backgroundColor: ['#4F46E5', '#D1D5DB']
         }]
-      }
+      },
+      options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // Line
+    // 7-day line chart
     new Chart(document.getElementById('lineChart'), {
       type: 'line',
       data: {
@@ -82,12 +79,15 @@
           label: 'Pageviews',
           data: {{ line_data|tojson }},
           fill: false,
-          borderWidth: 2,
-          tension: 0.3
+          tension: 0.1
         }]
       },
       options: {
-        scales: { y: { beginAtZero: true, precision: 0 } }
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true }
+        }
       }
     });
   </script>
