@@ -1,68 +1,93 @@
-@app.route('/analytics')
-def analytics():
-    if 'email' not in session:
-        return redirect(url_for('login'))
+{% extends 'base.html' %}
+{% block title %}Analytics · Zyberfy{% endblock %}
 
-    conn = get_db_connection()
-    # look up numeric user_id
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?",
-        (session['email'],)
-    ).fetchone()
-    if not user:
-        conn.close()
-        flash("User not found", "error")
-        return redirect(url_for('dashboard'))
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 space-y-6">
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Pageviews</p>
+      <p class="text-2xl font-semibold">{{ pageviews }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Saves</p>
+      <p class="text-2xl font-semibold">{{ configs }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Proposals Generated</p>
+      <p class="text-2xl font-semibold">{{ generated }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600">Proposals Sent</p>
+      <p class="text-2xl font-semibold">{{ conversions }}</p>
+    </div>
+  </div>
 
-    user_id = user['id']
+  <!-- Conversion Rate -->
+  <div class="bg-white p-6 rounded-lg shadow">
+    <p class="text-sm text-gray-600">Conversion Rate</p>
+    <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
+  </div>
 
-    # aggregate totals
-    rows = conn.execute("""
-        SELECT event_type, COUNT(*) AS cnt
-          FROM analytics_events
-         WHERE user_id = ?
-      GROUP BY event_type
-    """, (user_id,)).fetchall()
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Donut -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600 mb-2">Conversion Breakdown</p>
+      <div class="h-64"><canvas id="donutChart"></canvas></div>
+    </div>
+    <!-- Line -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600 mb-2">Pageviews (Last 7 Days)</p>
+      <div class="h-64"><canvas id="lineChart"></canvas></div>
+    </div>
+  </div>
 
-    kpis       = {r['event_type']: r['cnt'] for r in rows}
-    pageviews  = kpis.get('pageview', 0)
-    configs    = kpis.get('saved_automation', 0)
-    generated  = kpis.get('generated_proposal', 0)
-    conversions= kpis.get('sent_proposal', 0)
+  <a href="{{ url_for('dashboard') }}"
+     class="inline-block text-gray-700 hover:underline">← Back to Dashboard</a>
+</div>
+{% endblock %}
 
-    # <-- FIXED: use `conversions`, not undefined `sent` -->
-    conversion_rate = (conversions / generated * 100) if generated else 0
 
-    # donut slices
-    donut_converted = conversions
-    donut_dropped   = max(0, generated - conversions)
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Donut chart
+    new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Converted', 'Dropped'],
+        datasets: [{
+          data: [{{ donut_converted }}, {{ donut_dropped }}]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1
+      }
+    });
 
-    # 7-day line chart
-    today  = datetime.utcnow().date()
-    dates  = [today - timedelta(days=i) for i in reversed(range(7))]
-    line_labels = [d.strftime('%b %-d') for d in dates]
-
-    line_data = []
-    for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt
-              FROM analytics_events
-             WHERE user_id = ?
-               AND event_type = 'pageview'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        line_data.append(cnt)
-
-    conn.close()
-
-    return render_template('analytics.html',
-        pageviews=pageviews,
-        configs=configs,
-        generated=generated,
-        conversions=conversions,
-        conversion_rate=round(conversion_rate, 1),
-        donut_converted=donut_converted,
-        donut_dropped=donut_dropped,
-        line_labels=line_labels,
-        line_data=line_data
-    )
+    // 7-day line chart
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: {{ line_labels|tojson }},
+        datasets: [{
+          label: 'Pageviews',
+          data: {{ line_data|tojson }},
+          fill: false,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1.5,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+{% endblock %}
