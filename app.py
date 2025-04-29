@@ -292,76 +292,70 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    # get numeric user_id
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?",
-        (session['email'],)
-    ).fetchone()
-    if not user:
+    u = conn.execute("SELECT id FROM users WHERE email = ?", (session['email'],)).fetchone()
+    if not u:
         conn.close()
         flash("User not found", "error")
         return redirect(url_for('dashboard'))
-    user_id = user['id']
+    user_id = u['id']
 
-    # Totals
+    # Total counts
     rows = conn.execute("""
         SELECT event_type, COUNT(*) AS cnt
           FROM analytics_events
          WHERE user_id = ?
       GROUP BY event_type
     """, (user_id,)).fetchall()
-    kpis         = {r['event_type']: r['cnt'] for r in rows}
-    pageviews    = kpis.get('pageview', 0)
-    configs      = kpis.get('saved_automation', 0)
-    generated    = kpis.get('generated_proposal', 0)
-    conversions  = kpis.get('sent_proposal', 0)
+    kpis       = {r['event_type']: r['cnt'] for r in rows}
+    pageviews  = kpis.get('pageview', 0)
+    saves      = kpis.get('saved_automation', 0)
+    generated  = kpis.get('generated_proposal', 0)
+    sent       = kpis.get('sent_proposal', 0)
 
-    conversion_rate = (conversions / generated * 100) if generated else 0
-    donut_converted = conversions
-    donut_dropped   = max(0, generated - conversions)
+    conversion_rate  = (sent / generated * 100) if generated else 0
+    donut_converted  = sent
+    donut_dropped    = max(0, generated - sent)
 
-    # Last 7 days labels
-    today   = datetime.utcnow().date()
-    dates   = [today - timedelta(days=i) for i in reversed(range(7))]
-    labels  = [d.strftime('%b %-d') for d in dates]
+    # Build last-7-days labels
+    today       = datetime.utcnow().date()
+    dates       = [today - timedelta(days=i) for i in reversed(range(7))]
+    line_labels = [d.strftime('%b %-d') for d in dates]
 
     # Pageviews per day
-    pageviews_data = []
-    for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt
-              FROM analytics_events
-             WHERE user_id = ?
-               AND event_type = 'pageview'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        pageviews_data.append(cnt)
+    line_data = [
+        conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events "
+            "WHERE user_id=? AND event_type='pageview' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()['cnt']
+        for d in dates
+    ]
 
-    # Proposals‐Generated per day
-    generated_data = []
-    for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt
-              FROM analytics_events
-             WHERE user_id = ?
-               AND event_type = 'generated_proposal'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        generated_data.append(cnt)
+    # Proposals generated per day
+    gen_data = [
+        conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events "
+            "WHERE user_id=? AND event_type='generated_proposal' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()['cnt']
+        for d in dates
+    ]
 
     conn.close()
 
-    return render_template('analytics.html',
+    return render_template(
+        'analytics.html',
         pageviews       = pageviews,
-        configs         = configs,
+        saves           = saves,
         generated       = generated,
-        conversions     = conversions,
-        conversion_rate = round(conversion_rate,1),
+        sent            = sent,
+        conversion_rate = round(conversion_rate, 1),
         donut_converted = donut_converted,
         donut_dropped   = donut_dropped,
-        line_labels     = labels,
-        line_data       = pageviews_data,
-        generated_data  = generated_data
+        line_labels     = line_labels,
+        line_data       = line_data,
+        gen_labels      = line_labels,   # same labels
+        gen_data        = gen_data
     )
 
 
