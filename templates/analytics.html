@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto p-6 space-y-6">
+
   <!-- KPI Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white p-4 rounded-lg shadow">
@@ -29,28 +30,34 @@
     <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
   </div>
 
-  <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Donut -->
+  <!-- Charts Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Funnel Donut -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Conversion Breakdown</p>
       <div class="h-64"><canvas id="donutChart"></canvas></div>
     </div>
-    <!-- Pageviews -->
+
+    <!-- Pageviews Line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Pageviews (Last 7 Days)</p>
       <div class="h-64"><canvas id="lineChart"></canvas></div>
     </div>
-    <!-- Generated -->
+
+    <!-- Generated Line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <p class="text-sm text-gray-600 mb-2">Proposals Generated (Last 7 Days)</p>
       <div class="h-64"><canvas id="genChart"></canvas></div>
     </div>
+
+    <!-- Sent Line -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <p class="text-sm text-gray-600 mb-2">Proposals Sent (Last 7 Days)</p>
+      <div class="h-64"><canvas id="sentChart"></canvas></div>
+    </div>
+
   </div>
-  <div class="bg-white p-4 rounded-lg shadow">
-  <p class="text-sm text-gray-600 mb-2">Proposals Sent (Last 7 Days)</p>
-  <div class="h-64"><canvas id="sentChart"></canvas></div>
-</div>
 
   <a href="{{ url_for('dashboard') }}"
      class="inline-block text-gray-700 hover:underline">← Back to Dashboard</a>
@@ -66,10 +73,11 @@
     data: {
       labels: ['Converted','Dropped'],
       datasets: [{
-        data: [{{ donut_converted }}, {{ donut_dropped }}]
+        data: [{{ donut_converted }}, {{ donut_dropped }}],
+        backgroundColor: ['#4F46E5','#D1D5DB']
       }]
     },
-    options: { responsive:true, maintainAspectRatio:false, aspectRatio:1 }
+    options: { maintainAspectRatio: false, aspectRatio: 1 }
   });
 
   // Pageviews line
@@ -80,11 +88,10 @@
       datasets: [{
         label: 'Pageviews',
         data: {{ line_data|tojson }},
-        fill: false,
-        tension: 0.1
+        fill: false, tension: 0.3
       }]
     },
-    options: { responsive:true, maintainAspectRatio:false, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
+    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
   });
 
   // Generated line
@@ -94,32 +101,25 @@
       labels: {{ line_labels|tojson }},
       datasets: [{
         label: 'Generated',
-        data: {{ gen_data|tojson }},
-        fill: false,
-        tension: 0.1
+        data: {{ generated_data|tojson }},
+        fill: false, tension: 0.3
       }]
     },
-    options: { responsive:true, maintainAspectRatio:false, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
+    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
   });
 
-  // 7-day sent-proposals line chart
-new Chart(document.getElementById('sentChart'), {
-  type: 'line',
-  data: {
-    labels: {{ line_labels|tojson }},
-    datasets: [{
-      label: 'Sent',
-      data: {{ sent_data|tojson }},
-      fill: false,
-      tension: 0.1
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    aspectRatio: 1.5,
-    scales: { y: { beginAtZero: true } }
-  }
-});
+  // Sent line
+  new Chart(document.getElementById('sentChart'), {
+    type: 'line',
+    data: {
+      labels: {{ line_labels|tojson }},
+      datasets: [{
+        label: 'Sent',
+        data: {{ sent_data|tojson }},
+        fill: false, tension: 0.3
+      }]
+    },
+    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
+  });
 </script>
 {% endblock %}
