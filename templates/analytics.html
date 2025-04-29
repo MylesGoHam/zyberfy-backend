@@ -37,13 +37,17 @@
     <!-- Donut -->
     <div class="bg-white p-4 rounded-lg shadow">
       <h2 class="text-lg font-medium mb-2">Conversion Breakdown</h2>
-      <canvas id="donutChart" style="height:300px;"></canvas>
+      <div class="h-64">
+        <canvas id="donutChart" class="w-full h-full"></canvas>
+      </div>
     </div>
 
     <!-- Line -->
     <div class="bg-white p-4 rounded-lg shadow">
       <h2 class="text-lg font-medium mb-2">Pageviews (Last 7 Days)</h2>
-      <canvas id="lineChart" style="height:300px;"></canvas>
+      <div class="h-64">
+        <canvas id="lineChart" class="w-full h-full"></canvas>
+      </div>
     </div>
   </div>
 
@@ -67,7 +71,11 @@
           data: [{{ donut_converted }}, {{ donut_dropped }}]
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 1
+      }
     });
 
     // 7-day line chart
@@ -85,7 +93,10 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
+        aspectRatio: 1.5,
+        scales: {
+          y: { beginAtZero: true }
+        }
       }
     });
   </script>
