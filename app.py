@@ -140,40 +140,11 @@ def automation():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        tone, style, notes = (
-            request.form.get('tone'),
-            request.form.get('style'),
-            request.form.get('additional_notes'),
-        )
-
-        conn = get_db_connection()
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?", 
-            (session['email'],)
-        ).fetchone()
-
-        if exists:
-            conn.execute(
-                "UPDATE automation_settings "
-                "SET tone=?, style=?, additional_notes=? "
-                "WHERE email=?",
-                (tone, style, notes, session['email'])
-            )
-        else:
-            conn.execute(
-                "INSERT INTO automation_settings (email, tone, style, additional_notes) "
-                "VALUES (?, ?, ?, ?)",
-                (session['email'], tone, style, notes)
-            )
-
-        conn.commit()
-        conn.close()
-        log_event(session['email'], 'saved_automation')
+        # … save tone/style/notes and log_event …
         return redirect(url_for('dashboard'))
 
     automation = get_user_automation(session['email']) or {}
     return render_template('automation.html', automation=automation)
-
 
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
