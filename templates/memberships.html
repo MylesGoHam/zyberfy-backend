@@ -1,39 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Join Zyberfy Bundle – Zyberfy{% endblock %}
+{% block title %}Sign Up · Zyberfy{% endblock %}
 
 {% block content %}
-  <div class="card">
-    <h1>Zyberfy Bundle</h1>
-    <p class="price">Unlock full access for $1,497</p>
-
-    <ul>
-      <li>Unlimited proposal automation</li>
-      <li>Priority support</li>
-      <li>Advanced tone &amp; style customization</li>
-      <li>Access to future premium features</li>
-    </ul>
-
-    <form method="POST" action="{{ url_for('memberships') }}">
-      <div class="terms">
-        <label>
-          <input type="checkbox" name="terms" required>
-          I agree to the <a href="{{ url_for('terms') }}">Terms of Service</a>
-        </label>
-      </div>
-      <button type="submit">Get Started</button>
-    </form>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flash-list">
-          {% for _, msg in messages %}
-            <li>{{ msg }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-  </div>
-{% endblock %}
-
-{% block scripts %}
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
+  <h1 class="text-2xl font-bold mb-4">Choose Your Plan</h1>
+  <form method="POST" action="{{ url_for('memberships') }}">
+    <div class="mb-4">
+      <label class="inline-flex items-center">
+        <input type="checkbox" name="terms" class="form-checkbox">
+        <span class="ml-2 text-gray-700">I agree to the <a href="{{ url_for('terms') }}" class="underline">Terms of Service</a></span>
+      </label>
+    </div>
+    <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+      Start My Subscription
+    </button>
+  </form>
+</div>
 {% endblock %}
