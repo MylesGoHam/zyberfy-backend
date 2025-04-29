@@ -1,34 +1,31 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block title %}Analytics · Zyberfy{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto p-6 space-y-6">
-
-  <h1 class="text-3xl font-bold">Site Analytics</h1>
-
   <!-- KPI Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-sm text-gray-600">Pageviews</h2>
+      <p class="text-sm text-gray-600">Pageviews</p>
       <p class="text-2xl font-semibold">{{ pageviews }}</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-sm text-gray-600">Saves</h2>
+      <p class="text-sm text-gray-600">Saves</p>
       <p class="text-2xl font-semibold">{{ configs }}</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-sm text-gray-600">Proposals Generated</h2>
+      <p class="text-sm text-gray-600">Proposals Generated</p>
       <p class="text-2xl font-semibold">{{ generated }}</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-sm text-gray-600">Proposals Sent</h2>
+      <p class="text-sm text-gray-600">Proposals Sent</p>
       <p class="text-2xl font-semibold">{{ conversions }}</p>
     </div>
   </div>
 
   <!-- Conversion Rate -->
-  <div class="bg-white p-4 rounded-lg shadow">
-    <h2 class="text-sm text-gray-600">Conversion Rate</h2>
+  <div class="bg-white p-6 rounded-lg shadow">
+    <p class="text-sm text-gray-600">Conversion Rate</p>
     <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
   </div>
 
@@ -36,68 +33,53 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Donut -->
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-lg font-medium mb-2">Conversion Breakdown</h2>
-      <div class="h-64">
-        <canvas id="donutChart" class="w-full h-full"></canvas>
-      </div>
+      <p class="text-sm text-gray-600 mb-2">Conversion Breakdown</p>
+      <div class="h-64"><canvas id="donutChart"></canvas></div>
     </div>
-
     <!-- Line -->
     <div class="bg-white p-4 rounded-lg shadow">
-      <h2 class="text-lg font-medium mb-2">Pageviews (Last 7 Days)</h2>
-      <div class="h-64">
-        <canvas id="lineChart" class="w-full h-full"></canvas>
-      </div>
+      <p class="text-sm text-gray-600 mb-2">Pageviews (Last 7 Days)</p>
+      <div class="h-64"><canvas id="lineChart"></canvas></div>
     </div>
   </div>
 
-  <p class="text-gray-500 hover:underline cursor-pointer"
-     onclick="window.location='{{ url_for('dashboard') }}'">
-    &larr; Back to Dashboard
-  </p>
+  <a href="{{ url_for('dashboard') }}"
+     class="inline-block text-gray-700 hover:underline">← Back to Dashboard</a>
 </div>
 {% endblock %}
 
 {% block scripts %}
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Donut chart
-    new Chart(document.getElementById('donutChart'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Converted', 'Dropped'],
-        datasets: [{
-          data: [{{ donut_converted }}, {{ donut_dropped }}]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 1
-      }
-    });
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Donut
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Converted','Dropped'],
+      datasets: [{
+        data: [{{ conversions }}, {{ generated - conversions }}],
+        backgroundColor: ['#4F46E5','#D1D5DB']
+      }]
+    },
+    options: { maintainAspectRatio: false }
+  });
 
-    // 7-day line chart
-    new Chart(document.getElementById('lineChart'), {
-      type: 'line',
-      data: {
-        labels: {{ line_labels|tojson }},
-        datasets: [{
-          label: 'Pageviews',
-          data: {{ line_data|tojson }},
-          fill: false,
-          tension: 0.1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 1.5,
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-  </script>
+  // Line
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: {{ line_labels|tojson }},
+      datasets: [{
+        label: 'Pageviews',
+        data: {{ line_data|tojson }},
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
 {% endblock %}
