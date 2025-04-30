@@ -1,7 +1,6 @@
 import sqlite3
 import os
 
-# use this constant everywhere
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
@@ -14,16 +13,28 @@ def get_db_connection():
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
+def add_stripe_column_if_missing():
+    """Run once at startup to ALTER the users table if needed."""
+    conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # column already exists
+        pass
+    conn.close()
+
 def create_users_table():
+    """Create users table if it doesn’t exist (with stripe_customer_id)."""
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE,
-        password TEXT,
-        first_name TEXT,
-        plan_status TEXT,
-        stripe_customer_id TEXT       -- <— new column
+        id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+        email                 TEXT UNIQUE,
+        password              TEXT,
+        first_name            TEXT,
+        plan_status           TEXT,
+        stripe_customer_id    TEXT
       )
     """)
     conn.commit()
@@ -72,7 +83,6 @@ def create_analytics_events_table():
     conn.close()
 
 def get_user_automation(email: str):
-    """Fetch the automation_settings row for this user, or None if not set."""
     conn = get_db_connection()
     row = conn.execute(
         "SELECT email, tone, style, additional_notes "
@@ -83,9 +93,6 @@ def get_user_automation(email: str):
     return row
 
 def log_event(user_email: str, event_type: str):
-    """
-    Lookup the user_id from users.email, then insert the analytics event.
-    """
     conn = get_db_connection()
     user = conn.execute(
         "SELECT id FROM users WHERE email = ?", (user_email,)
