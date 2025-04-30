@@ -1,125 +1,45 @@
-{% extends 'base.html' %}
-{% block title %}Analytics · Zyberfy{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Choose a Plan — Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto p-6 space-y-6">
+<div class="max-w-xl mx-auto mt-12">
+  <h1 class="text-2xl font-bold mb-6">Choose Your Plan</h1>
 
-  <!-- KPI Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600">Pageviews</p>
-      <p class="text-2xl font-semibold">{{ pageviews }}</p>
+  <form action="{{ url_for('memberships') }}" method="POST">
+    <div class="bg-white rounded-lg shadow p-6 space-y-4">
+      <div>
+        <h2 class="text-xl font-semibold">Pro Subscription</h2>
+        <p class="mt-2 text-gray-600">Access all features: analytics, automation, unlimited proposals.</p>
+      </div>
+
+      <div class="text-3xl font-bold">
+        $1,497<span class="text-base font-normal">/mo</span>
+      </div>
+
+      <div>
+        <label class="inline-flex items-center">
+          <input
+            type="checkbox"
+            name="terms"
+            class="form-checkbox h-5 w-5 text-blue-600"
+          />
+          <span class="ml-2 text-gray-700">
+            I agree to the
+            <a href="{{ url_for('terms') }}" class="text-blue-600 underline">
+              Terms of Service
+            </a>.
+          </span>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
+      >
+        Subscribe
+      </button>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600">Saves</p>
-      <p class="text-2xl font-semibold">{{ configs }}</p>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600">Proposals Generated</p>
-      <p class="text-2xl font-semibold">{{ generated }}</p>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600">Proposals Sent</p>
-      <p class="text-2xl font-semibold">{{ conversions }}</p>
-    </div>
-  </div>
-
-  <!-- Conversion Rate -->
-  <div class="bg-white p-6 rounded-lg shadow">
-    <p class="text-sm text-gray-600">Conversion Rate</p>
-    <p class="text-2xl font-semibold">{{ conversion_rate }}%</p>
-  </div>
-
-  <!-- Charts Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    <!-- Funnel Donut -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600 mb-2">Conversion Breakdown</p>
-      <div class="h-64"><canvas id="donutChart"></canvas></div>
-    </div>
-
-    <!-- Pageviews Line -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600 mb-2">Pageviews (Last 7 Days)</p>
-      <div class="h-64"><canvas id="lineChart"></canvas></div>
-    </div>
-
-    <!-- Generated Line -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600 mb-2">Proposals Generated (Last 7 Days)</p>
-      <div class="h-64"><canvas id="genChart"></canvas></div>
-    </div>
-
-    <!-- Sent Line -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <p class="text-sm text-gray-600 mb-2">Proposals Sent (Last 7 Days)</p>
-      <div class="h-64"><canvas id="sentChart"></canvas></div>
-    </div>
-
-  </div>
-
-  <a href="{{ url_for('dashboard') }}"
-     class="inline-block text-gray-700 hover:underline">← Back to Dashboard</a>
+  </form>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Donut
-  new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Converted','Dropped'],
-      datasets: [{
-        data: [{{ donut_converted }}, {{ donut_dropped }}],
-        backgroundColor: ['#4F46E5','#D1D5DB']
-      }]
-    },
-    options: { maintainAspectRatio: false, aspectRatio: 1 }
-  });
-
-  // Pageviews line
-  new Chart(document.getElementById('lineChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Pageviews',
-        data: {{ line_data|tojson }},
-        fill: false, tension: 0.3
-      }]
-    },
-    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
-  });
-
-  // Generated line
-  new Chart(document.getElementById('genChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Generated',
-        data: {{ generated_data|tojson }},
-        fill: false, tension: 0.3
-      }]
-    },
-    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
-  });
-
-  // Sent line
-  new Chart(document.getElementById('sentChart'), {
-    type: 'line',
-    data: {
-      labels: {{ line_labels|tojson }},
-      datasets: [{
-        label: 'Sent',
-        data: {{ sent_data|tojson }},
-        fill: false, tension: 0.3
-      }]
-    },
-    options: { maintainAspectRatio: false, aspectRatio: 1.5, scales: { y: { beginAtZero: true } } }
-  });
-</script>
 {% endblock %}
