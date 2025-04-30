@@ -18,17 +18,21 @@
 
       <!-- Desktop nav -->
       <nav class="hidden md:flex items-center space-x-6">
-        <a href="{{ url_for('home') }}">Home</a>
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('analytics') }}">Analytics</a>
-        <a href="{{ url_for('automation') }}">Automation</a>
+<a href="{{ url_for('home') }}">Home</a>
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
 
-        {% if session.email %}
-          <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
-        {% else %}
-          <a href="{{ url_for('memberships') }}" class="text-green-600 hover:underline">Sign Up</a>
-          <a href="{{ url_for('login') }}"        class="text-blue-600 hover:underline">Login</a>
-        {% endif %}
+{% if session.get('plan_status') == 'pro' %}
+  <a href="{{ url_for('analytics') }}">Analytics</a>
+  <a href="{{ url_for('automation') }}">Automation</a>
+{% else %}
+  <a href="{{ url_for('memberships') }}" class="text-green-600 hover:underline">Subscribe</a>
+{% endif %}
+
+{% if session.get('email') %}
+  <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
+{% else %}
+  <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">Login</a>
+{% endif %}
       </nav>
 
       <!-- Mobile toggle -->
@@ -42,17 +46,22 @@
 
     <!-- Mobile menu -->
     <nav id="mobile-menu" class="hidden bg-white border-t border-gray-200 md:hidden">
-      <a href="{{ url_for('home') }}"        class="block px-4 py-2 hover:bg-gray-100">Home</a>
-      {% if session.email %}
-        <a href="{{ url_for('dashboard') }}"  class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
-        <a href="{{ url_for('analytics') }}"  class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-        <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
-        <a href="{{ url_for('logout') }}"      class="block px-4 py-2 hover:bg-gray-100">Logout</a>
-      {% else %}
-        <a href="{{ url_for('login') }}"       class="block px-4 py-2 hover:bg-gray-100">Login</a>
-        <a href="{{ url_for('memberships') }}" class="block px-4 py-2 hover:bg-gray-100">Sign Up</a>
-      {% endif %}
-    </nav>
+  <a href="{{ url_for('home') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
+  <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
+
+  {% if session.get('plan_status') == 'pro' %}
+    <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+    <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+  {% else %}
+    <a href="{{ url_for('memberships') }}" class="block px-4 py-2 hover:bg-gray-100">Subscribe</a>
+  {% endif %}
+
+  {% if session.get('email') %}
+    <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+  {% else %}
+    <a href="{{ url_for('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
+  {% endif %}
+</nav>
   </header>
 
   {% block content %}{% endblock %}
