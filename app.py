@@ -1,15 +1,10 @@
 import os
 import logging
 import sqlite3
-from flask import (
-    Flask, render_template, request,
-    redirect, url_for, session,
-    flash, jsonify
-)
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from dotenv import load_dotenv
 import openai
 import stripe
-
 from models import (
     get_db_connection,
     create_users_table,
@@ -21,6 +16,56 @@ from models import (
 )
 from email_utils import send_proposal_email
 from datetime import datetime, timedelta
+
+# ─── Logging ────────────────────────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# ─── Config ─────────────────────────────────────────────────────────────────
+load_dotenv()
+stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key   = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL      = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD   = os.getenv("ADMIN_PASSWORD")
+
+# ─── Flask Setup ────────────────────────────────────────────────────────────
+app = Flask(__name__, template_folder="templates")
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
+
+# ─── Force DB Init ──────────────────────────────────────────────────────────
+create_users_table()
+create_automation_settings_table()
+create_subscriptions_table()
+create_analytics_events_table()
+
+# ─── Migration: add stripe_customer_id if missing ───────────────────────────
+def migrate_stripe_column():
+    conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # already there
+        pass
+    finally:
+        conn.close()
+
+migrate_stripe_column()
+
+# ─── Seed admin if configured ───────────────────────────────────────────────
+if ADMIN_EMAIL and ADMIN_PASSWORD:
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
+        "VALUES (?, ?, ?, ?)",
+        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
+    )
+    conn.commit()
+    conn.close()
+
+# Run the migration at startup
+migrate_stripe_column()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -199,13 +244,22 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
 
+    conn = get_db_connection()
+    row = conn.execute(
+        "SELECT plan_status, first_name FROM users WHERE email = ?",
+        (session['email'],)
+    ).fetchone()
+    session['plan_status'] = row['plan_status']
+    conn.close()
+
     log_event(session['email'], 'pageview')
+
     return render_template(
-        'dashboard.html',
-        first_name          = session.get('first_name', 'there'),
-        plan_status         = session.get('plan_status', 'free'),
-        automation          = get_user_automation(session['email']),
-        automation_complete = bool(get_user_automation(session['email']))
+      'dashboard.html',
+      first_name     = session.get('first_name', 'there'),
+      plan_status    = session['plan_status'],
+      automation     = get_user_automation(session['email']),
+      automation_complete = bool(get_user_automation(session['email']))
     )
 
 @app.route('/automation', methods=['GET','POST'])
