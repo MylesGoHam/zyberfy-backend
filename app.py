@@ -136,16 +136,46 @@ def stripe_webhook():
             payload, sig_header, secret
         )
     except Exception as e:
-        logger.exception("⚠️ Webhook signature verification failed")
-        return jsonify({"error": str(e)}), 400
+        logger.exception("Webhook signature verification failed")
+        return jsonify({'error': str(e)}), 400
 
-    # now handle event types
+    # Grab the customer and subscription
+    obj = event['data']['object']
+
     if event['type'] == 'checkout.session.completed':
-        session_obj = event['data']['object']
-        customer_id = session_obj['customer']
-        # e.g. update your user record, mark subscription active, etc.
+        # first checkout
+        customer_id = obj['customer']
+        sub_id      = obj['subscription']
+        # mark user as pro in your DB:
+        conn = get_db_connection()
+        conn.execute(
+            "UPDATE users SET plan_status='pro' WHERE stripe_customer_id = ?",
+            (customer_id,)
+        )
+        conn.commit()
+        conn.close()
 
-    return jsonify(success=True)
+    elif event['type'].startswith('invoice.'):
+        # handle renewals / failed payments
+        invoice = obj
+        customer_id = invoice['customer']
+        paid        = invoice['paid']
+        conn = get_db_connection()
+
+        if paid:
+            # nothing special—still pro
+            pass
+        else:
+            # payment failed: downgrade
+            conn.execute(
+                "UPDATE users SET plan_status='free' WHERE stripe_customer_id = ?",
+                (customer_id,)
+            )
+
+        conn.commit()
+        conn.close()
+
+    return jsonify({'status': 'success'})
 
 
 @app.route('/dashboard')
