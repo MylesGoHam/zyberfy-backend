@@ -10,12 +10,9 @@
 </head>
 <body class="antialiased bg-gray-50 text-gray-800">
 
-  <!-- Header -->
   <header class="bg-white shadow-md mb-8">
     <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
       <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">Zyberfy</a>
-
-      <!-- only show “Logout” if logged in -->
       <nav>
         {% if session.get('email') %}
           <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
