@@ -125,6 +125,28 @@ def memberships():
 
     return render_template('memberships.html')
 
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    payload    = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    secret     = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, secret
+        )
+    except Exception as e:
+        logger.exception("⚠️ Webhook signature verification failed")
+        return jsonify({"error": str(e)}), 400
+
+    # now handle event types
+    if event['type'] == 'checkout.session.completed':
+        session_obj = event['data']['object']
+        customer_id = session_obj['customer']
+        # e.g. update your user record, mark subscription active, etc.
+
+    return jsonify(success=True)
+
 
 @app.route('/dashboard')
 def dashboard():
