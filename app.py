@@ -1,10 +1,15 @@
 import os
 import logging
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import (
+    Flask, render_template, request,
+    redirect, url_for, session,
+    flash, jsonify
+)
 from dotenv import load_dotenv
 import openai
 import stripe
+
 from models import (
     get_db_connection,
     create_users_table,
@@ -23,37 +28,36 @@ logger = logging.getLogger(__name__)
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 load_dotenv()
-stripe.api_key   = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key   = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL   = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL      = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD   = os.getenv("ADMIN_PASSWORD")
+stripe.api_key     = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key     = os.getenv("OPENAI_API_KEY")
+PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
+ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 
-# ─── Force DB Init ──────────────────────────────────────────────────────────
+# ─── DB Init + Migration ─────────────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
 
-# ─── Migration: add stripe_customer_id if missing ───────────────────────────
+# ensure stripe_customer_id column exists
 def migrate_stripe_column():
     conn = get_db_connection()
     try:
         conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
         conn.commit()
     except sqlite3.OperationalError:
-        # already there
         pass
     finally:
         conn.close()
 
 migrate_stripe_column()
 
-# ─── Seed admin if configured ───────────────────────────────────────────────
+# seed admin user if desired
 if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn = get_db_connection()
     conn.execute(
@@ -64,52 +68,17 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
-# Run the migration at startup
-migrate_stripe_column()
+# ─── Authentication guard ────────────────────────────────────────────────────
+PUBLIC_ENDPOINTS = {
+    'home', 'login', 'ping', 'stripe_webhook', 'static'
+}
 
-# ─── Logging ────────────────────────────────────────────────────────────────
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+@app.before_request
+def require_login():
+    if request.endpoint not in PUBLIC_ENDPOINTS and 'email' not in session:
+        return redirect(url_for('login'))
 
-# ─── Config ─────────────────────────────────────────────────────────────────
-load_dotenv()
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-
-# ─── Flask Setup ───────────────────────────────────────────────────────────
-app = Flask(__name__, template_folder="templates")
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
-
-# ─── Force DB Init + Migration ──────────────────────────────────────────────
-create_users_table()
-create_automation_settings_table()
-create_subscriptions_table()
-create_analytics_events_table()
-
-# Add stripe_customer_id if the column is missing
-conn = get_db_connection()
-try:
-    conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
-    conn.commit()
-except sqlite3.OperationalError:
-    pass
-conn.close()
-
-# Seed admin if configured
-if ADMIN_EMAIL and ADMIN_PASSWORD:
-    conn = get_db_connection()
-    conn.execute(
-        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
-        "VALUES (?, ?, ?, ?)",
-        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
-    )
-    conn.commit()
-    conn.close()
-
-# ─── Routes ─────────────────────────────────────────────────────────────────
+# ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def home():
@@ -137,11 +106,8 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/memberships', methods=['GET','POST'])
+@app.route('/memberships', methods=['GET', 'POST'])
 def memberships():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
     if request.method == 'POST':
         price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
         if not price_id:
@@ -157,11 +123,11 @@ def memberships():
             session_obj = stripe.checkout.Session.create(
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url = url_for('dashboard', _external=True),
-                cancel_url  = url_for('memberships', _external=True),
+                success_url=url_for('dashboard', _external=True),
+                cancel_url=url_for('memberships', _external=True),
             )
 
-            # persist the customer id immediately
+            # store Stripe customer_id
             customer_id = session_obj.customer
             conn = get_db_connection()
             conn.execute(
@@ -182,7 +148,8 @@ def memberships():
 
 @app.route('/billing-portal')
 def billing_portal():
-    if 'email' not in session or session.get('plan_status') != 'pro':
+    # must be pro and logged in (enforced by before_request)
+    if session.get('plan_status') != 'pro':
         return redirect(url_for('dashboard'))
 
     conn = get_db_connection()
@@ -192,11 +159,11 @@ def billing_portal():
     ).fetchone()['stripe_customer_id']
     conn.close()
 
-    session_obj = stripe.billing_portal.Session.create(
-        customer   = customer_id,
-        return_url = url_for('dashboard', _external=True)
+    portal = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=url_for('dashboard', _external=True)
     )
-    return redirect(session_obj.url, code=303)
+    return redirect(portal.url, code=303)
 
 @app.route('/webhook', methods=['POST'])
 def stripe_webhook():
@@ -205,34 +172,32 @@ def stripe_webhook():
     secret     = os.getenv("STRIPE_WEBHOOK_SECRET")
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, secret
-        )
+        event = stripe.Webhook.construct_event(payload, sig_header, secret)
     except Exception as e:
-        logger.exception("Webhook signature verification failed")
+        logger.exception("Webhook verification failed")
         return jsonify({'error': str(e)}), 400
 
     obj = event['data']['object']
 
     if event['type'] == 'checkout.session.completed':
-        customer_id = obj['customer']
+        cid = obj['customer']
         conn = get_db_connection()
         conn.execute(
             "UPDATE users SET plan_status='pro' WHERE stripe_customer_id = ?",
-            (customer_id,)
+            (cid,)
         )
         conn.commit()
         conn.close()
 
     elif event['type'].startswith('invoice.'):
-        invoice     = obj
-        customer_id = invoice['customer']
-        paid        = invoice['paid']
+        invoice = obj
+        paid    = invoice.get('paid', False)
+        cid     = invoice['customer']
         conn = get_db_connection()
         if not paid:
             conn.execute(
                 "UPDATE users SET plan_status='free' WHERE stripe_customer_id = ?",
-                (customer_id,)
+                (cid,)
             )
         conn.commit()
         conn.close()
@@ -241,31 +206,27 @@ def stripe_webhook():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'email' not in session:
-        return redirect(url_for('login'))
-
+    # re-sync plan_status from DB
     conn = get_db_connection()
     row = conn.execute(
         "SELECT plan_status, first_name FROM users WHERE email = ?",
         (session['email'],)
     ).fetchone()
-    session['plan_status'] = row['plan_status']
     conn.close()
 
-    log_event(session['email'], 'pageview')
+    session['plan_status'] = row['plan_status']
 
+    log_event(session['email'], 'pageview')
     return render_template(
-      'dashboard.html',
-      first_name     = session.get('first_name', 'there'),
-      plan_status    = session['plan_status'],
-      automation     = get_user_automation(session['email']),
-      automation_complete = bool(get_user_automation(session['email']))
+        'dashboard.html',
+        first_name         = row['first_name'],
+        plan_status        = row['plan_status'],
+        automation         = get_user_automation(session['email']),
+        automation_complete= bool(get_user_automation(session['email']))
     )
 
-@app.route('/automation', methods=['GET','POST'])
+@app.route('/automation', methods=['GET', 'POST'])
 def automation():
-    if 'email' not in session:
-        return redirect(url_for('login'))
     if session.get('plan_status') != 'pro':
         flash("Automation is a Pro feature—please subscribe.", "error")
         return redirect(url_for('memberships'))
@@ -281,6 +242,7 @@ def automation():
             "SELECT 1 FROM automation_settings WHERE email = ?", 
             (session['email'],)
         ).fetchone()
+
         if exists:
             conn.execute(
                 "UPDATE automation_settings SET tone=?, style=?, additional_notes=? WHERE email=?",
@@ -293,15 +255,17 @@ def automation():
             )
         conn.commit()
         conn.close()
+
         log_event(session['email'], 'saved_automation')
         return redirect(url_for('dashboard'))
 
-    return render_template('automation.html', automation=get_user_automation(session['email']) or {})
+    return render_template(
+        'automation.html',
+        automation=get_user_automation(session['email']) or {}
+    )
 
 @app.route('/generate-proposal', methods=['POST'])
 def generate_proposal():
-    if 'email' not in session:
-        return jsonify(success=False, error='Unauthorized'), 403
     if session.get('plan_status') != 'pro':
         return jsonify(success=False, error='Upgrade to Pro'), 402
 
@@ -311,6 +275,7 @@ def generate_proposal():
         (session['email'],)
     ).fetchone()
     conn.close()
+
     if not automation:
         return jsonify(success=False, error='No automation settings'), 400
 
@@ -323,8 +288,8 @@ def generate_proposal():
         resp = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                {"role": "user",   "content": prompt}
+                {"role":"system","content":"You are a helpful assistant writing business proposals."},
+                {"role":"user","content":prompt}
             ],
             max_tokens=300,
             temperature=0.7
@@ -338,20 +303,20 @@ def generate_proposal():
         )
         return jsonify(success=True, proposal=fallback, fallback=True)
 
-@app.route('/proposal', methods=['GET','POST'])
+@app.route('/proposal', methods=['GET', 'POST'])
 def proposal():
-    if 'email' not in session:
-        return redirect(url_for('login'))
     if request.method == 'POST':
         lead_name  = request.form['name']
         lead_email = PERSONAL_EMAIL or request.form['email']
         budget     = request.form['budget']
+
         conn = get_db_connection()
         automation = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?", 
             (session['email'],)
         ).fetchone()
         conn.close()
+
         prompt = (
             f"Write a business proposal email to {lead_name}, budget ${budget}, "
             f"in a {automation['tone']} tone & {automation['style']} style. "
@@ -361,8 +326,8 @@ def proposal():
             resp = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant writing business proposals."},
-                    {"role": "user",   "content": prompt}
+                    {"role":"system","content":"You are a helpful assistant writing business proposals."},
+                    {"role":"user","content":prompt}
                 ],
                 max_tokens=350,
                 temperature=0.7
@@ -371,7 +336,8 @@ def proposal():
         except Exception as e:
             flash(f"Error generating proposal: {e}", "error")
             return redirect(url_for('proposal'))
-        subject = f"Proposal for {lead_name} (Budget: ${budget})"
+
+        subject  = f"Proposal for {lead_name} (Budget: ${budget})"
         resp_obj = send_proposal_email(
             to_email=lead_email,
             subject=subject,
@@ -379,18 +345,19 @@ def proposal():
             cc_client=False
         )
         status_code = getattr(resp_obj, 'status_code', resp_obj)
+
         if 200 <= status_code < 300:
             log_event(session['email'], 'sent_proposal')
             flash(f"✅ Proposal sent to {lead_email}", "success")
             return render_template('thank_you.html')
+
         flash("❌ Failed to send proposal email.", "error")
         return redirect(url_for('proposal'))
+
     return render_template('proposal.html')
 
 @app.route('/analytics')
 def analytics():
-    if 'email' not in session:
-        return redirect(url_for('login'))
     if session.get('plan_status') != 'pro':
         flash("Analytics is a Pro feature—please subscribe.", "error")
         return redirect(url_for('memberships'))
@@ -405,63 +372,57 @@ def analytics():
         return redirect(url_for('dashboard'))
     user_id = user['id']
 
-    # Totals
-    pageviews     = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'pageview'", (user_id,)
+    # compute totals & time series…
+    pageviews  = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id=? AND event_type='pageview'",
+        (user_id,)
     ).fetchone()['cnt']
-    configs       = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'saved_automation'", (user_id,)
+    configs    = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id=? AND event_type='saved_automation'",
+        (user_id,)
     ).fetchone()['cnt']
-    generated     = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'generated_proposal'", (user_id,)
+    generated  = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id=? AND event_type='generated_proposal'",
+        (user_id,)
     ).fetchone()['cnt']
-    conversions   = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'sent_proposal'", (user_id,)
+    conversions= conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id=? AND event_type='sent_proposal'",
+        (user_id,)
     ).fetchone()['cnt']
-    conversion_rate = (conversions / generated * 100) if generated else 0
+    conversion_rate = (conversions / generated * 100) if generated else 0.0
 
-    today   = datetime.utcnow().date()
-    dates   = [today - timedelta(days=i) for i in reversed(range(7))]
-    labels  = [d.strftime('%b %-d') for d in dates]
+    today = datetime.utcnow().date()
+    dates = [today - timedelta(days=i) for i in reversed(range(7))]
+    labels= [d.strftime('%b %-d') for d in dates]
 
-    data_pv = []
-    data_gen = []
-    data_sent = []
+    series = {'pv':[], 'gen':[], 'sent':[]}
     for d in dates:
-        cnt_pv = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?", (user_id, d)
-        ).fetchone()['cnt']
-        cnt_gen = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?", (user_id, d)
-        ).fetchone()['cnt']
-        cnt_sent = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?", (user_id, d)
-        ).fetchone()['cnt']
-        data_pv.append(cnt_pv)
-        data_gen.append(cnt_gen)
-        data_sent.append(cnt_sent)
+        series['pv'].append(conn.execute(
+            "SELECT COUNT(*) FROM analytics_events WHERE user_id=? AND event_type='pageview' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()[0])
+        series['gen'].append(conn.execute(
+            "SELECT COUNT(*) FROM analytics_events WHERE user_id=? AND event_type='generated_proposal' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()[0])
+        series['sent'].append(conn.execute(
+            "SELECT COUNT(*) FROM analytics_events WHERE user_id=? AND event_type='sent_proposal' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()[0])
 
     conn.close()
-    return render_template(
-        'analytics.html',
+    return render_template('analytics.html',
         pageviews       = pageviews,
         configs         = configs,
         generated       = generated,
         conversions     = conversions,
-        conversion_rate = round(conversion_rate, 1),
+        conversion_rate = round(conversion_rate,1),
         donut_converted = conversions,
-        donut_dropped   = max(0, generated - conversions),
+        donut_dropped   = max(0, generated-conversions),
         line_labels     = labels,
-        line_data       = data_pv,
-        generated_data  = data_gen,
-        sent_data       = data_sent
+        line_data       = series['pv'],
+        generated_data  = series['gen'],
+        sent_data       = series['sent']
     )
 
 @app.route('/terms')
@@ -478,4 +439,6 @@ def ping():
     return "pong"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5001)), debug=True)
+    app.run(host='0.0.0.0',
+            port=int(os.getenv('PORT', 5001)),
+            debug=True)
