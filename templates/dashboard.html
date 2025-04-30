@@ -1,36 +1,22 @@
-{% extends 'base.html' %}
-{% block title %}Dashboard · Zyberfy{% endblock %}
+{% extends "base.html" %}
+{% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
-  <h2 class="text-2xl mb-4">Welcome, {{ first_name }}!</h2>
-  <div class="grid grid-cols-2 gap-4 mb-6">
-    <div class="p-6 bg-white rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-2">Plan Status</h3>
-      <p class="text-lg">{{ plan_status|capitalize }}</p>
-    </div>
-    <div class="p-6 bg-white rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-2">Automation</h3>
-      {% if automation_complete %}
-        <span class="text-green-600">Configured ✔︎</span>
-      {% else %}
-        <span class="text-gray-600">None</span>
-      {% endif %}
-    </div>
-  </div>
-
-  {% if not automation_complete %}
-    <a href="{{ url_for('automation') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-      Configure Automation
-    </a>
-  {% else %}
-    <div class="bg-white p-6 rounded-lg shadow-sm">
-      <h3 class="font-semibold mb-2">Your Automation Settings</h3>
-      <p><strong>Tone:</strong> {{ automation.tone or 'None' }}</p>
-      <p><strong>Style:</strong> {{ automation.style or 'None' }}</p>
+  <h2 class="text-2xl font-bold mb-4">Welcome back, {{ first_name }}!</h2>
+  <p class="mb-6">Plan: <strong>{{ plan_status|capitalize }}</strong></p>
+  {% if plan_status == 'pro' %}
+    <div class="space-x-4">
+      <a href="{{ url_for('analytics') }}"
+         class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Analytics</a>
       <a href="{{ url_for('automation') }}"
-         class="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
-        Edit Automation
-      </a>
+         class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Automation</a>
+      <a href="{{ url_for('proposal') }}"
+         class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">New Proposal</a>
     </div>
+  {% else %}
+    <a href="{{ url_for('memberships') }}"
+       class="mt-6 inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+      Subscribe / Upgrade
+    </a>
   {% endif %}
 {% endblock %}
