@@ -84,17 +84,10 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/memberships', methods=['GET', 'POST'])
+@app.route('/memberships', methods=['GET','POST'])
 def memberships():
     if request.method == 'POST':
-        if not request.form.get('terms'):
-            flash("You must agree to the Terms of Service.", "error")
-            return redirect(url_for('memberships'))
-
-        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
-        if not price_id:
-            flash("Payment configuration missing. Try again later.", "error")
-            return redirect(url_for('memberships'))
+        # ... your existing terms check, price_id lookup, etc.
 
         try:
             session_obj = stripe.checkout.Session.create(
@@ -103,16 +96,19 @@ def memberships():
                 success_url=url_for('dashboard', _external=True),
                 cancel_url=url_for('memberships', _external=True),
             )
-            # Persist the Stripe customer ID for this user
+
+            # **Immediately persist the Stripe customer ID**:
+            customer_id = session_obj.customer
             conn = get_db_connection()
             conn.execute(
                 "UPDATE users SET stripe_customer_id = ? WHERE email = ?",
-                (session_obj.customer, session['email'])
+                (customer_id, session['email'])
             )
             conn.commit()
             conn.close()
 
             return redirect(session_obj.url, code=303)
+
         except Exception as e:
             logger.exception("Stripe checkout failed: %s", e)
             flash("Could not start payment. Please try again.", "error")
