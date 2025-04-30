@@ -87,17 +87,26 @@ def login():
 @app.route('/memberships', methods=['GET','POST'])
 def memberships():
     if request.method == 'POST':
-        # ... your existing terms check, price_id lookup, etc.
+        # sanity check
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        if not price_id:
+            logger.error("⚠️ SECRET_BUNDLE_PRICE_ID not set!")
+            flash("Payment configuration missing. Please try again later.", "error")
+            return redirect(url_for('memberships'))
+
+        if not request.form.get('terms'):
+            flash("You must agree to the Terms of Service.", "error")
+            return redirect(url_for('memberships'))
 
         try:
             session_obj = stripe.checkout.Session.create(
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
-                success_url=url_for('dashboard', _external=True),
-                cancel_url=url_for('memberships', _external=True),
+                success_url = url_for('dashboard', _external=True),
+                cancel_url  = url_for('memberships', _external=True),
             )
 
-            # **Immediately persist the Stripe customer ID**:
+            # persist the customer id immediately
             customer_id = session_obj.customer
             conn = get_db_connection()
             conn.execute(
