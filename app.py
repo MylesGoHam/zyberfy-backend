@@ -35,7 +35,7 @@ ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 
 # ─── Force DB Init ──────────────────────────────────────────────────────────
 create_users_table()
@@ -53,7 +53,6 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     )
     conn.commit()
     conn.close()
-
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
@@ -104,6 +103,15 @@ def memberships():
                 success_url=url_for('dashboard', _external=True),
                 cancel_url=url_for('memberships', _external=True),
             )
+            # Persist the Stripe customer ID for this user
+            conn = get_db_connection()
+            conn.execute(
+                "UPDATE users SET stripe_customer_id = ? WHERE email = ?",
+                (session_obj.customer, session['email'])
+            )
+            conn.commit()
+            conn.close()
+
             return redirect(session_obj.url, code=303)
         except Exception as e:
             logger.exception("Stripe checkout failed: %s", e)
@@ -219,7 +227,7 @@ def generate_proposal():
         return jsonify(success=True, proposal=fallback, fallback=True)
 
 
-@app.route('/proposal', methods=['GET', 'POST'])
+@app.route('/proposal', methods=['GET','POST'])
 def proposal():
     if 'email' not in session:
         return redirect(url_for('login'))
@@ -284,7 +292,6 @@ def analytics():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    # look up user_id
     user = conn.execute(
         "SELECT id FROM users WHERE email = ?", (session['email'],)
     ).fetchone()
@@ -317,74 +324,63 @@ def analytics():
     ).fetchone()['cnt']
     conversion_rate = (conversions / generated * 100) if generated else 0
 
-    # Last 7 days labels
     today  = datetime.utcnow().date()
     dates  = [today - timedelta(days=i) for i in reversed(range(7))]
     line_labels = [d.strftime('%b %-d') for d in dates]
 
-    # Pageviews per day
+    # Sequence data
     pageviews_data = []
-    for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt FROM analytics_events
-             WHERE user_id = ? AND event_type = 'pageview'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        pageviews_data.append(cnt)
-
-    # Proposals Generated per day
     generated_data = []
+    sent_data       = []
     for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt FROM analytics_events
-             WHERE user_id = ? AND event_type = 'generated_proposal'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        generated_data.append(cnt)
-
-    # Proposals Sent per day
-    sent_data = []
-    for d in dates:
-        cnt = conn.execute("""
-            SELECT COUNT(*) AS cnt FROM analytics_events
-             WHERE user_id = ? AND event_type = 'sent_proposal'
-               AND date(timestamp) = ?
-        """, (user_id, d)).fetchone()['cnt']
-        sent_data.append(cnt)
+        pv = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events "
+            "WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()['cnt']
+        gd = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events "
+            "WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()['cnt']
+        sd = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events "
+            "WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?",
+            (user_id, d)
+        ).fetchone()['cnt']
+        pageviews_data.append(pv)
+        generated_data.append(gd)
+        sent_data.append(sd)
 
     conn.close()
 
     return render_template(
         'analytics.html',
-        pageviews        = pageviews,
-        configs          = configs,
-        generated        = generated,
-        conversions      = conversions,
-        conversion_rate  = round(conversion_rate, 1),
-        donut_converted  = conversions,
-        donut_dropped    = max(0, generated - conversions),
-        line_labels      = line_labels,
-        line_data        = pageviews_data,
-        generated_data   = generated_data,
-        sent_data        = sent_data
+        pageviews       = pageviews,
+        configs         = configs,
+        generated       = generated,
+        conversions     = conversions,
+        conversion_rate = round(conversion_rate, 1),
+        donut_converted = conversions,
+        donut_dropped   = max(0, generated - conversions),
+        line_labels     = line_labels,
+        line_data       = pageviews_data,
+        generated_data  = generated_data,
+        sent_data       = sent_data
     )
-
 
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
-
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-
 @app.route('/ping')
 def ping():
     return "pong"
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5001)), debug=True)
