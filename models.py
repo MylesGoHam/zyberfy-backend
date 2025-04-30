@@ -18,12 +18,13 @@ def create_users_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        email       TEXT UNIQUE    NOT NULL,
-        password    TEXT           NOT NULL,
-        first_name  TEXT,
-        plan_status TEXT
-      );
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        first_name TEXT,
+        plan_status TEXT,
+        stripe_customer_id TEXT       -- <— new column
+      )
     """)
     conn.commit()
     conn.close()
