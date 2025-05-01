@@ -72,13 +72,23 @@ PUBLIC_PATHS = {
     "/", "/login", "/terms", "/ping", "/stripe_webhook", "/memberships"
 }
 
+# near the top of app.py, alongside your other imports:
+from flask import request, redirect, url_for, session
+
+# 1) add '/analytics' into your public paths:
+PUBLIC_PATHS = {
+    "/", "/login", "/terms", "/ping",
+    "/stripe_webhook", "/memberships",
+    "/analytics"    # ← now public (no redirect)
+}
+
 @app.before_request
 def refresh_plan_and_require_login():
-    # allow static files
+    # 1) let static assets through
     if request.path.startswith("/static/"):
         return
 
-    # if it’s a public path, just refresh their plan_status if they're logged in
+    # 2) public paths get a plan_status refresh (if logged in), but no redirect
     if request.path in PUBLIC_PATHS:
         if session.get("email"):
             conn = get_db_connection()
@@ -90,11 +100,11 @@ def refresh_plan_and_require_login():
             session["plan_status"] = row["plan_status"] if row else None
         return
 
-    # otherwise you must be logged in
+    # 3) everything else still needs a login
     if "email" not in session:
         return redirect(url_for("login"))
 
-    # and reload your plan_status every time
+    # 4) for all logged-in routes, refresh their plan_status
     conn = get_db_connection()
     row  = conn.execute(
         "SELECT plan_status FROM users WHERE email = ?",
