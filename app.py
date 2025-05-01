@@ -221,80 +221,75 @@ def dashboard():
     )
 
 
-@app.route("/analytics")
+@app.route('/analytics')
 def analytics():
-    # only “pro” sees this
-    if session.get("plan_status") != "pro":
-        flash("Analytics is a Pro feature—please subscribe.", "error")
-        return redirect(url_for("memberships"))
-
+    # if you really want it public, drop any plan_status check here
     conn = get_db_connection()
     user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (session["email"],)
+        "SELECT id FROM users WHERE email = ?", (session.get('email'),)
     ).fetchone()
     if not user:
         conn.close()
         flash("User not found", "error")
-        return redirect(url_for("dashboard"))
-    user_id = user["id"]
+        return redirect(url_for('dashboard'))
+    user_id = user['id']
 
     # Totals
-    pageviews   = conn.execute(
+    pageviews = conn.execute(
         "SELECT COUNT(*) AS cnt FROM analytics_events "
         "WHERE user_id = ? AND event_type = 'pageview'",
         (user_id,)
-    ).fetchone()["cnt"]
-    generated   = conn.execute(
+    ).fetchone()['cnt']
+    generated = conn.execute(
         "SELECT COUNT(*) AS cnt FROM analytics_events "
         "WHERE user_id = ? AND event_type = 'generated_proposal'",
         (user_id,)
-    ).fetchone()["cnt"]
+    ).fetchone()['cnt']
     conversions = conn.execute(
         "SELECT COUNT(*) AS cnt FROM analytics_events "
         "WHERE user_id = ? AND event_type = 'sent_proposal'",
         (user_id,)
-    ).fetchone()["cnt"]
-    rate = (conversions / generated * 100) if generated else 0
+    ).fetchone()['cnt']
+    conversion_rate = (conversions / generated * 100) if generated else 0
 
     # Last 7 days
     today  = datetime.utcnow().date()
     dates  = [today - timedelta(days=i) for i in reversed(range(7))]
-    labels = [d.strftime("%b %-d") for d in dates]
+    line_labels = [d.strftime('%b %-d') for d in dates]
 
-    # Series
+    # Build series
     pv_data, gen_data, sent_data = [], [], []
     for d in dates:
         pv = conn.execute(
             "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type='pageview' AND date(timestamp)=?",
+            "WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?",
             (user_id, d)
-        ).fetchone()["cnt"]
+        ).fetchone()['cnt']
         gp = conn.execute(
             "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type='generated_proposal' AND date(timestamp)=?",
+            "WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?",
             (user_id, d)
-        ).fetchone()["cnt"]
+        ).fetchone()['cnt']
         sp = conn.execute(
             "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type='sent_proposal' AND date(timestamp)=?",
+            "WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?",
             (user_id, d)
-        ).fetchone()["cnt"]
+        ).fetchone()['cnt']
         pv_data.append(pv)
         gen_data.append(gp)
         sent_data.append(sp)
 
     conn.close()
-
     return render_template(
-        "analytics.html",
-        pageviews       = pageviews,
-        generated       = generated,
-        conversions     = conversions,
-        conversion_rate = round(rate, 1),
-        line_labels     = labels,
-        line_data       = pv_data,
-        generated_data  = gen_data,
-        sent_data       = sent_data
+        'analytics.html',
+        pageviews=pageviews,
+        generated=generated,
+        conversions=conversions,
+        conversion_rate=round(conversion_rate, 1),
+        line_labels=line_labels,
+        line_data=pv_data,
+        generated_data=gen_data,
+        sent_data=sent_data
     )
 
 
