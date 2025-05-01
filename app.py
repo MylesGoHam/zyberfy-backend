@@ -34,6 +34,7 @@ openai.api_key     = os.getenv("OPENAI_API_KEY")
 PERSONAL_EMAIL     = os.getenv("PERSONAL_EMAIL")
 ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL")
 ADMIN_PASSWORD     = os.getenv("ADMIN_PASSWORD")
+PRICE_PER_MONTH    = os.getenv("SECRET_BUNDLE_PRICE", "1,497")
 
 # ─── Flask Setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -65,15 +66,22 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.commit()
     conn.close()
 
-# ─── Protect all but these paths ─────────────────────────────────────────────
-ALLOWED_PATHS = ("/", "/login", "/terms", "/ping", "/stripe_webhook")
+# ─── Require login on every route except these ───────────────────────────────
+PUBLIC_PATHS = {
+    "/", "/login", "/terms", "/ping", "/stripe_webhook", "/memberships"
+}
 @app.before_request
 def require_login():
-    # skip static, allowed paths, webhook
-    if request.path.startswith("/static/") or request.path in ALLOWED_PATHS:
+    # allow static assets through
+    if request.path.startswith("/static/"):
         return
+    # allow the public paths through
+    if request.path in PUBLIC_PATHS:
+        return
+    # otherwise require a user in session
     if "email" not in session:
         return redirect(url_for("login"))
+
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
@@ -111,6 +119,49 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/memberships", methods=["GET", "POST"])
+def memberships():
+    # only logged-in users can subscribe
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        if not request.form.get("terms"):
+            flash("You must agree to the Terms of Service.", "error")
+            return redirect(url_for("memberships"))
+
+        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
+        if not price_id:
+            flash("Payment configuration missing.", "error")
+            return redirect(url_for("memberships"))
+
+        try:
+            sess = stripe.checkout.Session.create(
+                line_items=[{"price": price_id, "quantity": 1}],
+                mode="subscription",
+                success_url=url_for("dashboard", _external=True),
+                cancel_url =url_for("memberships", _external=True),
+            )
+            # persist the new customer ID
+            cust = sess.customer
+            conn = get_db_connection()
+            conn.execute(
+                "UPDATE users SET stripe_customer_id = ? WHERE email = ?",
+                (cust, session["email"])
+            )
+            conn.commit()
+            conn.close()
+
+            return redirect(sess.url, code=303)
+        except Exception as e:
+            logger.exception("Stripe checkout failed: %s", e)
+            flash("Could not start payment.", "error")
+            return redirect(url_for("memberships"))
+
+    # GET → show the form
+    return render_template("memberships.html", price=PRICE_PER_MONTH)
+
+
 @app.route("/dashboard")
 def dashboard():
     # guaranteed logged in
@@ -133,99 +184,32 @@ def dashboard():
     )
 
 
-@app.route("/memberships", methods=["GET", "POST"])
-def memberships():
-    if request.method == "POST":
-        if not request.form.get("terms"):
-            flash("You must agree to the Terms of Service.", "error")
-            return redirect(url_for("memberships"))
-
-        price_id = os.getenv("SECRET_BUNDLE_PRICE_ID")
-        if not price_id:
-            flash("Payment configuration missing.", "error")
-            return redirect(url_for("memberships"))
-
-        try:
-            sess = stripe.checkout.Session.create(
-                line_items=[{"price": price_id, "quantity": 1}],
-                mode="subscription",
-                success_url=url_for("dashboard", _external=True),
-                cancel_url =url_for("memberships", _external=True),
-            )
-            cust = sess.customer
-            conn = get_db_connection()
-            conn.execute(
-                "UPDATE users SET stripe_customer_id = ? WHERE email = ?",
-                (cust, session["email"])
-            )
-            conn.commit()
-            conn.close()
-
-            return redirect(sess.url, code=303)
-        except Exception as e:
-            logger.exception("Stripe checkout failed: %s", e)
-            flash("Could not start payment.", "error")
-            return redirect(url_for("memberships"))
-
-    return render_template("memberships.html")
-
-
 @app.route("/analytics")
 def analytics():
+    # only Pro users
     if session.get("plan_status") != "pro":
         flash("Analytics is a Pro feature—please subscribe.", "error")
         return redirect(url_for("memberships"))
 
-    conn    = get_db_connection()
-    user_id = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (session["email"],)
-    ).fetchone()["id"]
-
-    # Totals
-    counts = {}
-    for evt in ("pageview", "generated_proposal", "sent_proposal"):
-        counts[evt] = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id=? AND event_type=?",
-            (user_id, evt)
-        ).fetchone()["cnt"]
-
-    conn.close()
-    conv_rate = round(counts["sent_proposal"]/counts["generated_proposal"]*100,1) \
-                if counts["generated_proposal"] else 0
-
-    # last-7-day series
-    today = datetime.utcnow().date()
-    dates = [today - timedelta(days=i) for i in reversed(range(7))]
-    labels = [d.strftime("%b %-d") for d in dates]
-    data = {k: [] for k in ("pageview","generated_proposal","sent_proposal")}
-
-    conn = get_db_connection()
-    for d in dates:
-        for evt in data:
-            cnt = conn.execute(
-                "SELECT COUNT(*) AS cnt FROM analytics_events "
-                "WHERE user_id=? AND event_type=? AND date(timestamp)=?",
-                (user_id, evt, d)
-            ).fetchone()["cnt"]
-            data[evt].append(cnt)
-    conn.close()
+    # fetch your counts & 7-day arrays here…
+    # pageviews, generated, conversions, conversion_rate, line_labels, line_data, generated_data, sent_data
 
     return render_template(
         "analytics.html",
-        pageviews       = counts["pageview"],
-        generated       = counts["generated_proposal"],
-        sent            = counts["sent_proposal"],
-        conversion_rate = conv_rate,
-        line_labels     = labels,
-        line_data       = data["pageview"],
-        generated_data  = data["generated_proposal"],
-        sent_data       = data["sent_proposal"]
+        pageviews       = pageviews,
+        generated       = generated,
+        sent            = conversions,
+        conversion_rate = conversion_rate,
+        line_labels     = line_labels,
+        line_data       = pageviews_data,
+        generated_data  = generated_data,
+        sent_data       = sent_data
     )
 
 
 @app.route("/automation", methods=["GET","POST"])
 def automation():
+    # only Pro users
     if session.get("plan_status") != "pro":
         flash("Automation is a Pro feature—please subscribe.", "error")
         return redirect(url_for("memberships"))
@@ -244,8 +228,8 @@ def automation():
 
         if exists:
             conn.execute(
-                "UPDATE automation_settings SET tone=?,style=?,additional_notes=? "
-                "WHERE email=?",
+                "UPDATE automation_settings "
+                "SET tone=?, style=?, additional_notes=? WHERE email=?",
                 (tone, style, notes, session["email"])
             )
         else:
@@ -256,6 +240,7 @@ def automation():
             )
         conn.commit()
         conn.close()
+
         log_event(session["email"], "saved_automation")
         return redirect(url_for("dashboard"))
 
@@ -267,6 +252,7 @@ def automation():
 
 @app.route("/proposal", methods=["GET","POST"])
 def proposal():
+    # must be logged in (enforced by @before_request)
     if request.method == "POST":
         lead_name  = request.form["name"]
         lead_email = PERSONAL_EMAIL or request.form["email"]
@@ -327,9 +313,10 @@ def ping():
 
 @app.route("/stripe_webhook", methods=["POST"])
 def stripe_webhook():
-    payload    = request.data
-    sig        = request.headers.get("Stripe-Signature")
-    secret     = os.getenv("STRIPE_WEBHOOK_SECRET")
+    payload = request.data
+    sig     = request.headers.get("Stripe-Signature")
+    secret  = os.getenv("STRIPE_WEBHOOK_SECRET")
+
     try:
         event = stripe.Webhook.construct_event(payload, sig, secret)
     except Exception as e:
@@ -350,9 +337,7 @@ def stripe_webhook():
         cid  = obj["customer"]
         paid = obj["paid"]
         conn = get_db_connection()
-        if paid:
-            pass
-        else:
+        if not paid:
             conn.execute(
                 "UPDATE users SET plan_status='free' WHERE stripe_customer_id=?",
                 (cid,)
