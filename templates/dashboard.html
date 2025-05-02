@@ -3,36 +3,56 @@
 {% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h2 class="text-2xl font-bold">Welcome back, {{ first_name }}!</h2>
-      <p class="text-sm text-gray-500">Plan: <strong class="text-gray-800">{{ plan_status|capitalize }}</strong></p>
+<div class="flex">
+  <!-- Sidebar -->
+  <div class="w-64 bg-white border-r h-screen hidden md:block">
+    <div class="p-6 border-b">
+      <h1 class="text-xl font-bold text-blue-600">Zyberfy</h1>
+      <p class="text-sm text-black mt-1">Dashboard</p>
     </div>
-    <div class="space-x-2">
-      <a href="{{ url_for('automation') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Automation</a>
-      <a href="{{ url_for('proposal') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm">New Proposal</a>
-      <a href="{{ url_for('analytics') }}" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 text-sm">Analytics</a>
-      <a href="{{ url_for('settings') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm">Settings</a>
-    </div>
+    <nav class="p-4 space-y-2">
+      <a href="{{ url_for('dashboard') }}" class="block text-gray-700 hover:text-black">Home</a>
+      <a href="{{ url_for('automation') }}" class="block text-gray-700 hover:text-black">Automation</a>
+      <a href="{{ url_for('proposal') }}" class="block text-gray-700 hover:text-black">New Proposal</a>
+      <a href="{{ url_for('analytics') }}" class="block text-gray-700 hover:text-black">Analytics</a>
+      <a href="{{ url_for('settings') }}" class="block text-gray-700 hover:text-black">Settings</a>
+    </nav>
   </div>
 
-  <!-- Activity Summary -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h3 id="stat-generated" class="text-3xl font-semibold text-blue-700">0</h3>
-      <p class="text-gray-500 text-sm mt-1">Proposals Generated</p>
+  <!-- Main Content -->
+  <div class="flex-1 px-4 py-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold">Welcome back, {{ first_name }}!</h2>
+        <p class="text-sm text-gray-500">Plan: <strong class="text-gray-800">{{ plan_status|capitalize }}</strong></p>
+      </div>
+      <div class="md:hidden">
+        <!-- Mobile menu button -->
+        <button id="menuToggle" class="text-gray-600 focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h3 id="stat-sent" class="text-3xl font-semibold text-green-700">0</h3>
-      <p class="text-gray-500 text-sm mt-1">Proposals Sent</p>
-    </div>
-  </div>
 
-  <!-- Activity Graph -->
-  <div class="bg-white p-6 rounded-lg shadow">
-    <h4 class="text-lg font-medium mb-4">Proposal Activity (Last 7 Days)</h4>
-    <canvas id="miniChart" height="90"></canvas>
+    <!-- Activity Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h3 id="stat-generated" class="text-3xl font-semibold text-blue-700">0</h3>
+        <p class="text-gray-500 text-sm mt-1">Proposals Generated</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h3 id="stat-sent" class="text-3xl font-semibold text-green-700">0</h3>
+        <p class="text-gray-500 text-sm mt-1">Proposals Sent</p>
+      </div>
+    </div>
+
+    <!-- Activity Graph -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h4 class="text-lg font-medium mb-4">Proposal Activity (Last 7 Days)</h4>
+      <canvas id="miniChart" height="90"></canvas>
+    </div>
   </div>
 </div>
 {% endblock %}
