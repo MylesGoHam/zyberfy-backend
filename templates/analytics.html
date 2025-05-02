@@ -44,6 +44,27 @@
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-top: 1px solid #eee;
+    }
+    thead {
+      background-color: #f1f1f1;
+    }
+    h2 {
+      margin-top: 3rem;
+      font-size: 1.5rem;
+    }
   </style>
 </head>
 <body>
@@ -113,6 +134,27 @@
       }
     });
   </script>
+
+  <h2>Recent Activity</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in recent_events %}
+      <tr>
+        <td>{{ event['event_type'].replace('_', ' ').title() }}</td>
+        <td>{{ event['timestamp'] }}</td>
+      </tr>
+      {% endfor %}
+      {% if not recent_events %}
+      <tr><td colspan="2" style="padding: 1rem; color: #888;">No recent events found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
 
 </body>
 </html>
