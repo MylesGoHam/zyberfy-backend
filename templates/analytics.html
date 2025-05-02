@@ -1,61 +1,69 @@
+<!-- templates/analytics.html -->
 {% extends "base.html" %}
 {% block title %}Analytics | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <h2 class="text-3xl font-bold mb-6">Analytics Dashboard</h2>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <!-- Range Selector + CSV -->
+  <div class="flex flex-wrap justify-between items-center mb-6">
+    <div>
+      <label for="range" class="text-sm font-medium text-gray-700 mr-2">Showing:</label>
+      <select id="range" class="border-gray-300 rounded px-3 py-1 text-sm">
+        <option value="7" selected>Last 7 Days</option>
+        <option value="30">Last 30 Days</option>
+      </select>
+    </div>
+    <button onclick="downloadCSV()"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      Download CSV
+    </button>
+  </div>
+
+  <!-- Stat Boxes -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h2 id="stat-pageviews" class="text-2xl font-bold">0</h2>
+      <h2 id="stat-pageviews" class="text-3xl font-bold">0</h2>
       <p class="text-sm text-gray-500">Pageviews</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h2 id="stat-generated" class="text-2xl font-bold">0</h2>
+      <h2 id="stat-generated" class="text-3xl font-bold">0</h2>
       <p class="text-sm text-gray-500">Proposals Generated</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h2 id="stat-sent" class="text-2xl font-bold">0</h2>
+      <h2 id="stat-sent" class="text-3xl font-bold">0</h2>
       <p class="text-sm text-gray-500">Proposals Sent</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h2 id="stat-conversion" class="text-2xl font-bold">0%</h2>
+      <h2 id="stat-conversion" class="text-3xl font-bold">0%</h2>
       <p class="text-sm text-gray-500">Conversion Rate</p>
     </div>
   </div>
 
-  <!-- Chart -->
-  <div class="bg-white p-4 rounded-lg shadow mb-8">
-    <div class="flex justify-between items-center mb-4">
-      <label for="range" class="text-sm text-gray-600">Showing:</label>
-      <select id="range" class="border rounded px-2 py-1 text-sm">
-        <option value="7">Last 7 Days</option>
-        <option value="30">Last 30 Days</option>
-      </select>
-      <button onclick="downloadCSV()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
-        Download CSV
-      </button>
-    </div>
+  <!-- Graph -->
+  <div class="bg-white p-6 rounded-lg shadow mb-10">
     <canvas id="analyticsChart" height="100"></canvas>
   </div>
 
-  <!-- Table -->
-  <h2 class="text-xl font-semibold mb-2">Recent Activity</h2>
-  <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
-    <table class="w-full text-sm text-left">
-      <thead class="bg-gray-100 text-gray-600">
-        <tr>
-          <th class="py-2 px-4">Event</th>
-          <th class="py-2 px-4">Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="analytics-tbody">
-        <tr>
-          <td colspan="2" class="py-4 text-center text-gray-400">Loading...</td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Activity Table -->
+  <div>
+    <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+    <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
+      <table class="w-full text-sm text-left border">
+        <thead class="bg-gray-100 text-gray-600">
+          <tr>
+            <th class="py-2 px-4">Event</th>
+            <th class="py-2 px-4">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="analytics-tbody">
+          <tr>
+            <td colspan="2" class="py-4 text-center text-gray-400">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -63,83 +71,84 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('analyticsChart').getContext('2d');
-const analyticsChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [
-      {
-        label: 'Pageviews',
-        data: [],
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 2,
-        fill: false
-      },
-      {
-        label: 'Generated Proposals',
-        data: [],
-        borderColor: 'rgba(255, 159, 64, 1)',
-        borderWidth: 2,
-        fill: false
-      },
-      {
-        label: 'Sent Proposals',
-        data: [],
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 2,
-        fill: false
+  const ctx = document.getElementById('analyticsChart').getContext('2d');
+  const analyticsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Pageviews',
+          data: [],
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 2,
+          fill: false
+        },
+        {
+          label: 'Generated Proposals',
+          data: [],
+          borderColor: 'rgba(255, 159, 64, 1)',
+          borderWidth: 2,
+          fill: false
+        },
+        {
+          label: 'Sent Proposals',
+          data: [],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 2,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
       }
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true, ticks: { stepSize: 1 } }
+    }
+  });
+
+  async function refreshAnalytics() {
+    const range = document.getElementById("range").value;
+    const res = await fetch(`/analytics-data?range=${range}`);
+    const data = await res.json();
+
+    document.getElementById('stat-pageviews').textContent = data.pageviews;
+    document.getElementById('stat-generated').textContent = data.generated;
+    document.getElementById('stat-sent').textContent = data.sent;
+    document.getElementById('stat-conversion').textContent = data.conversion_rate + '%';
+
+    analyticsChart.data.labels = data.labels;
+    analyticsChart.data.datasets[0].data = data.pv_data;
+    analyticsChart.data.datasets[1].data = data.gen_data;
+    analyticsChart.data.datasets[2].data = data.sent_data;
+    analyticsChart.update();
+
+    const tbody = document.getElementById('analytics-tbody');
+    tbody.innerHTML = "";
+
+    if (data.recent_events.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`;
+    } else {
+      data.recent_events.forEach(e => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+          <td class="py-2 px-4">${e.timestamp}</td>
+        `;
+        tbody.appendChild(row);
+      });
     }
   }
-});
 
-async function refreshAnalytics() {
-  const range = document.getElementById("range").value;
-  const res = await fetch(`/analytics-data?range=${range}`);
-  const data = await res.json();
-
-  document.getElementById('stat-pageviews').textContent = data.pageviews;
-  document.getElementById('stat-generated').textContent = data.generated;
-  document.getElementById('stat-sent').textContent = data.sent;
-  document.getElementById('stat-conversion').textContent = data.conversion_rate + '%';
-
-  analyticsChart.data.labels = data.labels;
-  analyticsChart.data.datasets[0].data = data.pv_data;
-  analyticsChart.data.datasets[1].data = data.gen_data;
-  analyticsChart.data.datasets[2].data = data.sent_data;
-  analyticsChart.update();
-
-  const tbody = document.getElementById('analytics-tbody');
-  tbody.innerHTML = "";
-
-  if (data.recent_events.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`;
-  } else {
-    data.recent_events.forEach(e => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
-        <td class="py-2 px-4">${e.timestamp}</td>
-      `;
-      tbody.appendChild(row);
-    });
+  function downloadCSV() {
+    const range = document.getElementById("range").value;
+    location.href = `/export-analytics?range=${range}`;
   }
-}
 
-function downloadCSV() {
-  window.location.href = '/export-analytics';
-}
+  document.getElementById("range").addEventListener("change", refreshAnalytics);
 
-document.getElementById("range").addEventListener("change", refreshAnalytics);
-
-refreshAnalytics();
-setInterval(refreshAnalytics, 10000);
+  refreshAnalytics();
+  setInterval(refreshAnalytics, 10000);
 </script>
 {% endblock %}
