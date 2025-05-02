@@ -288,6 +288,36 @@ def save_automation_settings():
     flash("Automation settings saved successfully.", "success")
     return redirect(url_for("automation"))
 
+@app.route('/save_automation_settings', methods=['POST'])
+def save_automation_settings():
+    email = session.get("email")
+    tone = request.form.get("tone")
+    full_auto = 'full_auto' in request.form
+    accept_offers = 'accept_offers' in request.form
+    reject_offers = 'reject_offers' in request.form
+    length = request.form.get("length")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Upsert settings
+    cursor.execute("""
+        INSERT INTO automation_settings (email, tone, full_auto, accept_offers, reject_offers, length)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET
+        tone = excluded.tone,
+        full_auto = excluded.full_auto,
+        accept_offers = excluded.accept_offers,
+        reject_offers = excluded.reject_offers,
+        length = excluded.length
+    """, (email, tone, full_auto, accept_offers, reject_offers, length))
+
+    conn.commit()
+    conn.close()
+
+    flash("Automation settings saved successfully.")
+    return redirect(url_for("automation"))
+
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
