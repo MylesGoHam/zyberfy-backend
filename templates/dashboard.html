@@ -2,45 +2,24 @@
 {% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
-  <h2 class="text-2xl font-bold mb-4">Welcome back, {{ first_name }}!</h2>
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h2 class="text-2xl font-bold mb-2">Welcome back, {{ first_name }}!</h2>
   <p class="mb-6">Plan: <strong>{{ plan_status|capitalize }}</strong></p>
 
   {% if plan_status == 'pro' %}
-    <!-- Mini Proposal Activity -->
-    <div class="mt-10">
-      <h3 class="text-lg font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="mini-generated" class="text-2xl font-bold">0</h2>
-          <p class="text-sm text-gray-500">Proposals Generated</p>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="mini-sent" class="text-2xl font-bold">0</h2>
-          <p class="text-sm text-gray-500">Proposals Sent</p>
-        </div>
-      </div>
-      <div class="bg-white p-4 rounded-lg shadow">
-        <canvas id="miniChart" height="80"></canvas>
-      </div>
-    </div>
-
-    <!-- Navigation Buttons -->
-    <div class="space-x-4 mt-10 mb-6">
+    <!-- Top action buttons -->
+    <div class="flex space-x-4 mb-8">
       <a href="{{ url_for('automation') }}"
-         class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Automation</a>
+         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Automation</a>
       <a href="{{ url_for('proposal') }}"
-         class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">New Proposal</a>
+         class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">New Proposal</a>
     </div>
 
-    <!-- Full Analytics Section -->
-    <div class="mt-12">
-      <h3 class="text-xl font-semibold mb-4">Analytics Overview (Last 7 Days)</h3>
+    <!-- Proposal Activity -->
+    <div class="mt-4">
+      <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="stat-pageviews" class="text-2xl font-bold">0</h2>
-          <p class="text-sm text-gray-500">Pageviews</p>
-        </div>
+      <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="bg-white p-4 rounded-lg shadow text-center">
           <h2 id="stat-generated" class="text-2xl font-bold">0</h2>
           <p class="text-sm text-gray-500">Proposals Generated</p>
@@ -49,31 +28,10 @@
           <h2 id="stat-sent" class="text-2xl font-bold">0</h2>
           <p class="text-sm text-gray-500">Proposals Sent</p>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="stat-conversion" class="text-2xl font-bold">0%</h2>
-          <p class="text-sm text-gray-500">Conversion Rate</p>
-        </div>
       </div>
 
-      <div class="bg-white p-4 rounded-lg shadow mb-8">
-        <canvas id="analyticsChart" height="100"></canvas>
-      </div>
-
-      <h4 class="text-lg font-semibold mb-2">Recent Activity</h4>
-      <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
-        <table class="w-full text-sm text-left">
-          <thead class="bg-gray-100 text-gray-600">
-            <tr>
-              <th class="py-2 px-4">Event</th>
-              <th class="py-2 px-4">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody id="analytics-tbody">
-            <tr>
-              <td colspan="2" class="py-4 text-center text-gray-400">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="bg-white p-4 rounded-lg shadow">
+        <canvas id="miniChart" height="100"></canvas>
       </div>
     </div>
   {% else %}
@@ -82,132 +40,55 @@
       Subscribe / Upgrade
     </a>
   {% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Mini Chart (Proposal Activity Preview) -->
-  <script>
-    const miniCtx = document.getElementById('miniChart').getContext('2d');
-    const miniChart = new Chart(miniCtx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Generated',
-            data: [],
-            borderColor: 'rgba(255, 159, 64, 1)',
-            borderWidth: 2,
-            fill: false
-          },
-          {
-            label: 'Sent',
-            data: [],
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 2,
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-
-    async function refreshMiniAnalytics() {
-      const res = await fetch('/analytics-data?range=7');
-      const data = await res.json();
-
-      document.getElementById('mini-generated').textContent = data.generated;
-      document.getElementById('mini-sent').textContent = data.sent;
-
-      miniChart.data.labels = data.labels;
-      miniChart.data.datasets[0].data = data.gen_data;
-      miniChart.data.datasets[1].data = data.sent_data;
-      miniChart.update();
-    }
-  </script>
-
-  <!-- Full Analytics Section -->
-  <script>
-    const ctx = document.getElementById('analyticsChart').getContext('2d');
-    const analyticsChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Pageviews',
-            data: [],
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            fill: false
-          },
-          {
-            label: 'Generated Proposals',
-            data: [],
-            borderColor: 'rgba(255, 159, 64, 1)',
-            borderWidth: 2,
-            fill: false
-          },
-          {
-            label: 'Sent Proposals',
-            data: [],
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 2,
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const miniCtx = document.getElementById('miniChart').getContext('2d');
+  const miniChart = new Chart(miniCtx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Generated',
+          data: [],
+          borderColor: 'rgba(255, 159, 64, 1)',
+          fill: false,
+          borderWidth: 2
+        },
+        {
+          label: 'Sent',
+          data: [],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          fill: false,
+          borderWidth: 2
         }
-      }
-    });
-
-    async function refreshFullAnalytics() {
-      const res = await fetch('/analytics-data?range=7');
-      const data = await res.json();
-
-      document.getElementById('stat-pageviews').textContent = data.pageviews;
-      document.getElementById('stat-generated').textContent = data.generated;
-      document.getElementById('stat-sent').textContent = data.sent;
-      document.getElementById('stat-conversion').textContent = data.conversion_rate + '%';
-
-      analyticsChart.data.labels = data.labels;
-      analyticsChart.data.datasets[0].data = data.pv_data;
-      analyticsChart.data.datasets[1].data = data.gen_data;
-      analyticsChart.data.datasets[2].data = data.sent_data;
-      analyticsChart.update();
-
-      const tbody = document.getElementById('analytics-tbody');
-      tbody.innerHTML = "";
-
-      if (data.recent_events.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`;
-      } else {
-        data.recent_events.forEach(e => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
-            <td class="py-2 px-4">${e.timestamp}</td>
-          `;
-          tbody.appendChild(row);
-        });
-      }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
     }
+  });
 
-    refreshMiniAnalytics();
-    refreshFullAnalytics();
-    setInterval(() => {
-      refreshMiniAnalytics();
-      refreshFullAnalytics();
-    }, 10000);
-  </script>
+  async function refreshMiniAnalytics() {
+    const res = await fetch('/analytics-data?range=7');
+    const data = await res.json();
+
+    document.getElementById('stat-generated').textContent = data.generated;
+    document.getElementById('stat-sent').textContent = data.sent;
+
+    miniChart.data.labels = data.labels;
+    miniChart.data.datasets[0].data = data.gen_data;
+    miniChart.data.datasets[1].data = data.sent_data;
+    miniChart.update();
+  }
+
+  refreshMiniAnalytics();
+  setInterval(refreshMiniAnalytics, 10000);
+</script>
 {% endblock %}
