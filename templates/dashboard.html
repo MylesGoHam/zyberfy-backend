@@ -18,18 +18,18 @@
     </div>
   </div>
 
-  <!-- Top Status Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <!-- Status Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h4 class="text-sm text-gray-500 mb-1">Plan Status</h4>
-      <p class="text-2xl font-bold text-gray-800">Active</p>
+      <h3 class="text-gray-600 text-sm mb-2">Plan Status</h3>
+      <p class="text-2xl font-bold text-green-600">Active</p>
     </div>
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h4 class="text-sm text-gray-500 mb-1">Automation</h4>
+      <h3 class="text-gray-600 text-sm mb-2">Automation</h3>
       {% if automation_configured %}
-        <p class="text-2xl font-bold text-green-600">Configured ✓</p>
+        <p class="text-2xl font-bold text-green-600">Configured</p>
       {% else %}
-        <p class="text-2xl font-bold text-red-600">Not Configured ❌</p>
+        <p class="text-2xl font-bold text-red-600">Not Configured</p>
       {% endif %}
     </div>
   </div>
