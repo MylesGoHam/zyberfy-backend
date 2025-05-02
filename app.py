@@ -253,43 +253,54 @@ def dashboard():
     )
 
 
-@app.route("/automation")
+@app.route("/automation", methods=["GET", "POST"])
 def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    conn = get_db_connection()
-    row = conn.execute("""
-        SELECT tone, full_auto, accept_offers, reject_offers, length
-        FROM automation_settings WHERE email = ?
-    """, (session["email"],)).fetchone()
-    conn.close()
+    # Only run preview logic on GET
+    if request.method == "GET":
+        conn = get_db_connection()
 
-    settings = {
-        "tone": row["tone"] if row else "",
-        "full_auto": bool(row["full_auto"]) if row else False,
-        "accept_offers": bool(row["accept_offers"]) if row else False,
-        "reject_offers": bool(row["reject_offers"]) if row else False,
-        "length": row["length"] if row else "concise"
-    }
+        # Get automation settings
+        settings_row = conn.execute("""
+            SELECT tone, full_auto, accept_offers, reject_offers, length
+            FROM automation_settings WHERE email = ?
+        """, (session["email"],)).fetchone()
 
-    # Generate AI preview using OpenAI
-    preview_prompt = f"""Generate a sample business proposal in a {settings['tone']} tone.
-Length should be {settings['length']}.
-Pretend the client’s name is ‘Client Name’ and you are writing a professional intro proposal."""
-    
-    openai_response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{
-            "role": "user",
-            "content": preview_prompt
-        }],
-        max_tokens=500,
-        temperature=0.7
-    )
-    preview = openai_response['choices'][0]['message']['content'].strip()
+        settings = {
+            "tone": settings_row["tone"] if settings_row else "",
+            "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
+            "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
+            "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
+            "length": settings_row["length"] if settings_row else "concise"
+        }
 
-    return render_template("automation.html", settings=settings, preview=preview)
+        # Get user name + company
+        user = conn.execute("SELECT first_name, company_name FROM users WHERE email = ?", (session["email"],)).fetchone()
+        conn.close()
+
+        first_name = user["first_name"] or "Your Name"
+        company = user["company_name"] or "Your Company"
+
+        # AI Preview Prompt
+        prompt = (
+            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
+            f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
+        )
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+
+        preview = response["choices"][0]["message"]["content"].strip()
+        return render_template("automation.html", settings=settings, preview=preview)
+
+    # fallback for unsupported POST (shouldn't normally hit this)
+    return redirect(url_for("automation"))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
