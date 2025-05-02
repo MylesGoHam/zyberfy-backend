@@ -3,44 +3,37 @@
 {% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto p-6">
-  <h2 class="text-2xl font-bold mb-2">Welcome back, {{ first_name }}!</h2>
-  <p class="mb-6 text-gray-600">Plan: <strong class="text-black">{{ plan_status|capitalize }}</strong></p>
-
-  {% if plan_status == 'pro' %}
-  <!-- Top Action Buttons -->
-  <div class="flex flex-wrap gap-4 mb-8">
-    <a href="{{ url_for('automation') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Automation</a>
-    <a href="{{ url_for('proposal') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">New Proposal</a>
-    <a href="{{ url_for('analytics') }}" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900">Analytics</a>
-    <a href="{{ url_for('settings') }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600">Settings</a>
-  </div>
-
-  <!-- Proposal Activity Section -->
-  <div>
-    <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div class="bg-white p-6 rounded-lg shadow text-center">
-        <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
-        <p class="text-sm text-gray-500">Proposals Generated</p>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow text-center">
-        <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
-        <p class="text-sm text-gray-500">Proposals Sent</p>
-      </div>
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold">Welcome back, {{ first_name }}!</h2>
+      <p class="text-sm text-gray-500">Plan: <strong class="text-gray-800">{{ plan_status|capitalize }}</strong></p>
     </div>
-
-    <div class="bg-white p-6 rounded-lg shadow">
-      <canvas id="miniChart" height="90"></canvas>
+    <div class="space-x-2">
+      <a href="{{ url_for('automation') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Automation</a>
+      <a href="{{ url_for('proposal') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm">New Proposal</a>
+      <a href="{{ url_for('analytics') }}" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 text-sm">Analytics</a>
+      <a href="{{ url_for('settings') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm">Settings</a>
     </div>
   </div>
-  {% else %}
-    <a href="{{ url_for('memberships') }}"
-       class="mt-6 inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
-      Subscribe / Upgrade
-    </a>
-  {% endif %}
+
+  <!-- Activity Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h3 id="stat-generated" class="text-3xl font-semibold text-blue-700">0</h3>
+      <p class="text-gray-500 text-sm mt-1">Proposals Generated</p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h3 id="stat-sent" class="text-3xl font-semibold text-green-700">0</h3>
+      <p class="text-gray-500 text-sm mt-1">Proposals Sent</p>
+    </div>
+  </div>
+
+  <!-- Activity Graph -->
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h4 class="text-lg font-medium mb-4">Proposal Activity (Last 7 Days)</h4>
+    <canvas id="miniChart" height="90"></canvas>
+  </div>
 </div>
 {% endblock %}
 
@@ -56,14 +49,14 @@
         {
           label: 'Generated',
           data: [],
-          borderColor: 'rgba(255, 159, 64, 1)',
+          borderColor: 'rgba(59, 130, 246, 1)',
           fill: false,
           borderWidth: 2
         },
         {
           label: 'Sent',
           data: [],
-          borderColor: 'rgba(75, 192, 192, 1)',
+          borderColor: 'rgba(34, 197, 94, 1)',
           fill: false,
           borderWidth: 2
         }
