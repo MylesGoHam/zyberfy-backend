@@ -33,6 +33,13 @@
       </div>
     </div>
 
+    <div class="flex space-x-4 mb-6">
+  <a href="{{ url_for('automation') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Automation</a>
+  <a href="{{ url_for('proposal') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">New Proposal</a>
+  <a href="{{ url_for('analytics') }}" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded">Analytics</a>
+  <a href="{{ url_for('settings') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">Settings</a>
+</div>
+
     <div class="bg-white p-6 rounded-lg shadow">
       <canvas id="miniChart" height="90"></canvas>
     </div>
