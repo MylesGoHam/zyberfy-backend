@@ -1,36 +1,39 @@
+<!-- templates/settings.html -->
 {% extends "base.html" %}
-{% block title %}Client Settings | Zyberfy{% endblock %}
+{% block title %}Settings | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto px-4 py-8">
-  <h2 class="text-2xl font-bold mb-6">Your Settings</h2>
+<div class="max-w-2xl mx-auto px-4 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Your Settings</h2>
+    <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
+  </div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded mb-4">
-        {{ message }}
-      </div>
-    {% endfor %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded mb-4">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
   {% endwith %}
 
-  <form method="POST" class="space-y-6">
+  <form method="POST" action="{{ url_for('settings') }}" class="space-y-6">
     <div>
-      <label class="block text-sm font-medium text-gray-700">First Name</label>
-      <input type="text" name="first_name" value="{{ user.first_name or '' }}" class="w-full mt-1 p-2 border rounded-lg">
+      <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+      <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
-
     <div>
-      <label class="block text-sm font-medium text-gray-700">Company Name</label>
-      <input type="text" name="company_name" value="{{ user.company_name or '' }}" class="w-full mt-1 p-2 border rounded-lg">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+      <input type="text" name="company_name" value="{{ user.company_name }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
-
     <div>
-      <label class="block text-sm font-medium text-gray-700">Your Position</label>
-      <input type="text" name="position" value="{{ user.position or '' }}" class="w-full mt-1 p-2 border rounded-lg">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Your Position</label>
+      <input type="text" name="position" value="{{ user.position }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
-
     <div>
-      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Save Changes</button>
+      <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Save Changes</button>
     </div>
   </form>
 </div>
