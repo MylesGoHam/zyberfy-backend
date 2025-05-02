@@ -89,6 +89,26 @@
       <p>Conversion Rate</p>
     </div>
   </div>
+  
+  <form method="get" style="margin-bottom: 1rem;">
+  <label for="range">Showing:</label>
+  <select name="range" id="range" onchange="this.form.submit()">
+    <option value="1"  {% if range_days == 1 %}selected{% endif %}>Today</option>
+    <option value="7"  {% if range_days == 7 %}selected{% endif %}>Last 7 Days</option>
+    <option value="30" {% if range_days == 30 %}selected{% endif %}>Last 30 Days</option>
+  </select>
+</form>
+
+  <a href="{{ url_for('export_analytics') }}" style="
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #1f73b7;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+">Download CSV</a>
 
   <canvas id="analyticsChart" width="100%" height="40"></canvas>
 
