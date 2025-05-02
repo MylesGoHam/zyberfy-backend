@@ -397,6 +397,7 @@ def analytics_data():
     if not user:
         conn.close()
         return jsonify({"error": "user not found"}), 404
+
     uid = user["id"]
     since = datetime.utcnow() - timedelta(days=range_days)
 
@@ -415,7 +416,7 @@ def analytics_data():
     ).fetchone()["cnt"]
     conversion_rate = (sent / generated * 100) if generated else 0
 
-    # Dates for graph
+    # Line chart data
     today = datetime.utcnow().date()
     dates = [today - timedelta(days=i) for i in reversed(range(range_days))]
     labels = [d.strftime("%b %-d") for d in dates]
@@ -440,8 +441,14 @@ def analytics_data():
 
     # Recent events
     recent_events = conn.execute(
-        "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 50",
-        (uid, since)
+        """
+        SELECT event_type, timestamp 
+        FROM analytics_events 
+        WHERE user_id = ? 
+        ORDER BY datetime(timestamp) DESC 
+        LIMIT 50
+        """,
+        (uid,)
     ).fetchall()
 
     conn.close()
