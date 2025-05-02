@@ -1,39 +1,42 @@
+<!-- templates/dashboard.html -->
 {% extends "base.html" %}
 {% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto p-6">
   <h2 class="text-2xl font-bold mb-2">Welcome back, {{ first_name }}!</h2>
-  <p class="mb-6">Plan: <strong>{{ plan_status|capitalize }}</strong></p>
+  <p class="mb-6 text-gray-600">Plan: <strong class="text-black">{{ plan_status|capitalize }}</strong></p>
 
   {% if plan_status == 'pro' %}
-    <!-- Top action buttons -->
-    <div class="flex space-x-4 mb-8">
-      <a href="{{ url_for('automation') }}"
-         class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Automation</a>
-      <a href="{{ url_for('proposal') }}"
-         class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">New Proposal</a>
-    </div>
+  <!-- Top Navigation Buttons -->
+  <div class="flex space-x-4 mb-8">
+    <a href="{{ url_for('automation') }}"
+       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Automation</a>
+    <a href="{{ url_for('proposal') }}"
+       class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">New Proposal</a>
+    <a href="{{ url_for('analytics') }}"
+       class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">Analytics</a>
+  </div>
 
-    <!-- Proposal Activity -->
-    <div class="mt-4">
-      <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
+  <!-- Proposal Activity Section -->
+  <div class="mt-4">
+    <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
 
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="stat-generated" class="text-2xl font-bold">0</h2>
-          <p class="text-sm text-gray-500">Proposals Generated</p>
-        </div>
-        <div class="bg-white p-4 rounded-lg shadow text-center">
-          <h2 id="stat-sent" class="text-2xl font-bold">0</h2>
-          <p class="text-sm text-gray-500">Proposals Sent</p>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Generated</p>
       </div>
-
-      <div class="bg-white p-4 rounded-lg shadow">
-        <canvas id="miniChart" height="100"></canvas>
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Sent</p>
       </div>
     </div>
+
+    <div class="bg-white p-6 rounded-lg shadow">
+      <canvas id="miniChart" height="90"></canvas>
+    </div>
+  </div>
   {% else %}
     <a href="{{ url_for('memberships') }}"
        class="mt-6 inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
@@ -70,7 +73,7 @@
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: true } },
       scales: { y: { beginAtZero: true } }
     }
   });
