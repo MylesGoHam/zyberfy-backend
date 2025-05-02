@@ -1,27 +1,63 @@
-{% extends 'base.html' %}
-{% block title %}Automation · Zyberfy{% endblock %}
+<!-- templates/automation.html -->
+{% extends "base.html" %}
+{% block title %}Automation Settings | Zyberfy{% endblock %}
 
 {% block content %}
-  <h2 class="text-2xl mb-4">Set up your Automation</h2>
-  <form method="POST" action="{{ url_for('automation') }}" class="space-y-4">
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Automation Settings</h2>
+    <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
+  </div>
+
+  <form method="POST" action="/save_automation_settings" class="space-y-6">
+    <!-- Tone / Style Configuration -->
     <div>
-      <label class="block mb-1">Tone</label>
-      <input name="tone" value="{{ automation.tone or '' }}"
-             class="w-full border px-3 py-2 rounded"/>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Describe your tone, personality, or voice</label>
+      <textarea name="tone" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">{{ settings.tone or '' }}</textarea>
+      <p class="text-sm text-gray-500 mt-1">Ex: Friendly, luxury concierge, calm, warm and elegant, etc.</p>
     </div>
+
+    <!-- Automation Toggles -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="followups_enabled" class="form-checkbox" {% if settings.followups_enabled %}checked{% endif %}>
+          <span class="ml-2">Enable Smart Follow-ups</span>
+        </label>
+      </div>
+      <div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="auto_accept" class="form-checkbox" {% if settings.auto_accept %}checked{% endif %}>
+          <span class="ml-2">Auto Accept Offers</span>
+        </label>
+      </div>
+      <div>
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="auto_reject" class="form-checkbox" {% if settings.auto_reject %}checked{% endif %}>
+          <span class="ml-2">Auto Reject Low Offers</span>
+        </label>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Proposal Length</label>
+        <select name="response_style" class="w-full border-gray-300 rounded-lg shadow-sm">
+          <option value="concise" {% if settings.response_style == 'concise' %}selected{% endif %}>Concise</option>
+          <option value="detailed" {% if settings.response_style == 'detailed' %}selected{% endif %}>Detailed</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Save Button -->
     <div>
-      <label class="block mb-1">Style</label>
-      <input name="style" value="{{ automation.style or '' }}"
-             class="w-full border px-3 py-2 rounded"/>
+      <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Save Settings</button>
     </div>
-    <div>
-      <label class="block mb-1">Additional Notes</label>
-      <textarea name="additional_notes"
-                class="w-full border px-3 py-2 rounded">{{ automation.additional_notes or '' }}</textarea>
-    </div>
-    <button type="submit"
-            class="bg-green-600 text-white px-4 py-2 rounded-lg">
-      Save & Return
-    </button>
   </form>
+
+  <!-- Test Preview Output -->
+  <div class="mt-10">
+    <h3 class="text-lg font-semibold mb-2">Test Output (Preview)</h3>
+    <div class="bg-gray-100 p-4 rounded-lg text-sm text-gray-700">
+      {{ test_output or 'Click "Save Settings" to see a preview of how the AI will sound.' }}
+    </div>
+  </div>
+</div>
 {% endblock %}
