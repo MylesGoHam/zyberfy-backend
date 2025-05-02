@@ -496,6 +496,32 @@ def export_analytics():
         download_name="zyberfy_analytics.csv"
     )
 
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    email = session["email"]
+
+    if request.method == "POST":
+        first_name = request.form.get("first_name", "").strip()
+        company_name = request.form.get("company_name", "").strip()
+        position = request.form.get("position", "").strip()
+
+        conn.execute("""
+            UPDATE users
+            SET first_name = ?, company_name = ?, position = ?
+            WHERE email = ?
+        """, (first_name, company_name, position, email))
+        conn.commit()
+        flash("Your settings were updated successfully.", "success")
+
+    user = conn.execute("SELECT first_name, company_name, position FROM users WHERE email = ?", (email,)).fetchone()
+    conn.close()
+
+    return render_template("settings.html", user=user)
+
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
     if "email" not in session:
