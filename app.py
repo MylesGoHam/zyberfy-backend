@@ -369,6 +369,17 @@ def analytics():
         sent_data       = sent_data
     )
 
+@app.route("/log_event", methods=["POST"])
+def log_event_route():
+    if "email" not in session:
+        return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json()
+    event_type = data.get("event_type")
+    if event_type:
+        log_event(session["email"], event_type)
+        return jsonify({"status": "ok"}), 200
+    return jsonify({"error": "missing event_type"}), 400
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0",
