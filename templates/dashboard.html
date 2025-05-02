@@ -1,20 +1,21 @@
+<!-- templates/dashboard.html -->
 {% extends "base.html" %}
 {% block title %}Dashboard | Zyberfy{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto p-6">
-  <!-- Top bar with logo and hamburger menu -->
+
+  <!-- Top bar with logo and menu -->
   <div class="flex items-center justify-between mb-6">
     <div class="text-xl font-bold text-blue-600">Zyberfy</div>
     <div class="relative">
       <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
-      <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
+      <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
         <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
         <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
         <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">New Proposal</a>
         <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
         <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
-        <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       </div>
     </div>
   </div>
@@ -22,30 +23,35 @@
   <!-- Status Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <p class="text-gray-500 text-sm">Plan Status</p>
-      <p class="text-green-600 text-lg font-semibold">Active</p>
+      <h3 class="text-sm text-gray-500 mb-2">Plan Status</h3>
+      <p class="text-2xl font-bold text-green-600">Active</p>
     </div>
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <p class="text-gray-500 text-sm">Automation</p>
-      <p class="text-green-600 text-lg font-semibold">Configured</p>
+      <h3 class="text-sm text-gray-500 mb-2">Automation</h3>
+      <p class="text-2xl font-bold text-green-600 flex items-center justify-center">
+        Configured <span class="ml-2 text-green-600 text-xl font-extrabold">✔</span>
+      </p>
     </div>
   </div>
 
   <!-- Proposal Activity Section -->
-  <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
-      <p class="text-sm text-gray-500">Proposals Generated</p>
-    </div>
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
-      <p class="text-sm text-gray-500">Proposals Sent</p>
-    </div>
-  </div>
+  <div>
+    <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
 
-  <div class="bg-white p-6 rounded-lg shadow">
-    <canvas id="miniChart" height="90"></canvas>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Generated</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Sent</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow">
+      <canvas id="miniChart" height="90"></canvas>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -85,10 +91,8 @@
   async function refreshMiniAnalytics() {
     const res = await fetch('/analytics-data?range=7');
     const data = await res.json();
-
     document.getElementById('stat-generated').textContent = data.generated;
     document.getElementById('stat-sent').textContent = data.sent;
-
     miniChart.data.labels = data.labels;
     miniChart.data.datasets[0].data = data.gen_data;
     miniChart.data.datasets[1].data = data.sent_data;
