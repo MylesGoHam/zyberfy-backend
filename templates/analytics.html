@@ -89,7 +89,7 @@
       <p>Conversion Rate</p>
     </div>
   </div>
-  
+
   <form method="get" style="margin-bottom: 1rem;">
   <label for="range">Showing:</label>
   <select name="range" id="range" onchange="this.form.submit()">
@@ -154,6 +154,50 @@
       }
     });
   </script>
+  <script>
+  async function refreshAnalytics() {
+    const range = new URLSearchParams(window.location.search).get("range") || 7;
+    const res = await fetch(`/analytics-data?range=${range}`);
+    const data = await res.json();
+
+    if (!data.pageviews) return;
+
+    // Update metric boxes
+    document.querySelector(".stat-box:nth-child(1) h2").textContent = data.pageviews;
+    document.querySelector(".stat-box:nth-child(2) h2").textContent = data.generated;
+    document.querySelector(".stat-box:nth-child(3) h2").textContent = data.sent;
+    document.querySelector(".stat-box:nth-child(4) h2").textContent = data.conversion_rate + "%";
+
+    // Update chart
+    analyticsChart.data.labels = data.labels;
+    analyticsChart.data.datasets[0].data = data.pv_data;
+    analyticsChart.data.datasets[1].data = data.gen_data;
+    analyticsChart.data.datasets[2].data = data.sent_data;
+    analyticsChart.update();
+
+    // Update recent activity table
+    const tbody = document.querySelector("table tbody");
+    tbody.innerHTML = "";
+
+    if (data.recent_events.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="2" style="padding: 1rem; color: #888;">No recent events found.</td>`;
+      tbody.appendChild(row);
+    } else {
+      data.recent_events.forEach(event => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${event.event_type.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}</td>
+          <td>${event.timestamp}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  }
+
+  // Refresh every 10 seconds
+  setInterval(refreshAnalytics, 10000);
+</script>
 
   <h2>Recent Activity</h2>
   <table>
