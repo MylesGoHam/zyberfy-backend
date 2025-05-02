@@ -14,44 +14,38 @@
         <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">New Proposal</a>
         <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
         <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+        <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       </div>
     </div>
   </div>
 
   <!-- Status Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h3 class="text-gray-600 text-sm mb-2">Plan Status</h3>
-      <p class="text-2xl font-bold text-green-600">Active</p>
+      <p class="text-gray-500 text-sm">Plan Status</p>
+      <p class="text-green-600 text-lg font-semibold">Active</p>
     </div>
     <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h3 class="text-gray-600 text-sm mb-2">Automation</h3>
-      {% if automation_configured %}
-        <p class="text-2xl font-bold text-green-600">Configured</p>
-      {% else %}
-        <p class="text-2xl font-bold text-red-600">Not Configured</p>
-      {% endif %}
+      <p class="text-gray-500 text-sm">Automation</p>
+      <p class="text-green-600 text-lg font-semibold">Configured</p>
     </div>
   </div>
 
   <!-- Proposal Activity Section -->
-  <div>
-    <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div class="bg-white p-6 rounded-lg shadow text-center">
-        <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
-        <p class="text-sm text-gray-500">Proposals Generated</p>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow text-center">
-        <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
-        <p class="text-sm text-gray-500">Proposals Sent</p>
-      </div>
+  <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
+      <p class="text-sm text-gray-500">Proposals Generated</p>
     </div>
-
-    <div class="bg-white p-6 rounded-lg shadow">
-      <canvas id="miniChart" height="90"></canvas>
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
+      <p class="text-sm text-gray-500">Proposals Sent</p>
     </div>
+  </div>
+
+  <div class="bg-white p-6 rounded-lg shadow">
+    <canvas id="miniChart" height="90"></canvas>
   </div>
 </div>
 {% endblock %}
