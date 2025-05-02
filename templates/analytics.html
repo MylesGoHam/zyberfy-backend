@@ -2,120 +2,88 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Analytics – Zyberfy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics | Zyberfy</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background: #f9f9f9;
-      color: #222;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    .stats {
-      display: flex;
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-    .stat-box {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      flex: 1;
-      text-align: center;
-    }
-    .stat-box h2 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    .stat-box p {
-      margin: 0.5rem 0 0;
-      font-size: 0.9rem;
-      color: #666;
-    }
-    canvas {
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-top: 1px solid #eee;
-    }
-    thead {
-      background-color: #f1f1f1;
-    }
-    h2 {
-      margin-top: 3rem;
-      font-size: 1.5rem;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-100 text-gray-900">
 
-  <h1>Analytics Dashboard</h1>
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <h1 class="text-3xl font-bold mb-4">Analytics Dashboard</h1>
 
-  <div class="stats">
-    <div class="stat-box">
-      <h2>{{ pageviews }}</h2>
-      <p>Pageviews</p>
+    <!-- Range Selector + Download -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+      <form method="get">
+        <label for="range" class="mr-2 text-sm font-medium">Time Range:</label>
+        <select name="range" id="range" onchange="this.form.submit()"
+          class="border border-gray-300 rounded px-3 py-1 text-sm">
+          <option value="1"  {% if range_days == 1 %}selected{% endif %}>Today</option>
+          <option value="7"  {% if range_days == 7 %}selected{% endif %}>Last 7 Days</option>
+          <option value="30" {% if range_days == 30 %}selected{% endif %}>Last 30 Days</option>
+        </select>
+      </form>
+      <a href="{{ url_for('export_analytics') }}"
+         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-medium">
+        Download CSV
+      </a>
     </div>
-    <div class="stat-box">
-      <h2>{{ generated }}</h2>
-      <p>Proposals Generated</p>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-2xl font-bold" id="stat-pageviews">{{ pageviews }}</h2>
+        <p class="text-sm text-gray-500">Pageviews</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-2xl font-bold" id="stat-generated">{{ generated }}</h2>
+        <p class="text-sm text-gray-500">Proposals Generated</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-2xl font-bold" id="stat-sent">{{ sent }}</h2>
+        <p class="text-sm text-gray-500">Proposals Sent</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-2xl font-bold" id="stat-conversion">{{ conversion_rate }}%</h2>
+        <p class="text-sm text-gray-500">Conversion Rate</p>
+      </div>
     </div>
-    <div class="stat-box">
-      <h2>{{ sent }}</h2>
-      <p>Proposals Sent</p>
+
+    <!-- Chart -->
+    <div class="bg-white p-4 rounded shadow mb-10">
+      <canvas id="analyticsChart" height="100"></canvas>
     </div>
-    <div class="stat-box">
-      <h2>{{ conversion_rate }}%</h2>
-      <p>Conversion Rate</p>
+
+    <!-- Recent Activity -->
+    <h2 class="text-xl font-semibold mb-2">Recent Activity</h2>
+    <div class="bg-white p-4 rounded shadow overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-100 text-gray-600">
+          <tr>
+            <th class="py-2 px-4">Event</th>
+            <th class="py-2 px-4">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="analytics-tbody">
+          {% for event in recent_events %}
+            <tr>
+              <td class="py-2 px-4">{{ event['event_type'].replace('_', ' ').title() }}</td>
+              <td class="py-2 px-4">{{ event['timestamp'] }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <form method="get" style="margin-bottom: 1rem;">
-  <label for="range">Showing:</label>
-  <select name="range" id="range" onchange="this.form.submit()">
-    <option value="1"  {% if range_days == 1 %}selected{% endif %}>Today</option>
-    <option value="7"  {% if range_days == 7 %}selected{% endif %}>Last 7 Days</option>
-    <option value="30" {% if range_days == 30 %}selected{% endif %}>Last 30 Days</option>
-  </select>
-</form>
-
-  <a href="{{ url_for('export_analytics') }}" style="
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #1f73b7;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: bold;
-">Download CSV</a>
-
-  <canvas id="analyticsChart" width="100%" height="40"></canvas>
-
+  <!-- Chart.js + Auto Refresh -->
   <script>
     const ctx = document.getElementById('analyticsChart').getContext('2d');
-
-    new Chart(ctx, {
+    const analyticsChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: {{ line_labels | tojson }},
@@ -123,102 +91,69 @@
           {
             label: 'Pageviews',
             data: {{ line_data | tojson }},
+            borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 2,
-            fill: false,
-            borderColor: 'rgba(54, 162, 235, 1)'
+            fill: false
           },
           {
             label: 'Generated Proposals',
             data: {{ generated_data | tojson }},
+            borderColor: 'rgba(255, 159, 64, 1)',
             borderWidth: 2,
-            fill: false,
-            borderColor: 'rgba(255, 159, 64, 1)'
+            fill: false
           },
           {
             label: 'Sent Proposals',
             data: {{ sent_data | tojson }},
+            borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 2,
-            fill: false,
-            borderColor: 'rgba(75, 192, 192, 1)'
+            fill: false
           }
         ]
       },
       options: {
         responsive: true,
         scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1 }
-          }
+          y: { beginAtZero: true, ticks: { stepSize: 1 } }
         }
       }
     });
-  </script>
-  <script>
-  async function refreshAnalytics() {
-    const range = new URLSearchParams(window.location.search).get("range") || 7;
-    const res = await fetch(`/analytics-data?range=${range}`);
-    const data = await res.json();
 
-    if (!data.pageviews) return;
+    // Auto-refresh data every 10s
+    async function refreshAnalytics() {
+      const range = new URLSearchParams(window.location.search).get("range") || 7;
+      const res = await fetch(`/analytics-data?range=${range}`);
+      const data = await res.json();
 
-    // Update metric boxes
-    document.querySelector(".stat-box:nth-child(1) h2").textContent = data.pageviews;
-    document.querySelector(".stat-box:nth-child(2) h2").textContent = data.generated;
-    document.querySelector(".stat-box:nth-child(3) h2").textContent = data.sent;
-    document.querySelector(".stat-box:nth-child(4) h2").textContent = data.conversion_rate + "%";
+      document.getElementById('stat-pageviews').textContent = data.pageviews;
+      document.getElementById('stat-generated').textContent = data.generated;
+      document.getElementById('stat-sent').textContent = data.sent;
+      document.getElementById('stat-conversion').textContent = data.conversion_rate + "%";
 
-    // Update chart
-    analyticsChart.data.labels = data.labels;
-    analyticsChart.data.datasets[0].data = data.pv_data;
-    analyticsChart.data.datasets[1].data = data.gen_data;
-    analyticsChart.data.datasets[2].data = data.sent_data;
-    analyticsChart.update();
+      analyticsChart.data.labels = data.labels;
+      analyticsChart.data.datasets[0].data = data.pv_data;
+      analyticsChart.data.datasets[1].data = data.gen_data;
+      analyticsChart.data.datasets[2].data = data.sent_data;
+      analyticsChart.update();
 
-    // Update recent activity table
-    const tbody = document.querySelector("table tbody");
-    tbody.innerHTML = "";
+      const tbody = document.getElementById("analytics-tbody");
+      tbody.innerHTML = "";
 
-    if (data.recent_events.length === 0) {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td colspan="2" style="padding: 1rem; color: #888;">No recent events found.</td>`;
-      tbody.appendChild(row);
-    } else {
-      data.recent_events.forEach(event => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${event.event_type.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}</td>
-          <td>${event.timestamp}</td>
-        `;
-        tbody.appendChild(row);
-      });
+      if (data.recent_events.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>';
+      } else {
+        data.recent_events.forEach(e => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+            <td class="py-2 px-4">${e.timestamp}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
     }
-  }
 
-  // Refresh every 10 seconds
-  setInterval(refreshAnalytics, 10000);
-</script>
-
-  <h2>Recent Activity</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Event</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for event in recent_events %}
-      <tr>
-        <td>{{ event['event_type'].replace('_', ' ').title() }}</td>
-        <td>{{ event['timestamp'] }}</td>
-      </tr>
-      {% endfor %}
-      {% if not recent_events %}
-      <tr><td colspan="2" style="padding: 1rem; color: #888;">No recent events found.</td></tr>
-      {% endif %}
-    </tbody>
-  </table>
-
+    setInterval(refreshAnalytics, 10000);
+  </script>
 </body>
 </html>
