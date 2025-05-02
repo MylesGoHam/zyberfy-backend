@@ -253,44 +253,40 @@ def dashboard():
     )
 
 
-@app.route("/automation", methods=["GET", "POST"])
-def automation():
-    if session.get("plan_status") != "pro":
-        flash("Automation is a Pro feature—please subscribe.", "error")
-        return redirect(url_for("memberships"))
+@app.route("/automation", methods=["POST"])
+def save_automation_settings():
+    if "email" not in session:
+        return redirect(url_for("login"))
 
-    if request.method == "POST":
-        tone, style, notes = (
-            request.form.get("tone"),
-            request.form.get("style"),
-            request.form.get("additional_notes"),
-        )
-        conn   = get_db_connection()
-        exists = conn.execute(
-            "SELECT 1 FROM automation_settings WHERE email = ?",
-            (session["email"],)
-        ).fetchone()
-        if exists:
-            conn.execute(
-                "UPDATE automation_settings "
-                "SET tone=?, style=?, additional_notes=? WHERE email=?",
-                (tone, style, notes, session["email"])
-            )
-        else:
-            conn.execute(
-                "INSERT INTO automation_settings "
-                "(email, tone, style, additional_notes) VALUES (?,?,?,?)",
-                (session["email"], tone, style, notes)
-            )
-        conn.commit()
-        conn.close()
-        log_event(session["email"], "saved_automation")
-        return redirect(url_for("dashboard"))
+    tone = request.form.get("tone", "").strip()
+    full_auto = request.form.get("full_auto") == "on"
+    smart_offers = request.form.get("smart_offers") == "on"
+    output_type = request.form.get("output_type", "concise")
 
-    return render_template(
-        "automation.html",
-        automation=get_user_automation(session["email"]) or {}
-    )
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if a settings row already exists
+    cursor.execute("SELECT id FROM automation_settings WHERE email = ?", (session["email"],))
+    existing = cursor.fetchone()
+
+    if existing:
+        cursor.execute("""
+            UPDATE automation_settings
+            SET tone = ?, full_auto = ?, smart_offers = ?, output_type = ?
+            WHERE email = ?
+        """, (tone, full_auto, smart_offers, output_type, session["email"]))
+    else:
+        cursor.execute("""
+            INSERT INTO automation_settings (email, tone, full_auto, smart_offers, output_type)
+            VALUES (?, ?, ?, ?, ?)
+        """, (session["email"], tone, full_auto, smart_offers, output_type))
+
+    conn.commit()
+    conn.close()
+
+    flash("Automation settings saved successfully.", "success")
+    return redirect(url_for("automation"))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
@@ -310,8 +306,6 @@ def analytics():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    range_days = int(request.args.get("range", 7))  # default to last 7 days
-
     conn = get_db_connection()
     user = conn.execute(
         "SELECT id FROM users WHERE email = ?", (session["email"],)
@@ -322,58 +316,43 @@ def analytics():
         return redirect(url_for("dashboard"))
     uid = user["id"]
 
-    since = datetime.utcnow() - timedelta(days=range_days)
+    range_days = int(request.args.get("range", 7))
+    since = datetime.utcnow().date() - timedelta(days=range_days)
 
-    # Totals within range
+    # Totals
     pageviews = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'pageview' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp) >= ?",
         (uid, since)
     ).fetchone()["cnt"]
     generated = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'generated_proposal' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp) >= ?",
         (uid, since)
     ).fetchone()["cnt"]
     sent = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events "
-        "WHERE user_id = ? AND event_type = 'sent_proposal' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp) >= ?",
         (uid, since)
     ).fetchone()["cnt"]
     conversion_rate = (sent / generated * 100) if generated else 0
 
-    # Daily breakdown
-    today = datetime.utcnow().date()
-    dates = [today - timedelta(days=i) for i in reversed(range(range_days))]
+    # Line Chart Data
+    dates = [since + timedelta(days=i) for i in range(range_days)]
     labels = [d.strftime("%b %-d") for d in dates]
-
-    pv_data, gen_data, sent_data = [], [], []
+    line_data, gen_data, sent_data = [], [], []
     for d in dates:
-        pv = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?",
-            (uid, d)
-        ).fetchone()["cnt"]
-        gp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?",
-            (uid, d)
-        ).fetchone()["cnt"]
-        sp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events "
-            "WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?",
-            (uid, d)
-        ).fetchone()["cnt"]
-        pv_data.append(pv)
-        gen_data.append(gp)
-        sent_data.append(sp)
+        date_str = d.isoformat()
+        line_data.append(
+            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
+        )
+        gen_data.append(
+            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
+        )
+        sent_data.append(
+            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
+        )
 
-    # Recent events within range
+    # Recent Events
     recent_events = conn.execute(
-        "SELECT event_type, timestamp FROM analytics_events "
-        "WHERE user_id = ? AND timestamp >= ? "
-        "ORDER BY timestamp DESC LIMIT 50",
-        (uid, since)
+        "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? ORDER BY timestamp DESC LIMIT 50", (uid,)
     ).fetchall()
 
     conn.close()
@@ -384,11 +363,11 @@ def analytics():
         sent=sent,
         conversion_rate=round(conversion_rate, 1),
         line_labels=labels,
-        line_data=pv_data,
+        line_data=line_data,
         generated_data=gen_data,
         sent_data=sent_data,
         recent_events=recent_events,
-        range_days=range_days  # so we know what's selected
+        range_days=range_days
     )
 
 @app.route("/analytics-data")
