@@ -1,35 +1,41 @@
-<!-- templates/base.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>{% block title %}Zyberfy{% endblock %}</title>
+  <meta charset="utf-8">
+  <title>{% block title %}{% endblock %} – Zyberfy</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}"/>
-  {% block extra_styles %}{% endblock %}
 </head>
-<body class="antialiased bg-gray-50 text-gray-800">
+<body class="bg-gray-100 text-gray-800">
 
-  <header class="bg-white shadow-md">
-    <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
-      <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">Zyberfy</a>
-      <nav class="flex items-center space-x-6">
-        <a href="{{ url_for('home') }}">Home</a>
+  <header class="bg-white shadow">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="{{ url_for('home') }}" class="text-2xl font-bold">Zyberfy</a>
+      <nav class="space-x-6">
+        <a href="{{ url_for('home') }}"         class="hover:underline">Home</a>
         {% if session.get('email') %}
-          <a href="{{ url_for('dashboard') }}">Dashboard</a>
-          <a href="{{ url_for('analytics') }}">Analytics</a>
-          <a href="{{ url_for('automation') }}">Automation</a>
-          <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
+          <a href="{{ url_for('dashboard') }}"  class="hover:underline">Dashboard</a>
+          <a href="{{ url_for('analytics') }}"  class="hover:underline">Analytics</a>
+          <a href="{{ url_for('automation') }}" class="hover:underline">Automation</a>
+          <a href="{{ url_for('logout') }}"     class="text-red-500 hover:underline">Logout</a>
         {% else %}
-          <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">Login</a>
-          <a href="{{ url_for('memberships') }}" class="text-green-600 hover:underline">Subscribe</a>
+          <a href="{{ url_for('login') }}" class="hover:underline">Login</a>
         {% endif %}
       </nav>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto p-6">
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-6">
+          {% for category, msg in messages %}
+            <div class="p-4 rounded {{ 'bg-green-100 text-green-800' if category=='success' else 'bg-red-100 text-red-800'}}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
 
