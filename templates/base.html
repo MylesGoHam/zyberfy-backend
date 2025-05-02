@@ -1,58 +1,37 @@
-<!DOCTYPE html>
+<!-- templates/base.html -->
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>{% block title %}Zyberfy{% endblock %}</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-    rel="stylesheet"
-  />
-  {% block head %}{% endblock %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}"/>
+  {% block extra_styles %}{% endblock %}
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
-  <header class="bg-white shadow">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">
-        Zyberfy
-      </a>
-      <nav class="space-x-4">
+<body class="antialiased bg-gray-50 text-gray-800">
+
+  <header class="bg-white shadow-md">
+    <div class="max-w-5xl mx-auto flex items-center justify-between p-4">
+      <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600">Zyberfy</a>
+      <nav class="flex items-center space-x-6">
+        <a href="{{ url_for('home') }}">Home</a>
         {% if session.get('email') %}
-          <a href="{{ url_for('home') }}">Home</a>
           <a href="{{ url_for('dashboard') }}">Dashboard</a>
           <a href="{{ url_for('analytics') }}">Analytics</a>
           <a href="{{ url_for('automation') }}">Automation</a>
-          <a href="{{ url_for('logout') }}" class="text-red-500">Logout</a>
+          <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
         {% else %}
-          <a href="{{ url_for('login') }}">Login</a>
-          <a href="{{ url_for('memberships') }}">Subscribe</a>
+          <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">Login</a>
+          <a href="{{ url_for('memberships') }}" class="text-green-600 hover:underline">Subscribe</a>
         {% endif %}
       </nav>
     </div>
   </header>
 
-  <main class="container mx-auto px-4 py-8 flex-grow">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="space-y-2 mb-4">
-        {% for category, message in messages %}
-          <div
-            class="px-4 py-2 rounded 
-                   {% if category=='error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}"
-          >
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    {% endwith %}
-
+  <main class="max-w-5xl mx-auto p-6">
     {% block content %}{% endblock %}
   </main>
-
-  <footer class="bg-white text-center py-4 text-gray-500">
-    &copy; {{ now().year }} Zyberfy
-  </footer>
 
   {% block scripts %}{% endblock %}
 </body>
