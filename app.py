@@ -253,45 +253,43 @@ def dashboard():
     )
 
 
-@app.route("/automation", methods=["GET"])
+@app.route("/automation")
 def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    settings = get_user_automation(session["email"])
-    return render_template("automation.html", settings=settings)
-
-@app.route('/save_automation_settings', methods=['POST'])
-def save_automation_settings():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    email = session["email"]
-    tone = request.form.get("tone")
-    full_auto = 'full_auto' in request.form
-    accept_offers = 'accept_offers' in request.form
-    reject_offers = 'reject_offers' in request.form
-    length = request.form.get("length")
-
     conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO automation_settings (email, tone, full_auto, accept_offers, reject_offers, length)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(email) DO UPDATE SET
-            tone = excluded.tone,
-            full_auto = excluded.full_auto,
-            accept_offers = excluded.accept_offers,
-            reject_offers = excluded.reject_offers,
-            length = excluded.length
-    """, (email, tone, full_auto, accept_offers, reject_offers, length))
-
-    conn.commit()
+    row = conn.execute("""
+        SELECT tone, full_auto, accept_offers, reject_offers, length
+        FROM automation_settings WHERE email = ?
+    """, (session["email"],)).fetchone()
     conn.close()
 
-    flash("Automation settings saved successfully.")
-    return redirect(url_for("automation"))
+    settings = {
+        "tone": row["tone"] if row else "",
+        "full_auto": bool(row["full_auto"]) if row else False,
+        "accept_offers": bool(row["accept_offers"]) if row else False,
+        "reject_offers": bool(row["reject_offers"]) if row else False,
+        "length": row["length"] if row else "concise"
+    }
+
+    # Generate AI preview using OpenAI
+    preview_prompt = f"""Generate a sample business proposal in a {settings['tone']} tone.
+Length should be {settings['length']}.
+Pretend the client’s name is ‘Client Name’ and you are writing a professional intro proposal."""
+    
+    openai_response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{
+            "role": "user",
+            "content": preview_prompt
+        }],
+        max_tokens=500,
+        temperature=0.7
+    )
+    preview = openai_response['choices'][0]['message']['content'].strip()
+
+    return render_template("automation.html", settings=settings, preview=preview)
 
 
 @app.route("/proposal", methods=["GET", "POST"])
