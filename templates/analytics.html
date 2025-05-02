@@ -9,14 +9,25 @@
     <a href="{{ url_for('dashboard') }}" class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded shadow-sm">
       ← Back to Dashboard
     </a>
-    <div>
-      <label for="range" class="mr-2 text-sm font-medium text-gray-600">Showing:</label>
-      <select id="range" class="border rounded px-3 py-1 text-sm">
-        <option value="7">Last 7 Days</option>
-        <option value="30">Last 30 Days</option>
-        <option value="90">Last 90 Days</option>
-      </select>
-      <button onclick="downloadCSV()" class="ml-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm shadow">
+    <div class="flex items-center gap-3">
+      <div>
+        <label for="range" class="mr-2 text-sm font-medium text-gray-600">Range:</label>
+        <select id="range" class="border rounded px-3 py-1 text-sm">
+          <option value="7">Last 7 Days</option>
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+        </select>
+      </div>
+      <div>
+        <label for="eventType" class="mr-2 text-sm font-medium text-gray-600">Event:</label>
+        <select id="eventType" class="border rounded px-3 py-1 text-sm">
+          <option value="">All</option>
+          <option value="pageview">Pageview</option>
+          <option value="proposal_generated">Proposal Generated</option>
+          <option value="proposal_sent">Proposal Sent</option>
+        </select>
+      </div>
+      <button onclick="downloadCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm shadow">
         Download CSV
       </button>
     </div>
@@ -73,46 +84,18 @@
   const ctx = document.getElementById('analyticsChart').getContext('2d');
   const chart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels: [],
-      datasets: [
-        {
-          label: 'Pageviews',
-          data: [],
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 2,
-          fill: false
-        },
-        {
-          label: 'Generated Proposals',
-          data: [],
-          borderColor: 'rgba(255, 159, 64, 1)',
-          borderWidth: 2,
-          fill: false
-        },
-        {
-          label: 'Sent Proposals',
-          data: [],
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 2,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { stepSize: 1 }
-        }
-      }
-    }
+    data: { labels: [], datasets: [
+      { label: 'Pageviews', data: [], borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 2, fill: false },
+      { label: 'Generated Proposals', data: [], borderColor: 'rgba(255, 159, 64, 1)', borderWidth: 2, fill: false },
+      { label: 'Sent Proposals', data: [], borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 2, fill: false }
+    ]},
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
   });
 
   async function refreshAnalytics() {
     const range = document.getElementById('range').value;
-    const res = await fetch(`/analytics-data?range=${range}`);
+    const eventType = document.getElementById('eventType').value;
+    const res = await fetch(`/analytics-data?range=${range}&event_type=${eventType}`);
     const data = await res.json();
 
     document.getElementById('stat-pageviews').textContent = data.pageviews;
@@ -127,28 +110,24 @@
     chart.update();
 
     const tbody = document.getElementById('analytics-tbody');
-    tbody.innerHTML = "";
-
-    if (data.recent_events.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`;
-    } else {
-      data.recent_events.forEach(e => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
+    tbody.innerHTML = data.recent_events.length === 0
+      ? `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`
+      : data.recent_events.map(e => `
+        <tr>
           <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
           <td class="py-2 px-4">${e.timestamp}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+        </tr>
+      `).join('');
   }
 
   function downloadCSV() {
     const range = document.getElementById('range').value;
-    window.location.href = `/export-analytics?range=${range}`;
+    const eventType = document.getElementById('eventType').value;
+    window.location.href = `/export-analytics?range=${range}&event_type=${eventType}`;
   }
 
   document.getElementById("range").addEventListener("change", refreshAnalytics);
+  document.getElementById("eventType").addEventListener("change", refreshAnalytics);
   refreshAnalytics();
   setInterval(refreshAnalytics, 10000);
 </script>
