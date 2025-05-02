@@ -253,44 +253,20 @@ def dashboard():
     )
 
 
-@app.route("/automation", methods=["POST"])
+@app.route("/automation", methods=["GET"])
+def automation():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    settings = get_user_automation(session["email"])
+    return render_template("automation.html", settings=settings)
+
+@app.route('/save_automation_settings', methods=['POST'])
 def save_automation_settings():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    tone = request.form.get("tone", "").strip()
-    full_auto = request.form.get("full_auto") == "on"
-    smart_offers = request.form.get("smart_offers") == "on"
-    output_type = request.form.get("output_type", "concise")
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Check if a settings row already exists
-    cursor.execute("SELECT id FROM automation_settings WHERE email = ?", (session["email"],))
-    existing = cursor.fetchone()
-
-    if existing:
-        cursor.execute("""
-            UPDATE automation_settings
-            SET tone = ?, full_auto = ?, smart_offers = ?, output_type = ?
-            WHERE email = ?
-        """, (tone, full_auto, smart_offers, output_type, session["email"]))
-    else:
-        cursor.execute("""
-            INSERT INTO automation_settings (email, tone, full_auto, smart_offers, output_type)
-            VALUES (?, ?, ?, ?, ?)
-        """, (session["email"], tone, full_auto, smart_offers, output_type))
-
-    conn.commit()
-    conn.close()
-
-    flash("Automation settings saved successfully.", "success")
-    return redirect(url_for("automation"))
-
-@app.route('/save_automation_settings', methods=['POST'])
-def save_automation_settings():
-    email = session.get("email")
+    email = session["email"]
     tone = request.form.get("tone")
     full_auto = 'full_auto' in request.form
     accept_offers = 'accept_offers' in request.form
@@ -300,16 +276,15 @@ def save_automation_settings():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Upsert settings
     cursor.execute("""
         INSERT INTO automation_settings (email, tone, full_auto, accept_offers, reject_offers, length)
         VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET
-        tone = excluded.tone,
-        full_auto = excluded.full_auto,
-        accept_offers = excluded.accept_offers,
-        reject_offers = excluded.reject_offers,
-        length = excluded.length
+            tone = excluded.tone,
+            full_auto = excluded.full_auto,
+            accept_offers = excluded.accept_offers,
+            reject_offers = excluded.reject_offers,
+            length = excluded.length
     """, (email, tone, full_auto, accept_offers, reject_offers, length))
 
     conn.commit()
