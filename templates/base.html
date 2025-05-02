@@ -3,26 +3,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Zyberfy</title>
+  <title>{% block title %}Zyberfy{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Add CSS/JS links if needed -->
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Chart.js (for graph support) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {% block head %}{% endblock %}
 </head>
-<body>
-  {% block content %}{% endblock %}
+<body class="bg-gray-50 text-gray-900">
+
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </div>
 
   {% if session.email %}
   <script>
-    // Automatically log a pageview for authenticated users
     fetch("/log_event", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        event_type: "pageview"
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_type: "pageview" })
     });
   </script>
   {% endif %}
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>
