@@ -391,6 +391,82 @@ def analytics():
         range_days=range_days  # so we know what's selected
     )
 
+@app.route("/analytics-data")
+def analytics_data():
+    if "email" not in session:
+        return jsonify({"error": "unauthorized"}), 401
+
+    range_days = int(request.args.get("range", 7))
+    conn = get_db_connection()
+    user = conn.execute(
+        "SELECT id FROM users WHERE email = ?", (session["email"],)
+    ).fetchone()
+    if not user:
+        conn.close()
+        return jsonify({"error": "user not found"}), 404
+    uid = user["id"]
+    since = datetime.utcnow() - timedelta(days=range_days)
+
+    # Totals
+    pageviews = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND timestamp >= ?",
+        (uid, since)
+    ).fetchone()["cnt"]
+    generated = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND timestamp >= ?",
+        (uid, since)
+    ).fetchone()["cnt"]
+    sent = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND timestamp >= ?",
+        (uid, since)
+    ).fetchone()["cnt"]
+    conversion_rate = (sent / generated * 100) if generated else 0
+
+    # Dates for graph
+    today = datetime.utcnow().date()
+    dates = [today - timedelta(days=i) for i in reversed(range(range_days))]
+    labels = [d.strftime("%b %-d") for d in dates]
+
+    pv_data, gen_data, sent_data = [], [], []
+    for d in dates:
+        pv = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?",
+            (uid, d)
+        ).fetchone()["cnt"]
+        gp = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?",
+            (uid, d)
+        ).fetchone()["cnt"]
+        sp = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?",
+            (uid, d)
+        ).fetchone()["cnt"]
+        pv_data.append(pv)
+        gen_data.append(gp)
+        sent_data.append(sp)
+
+    # Recent events
+    recent_events = conn.execute(
+        "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 50",
+        (uid, since)
+    ).fetchall()
+
+    conn.close()
+
+    return jsonify({
+        "pageviews": pageviews,
+        "generated": generated,
+        "sent": sent,
+        "conversion_rate": round(conversion_rate, 1),
+        "labels": labels,
+        "pv_data": pv_data,
+        "gen_data": gen_data,
+        "sent_data": sent_data,
+        "recent_events": [
+            {"event_type": e["event_type"], "timestamp": e["timestamp"]} for e in recent_events
+        ]
+    })
+
 @app.route("/export-analytics")
 def export_analytics():
     if "email" not in session:
