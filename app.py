@@ -76,13 +76,21 @@ PUBLIC_PATHS = {
 }
 @app.before_request
 def require_login():
-    # 1) static files are always public
-    if request.path.startswith("/static/"):
+    path = request.path
+
+    # 1) static assets always public
+    if path.startswith("/static/"):
         return
-    # 2) these endpoints are public
-    if request.path in PUBLIC_PATHS:
+
+    # 2) fully public, exact matches
+    if path in PUBLIC_PATHS:
         return
-    # 3) otherwise enforce login
+
+    # 3) everything under /analytics stays public
+    if path.startswith("/analytics"):
+        return
+
+    # 4) otherwise, must be logged in
     if "email" not in session:
         return redirect(url_for("login"))
 
