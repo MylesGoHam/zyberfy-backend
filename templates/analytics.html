@@ -1,45 +1,118 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics – Zyberfy</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+      color: #222;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .stat-box {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      flex: 1;
+      text-align: center;
+    }
+    .stat-box h2 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .stat-box p {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    canvas {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
 
-{% block title %}Choose a Plan — Zyberfy{% endblock %}
+  <h1>Analytics Dashboard</h1>
 
-{% block content %}
-<div class="max-w-xl mx-auto mt-12">
-  <h1 class="text-2xl font-bold mb-6">Choose Your Plan</h1>
-
-  <form action="{{ url_for('memberships') }}" method="POST">
-    <div class="bg-white rounded-lg shadow p-6 space-y-4">
-      <div>
-        <h2 class="text-xl font-semibold">Pro Subscription</h2>
-        <p class="mt-2 text-gray-600">Access all features: analytics, automation, unlimited proposals.</p>
-      </div>
-
-      <div class="text-3xl font-bold">
-        $1,497<span class="text-base font-normal">/mo</span>
-      </div>
-
-      <div>
-        <label class="inline-flex items-center">
-          <input
-            type="checkbox"
-            name="terms"
-            class="form-checkbox h-5 w-5 text-blue-600"
-          />
-          <span class="ml-2 text-gray-700">
-            I agree to the
-            <a href="{{ url_for('terms') }}" class="text-blue-600 underline">
-              Terms of Service
-            </a>.
-          </span>
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
-      >
-        Subscribe
-      </button>
+  <div class="stats">
+    <div class="stat-box">
+      <h2>{{ pageviews }}</h2>
+      <p>Pageviews</p>
     </div>
-  </form>
-</div>
-{% endblock %}
+    <div class="stat-box">
+      <h2>{{ generated }}</h2>
+      <p>Proposals Generated</p>
+    </div>
+    <div class="stat-box">
+      <h2>{{ sent }}</h2>
+      <p>Proposals Sent</p>
+    </div>
+    <div class="stat-box">
+      <h2>{{ conversion_rate }}%</h2>
+      <p>Conversion Rate</p>
+    </div>
+  </div>
+
+  <canvas id="analyticsChart" width="100%" height="40"></canvas>
+
+  <script>
+    const ctx = document.getElementById('analyticsChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ line_labels | tojson }},
+        datasets: [
+          {
+            label: 'Pageviews',
+            data: {{ line_data | tojson }},
+            borderWidth: 2,
+            fill: false,
+            borderColor: 'rgba(54, 162, 235, 1)'
+          },
+          {
+            label: 'Generated Proposals',
+            data: {{ generated_data | tojson }},
+            borderWidth: 2,
+            fill: false,
+            borderColor: 'rgba(255, 159, 64, 1)'
+          },
+          {
+            label: 'Sent Proposals',
+            data: {{ sent_data | tojson }},
+            borderWidth: 2,
+            fill: false,
+            borderColor: 'rgba(75, 192, 192, 1)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
