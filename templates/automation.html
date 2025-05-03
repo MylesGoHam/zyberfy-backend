@@ -58,12 +58,36 @@
     </div>
   </form>
 
-  <!-- Preview -->
-  <div class="mt-10">
-    <h3 class="text-lg font-semibold mb-2">Test Output (Preview)</h3>
-    <div class="bg-gray-100 p-4 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">
-      {{ preview or 'Click "Save Settings" to see a preview of how the AI will sound.' }}
-    </div>
+<!-- Collapsible Preview -->
+<div class="mt-10">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-lg font-semibold">Test Output (Preview)</h3>
+    <button id="toggle-preview" class="text-blue-600 text-sm hover:underline font-medium">
+      Show Preview
+    </button>
+  </div>
+  <div id="preview-box" class="bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap p-4 transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
+    {{ preview or 'Click "Save Settings" to see a preview of how the AI will sound.' }}
   </div>
 </div>
+
+<!-- Toggle Script -->
+{% block scripts %}
+<script>
+  const toggleBtn = document.getElementById("toggle-preview");
+  const previewBox = document.getElementById("preview-box");
+
+  toggleBtn.addEventListener("click", () => {
+    const expanded = previewBox.classList.contains("max-h-[1000px]");
+    if (expanded) {
+      previewBox.classList.remove("max-h-[1000px]", "py-4", "px-4");
+      previewBox.classList.add("max-h-0", "overflow-hidden");
+      toggleBtn.textContent = "Show Preview";
+    } else {
+      previewBox.classList.remove("max-h-0", "overflow-hidden");
+      previewBox.classList.add("max-h-[1000px]", "py-4", "px-4");
+      toggleBtn.textContent = "Hide Preview";
+    }
+  });
+</script>
 {% endblock %}
