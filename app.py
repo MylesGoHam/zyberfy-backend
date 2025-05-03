@@ -583,11 +583,14 @@ def create_checkout_session():
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
-    if 'user_email' not in session:
+    if 'user_id' not in session:
+        print("DEBUG: user_id NOT in session")
         return redirect(url_for('login'))
 
+    print("DEBUG: user_id in session?", session.get('user_id'))
+
     conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE email = ?', (session['user_email'],)).fetchone()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
 
     if request.method == 'POST':
         first_name = request.form.get('first_name')
@@ -595,35 +598,50 @@ def settings():
         position = request.form.get('position')
         website = request.form.get('website')
         phone = request.form.get('phone')
-        reply_to_email = request.form.get('reply_to_email')
+        reply_to = request.form.get('reply_to')
         timezone = request.form.get('timezone')
+
+        # Optional password update
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
-        # Optional password change
-        if password and password == confirm_password:
-            hashed_pw = generate_password_hash(password)
-            conn.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_pw, session['user_email']))
+        # Validate passwords match if provided
+        if password and password != confirm_password:
+            flash("Passwords do not match", "error")
+            return redirect(url_for('settings'))
 
-        # Optional logo upload
-        logo_file = request.files.get('logo')
-        logo_filename = user['logo_filename']
-        if logo_file and logo_file.filename:
-            logo_filename = secure_filename(logo_file.filename)
-            logo_file.save(os.path.join('static', 'uploads', logo_filename))
+        # Save uploaded logo if present
+        logo = request.files.get('logo')
+        logo_path = None
+        if logo and logo.filename:
+            filename = secure_filename(logo.filename)
+            logo_path = os.path.join('static/uploads', filename)
+            logo.save(logo_path)
 
-        # Update database
-        conn.execute("""
-            UPDATE users
-            SET first_name = ?, company_name = ?, position = ?, website = ?, phone = ?, reply_to_email = ?, timezone = ?, logo_filename = ?
-            WHERE email = ?
-        """, (first_name, company_name, position, website, phone, reply_to_email, timezone, logo_filename, session['user_email']))
+        # Update user in database
+        update_fields = {
+            'first_name': first_name,
+            'company_name': company_name,
+            'position': position,
+            'website': website,
+            'phone': phone,
+            'reply_to': reply_to,
+            'timezone': timezone,
+        }
 
+        if logo_path:
+            update_fields['logo'] = logo_path
+
+        if password:
+            update_fields['password'] = generate_password_hash(password)
+
+        for field, value in update_fields.items():
+            conn.execute(f'UPDATE users SET {field} = ? WHERE id = ?', (value, session['user_id']))
         conn.commit()
-        flash("Settings updated successfully.", "success")
+        conn.close()
 
-    user = conn.execute('SELECT * FROM users WHERE email = ?', (session['user_email'],)).fetchone()
-    conn.close()
+        flash("Settings updated successfully!", "success")
+        return redirect(url_for('settings'))
 
     return render_template('settings.html', user=user)
 
