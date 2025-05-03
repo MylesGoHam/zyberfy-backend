@@ -581,31 +581,51 @@ def create_checkout_session():
         return jsonify(error=str(e)), 400
     
 
-@app.route("/settings", methods=["GET", "POST"])
+@app.route('/settings', methods=['GET', 'POST'])
 def settings():
-    if "email" not in session:
-        return redirect(url_for("login"))
+    if 'user_email' not in session:
+        return redirect(url_for('login'))
 
     conn = get_db_connection()
-    email = session["email"]
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (session['user_email'],)).fetchone()
 
-    if request.method == "POST":
-        first_name = request.form.get("first_name", "").strip()
-        company_name = request.form.get("company_name", "").strip()
-        position = request.form.get("position", "").strip()
+    if request.method == 'POST':
+        first_name = request.form.get('first_name')
+        company_name = request.form.get('company_name')
+        position = request.form.get('position')
+        website = request.form.get('website')
+        phone = request.form.get('phone')
+        reply_to_email = request.form.get('reply_to_email')
+        timezone = request.form.get('timezone')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
+        # Optional password change
+        if password and password == confirm_password:
+            hashed_pw = generate_password_hash(password)
+            conn.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_pw, session['user_email']))
+
+        # Optional logo upload
+        logo_file = request.files.get('logo')
+        logo_filename = user['logo_filename']
+        if logo_file and logo_file.filename:
+            logo_filename = secure_filename(logo_file.filename)
+            logo_file.save(os.path.join('static', 'uploads', logo_filename))
+
+        # Update database
         conn.execute("""
             UPDATE users
-            SET first_name = ?, company_name = ?, position = ?
+            SET first_name = ?, company_name = ?, position = ?, website = ?, phone = ?, reply_to_email = ?, timezone = ?, logo_filename = ?
             WHERE email = ?
-        """, (first_name, company_name, position, email))
-        conn.commit()
-        flash("Your settings were updated successfully.", "success")
+        """, (first_name, company_name, position, website, phone, reply_to_email, timezone, logo_filename, session['user_email']))
 
-    user = conn.execute("SELECT first_name, company_name, position FROM users WHERE email = ?", (email,)).fetchone()
+        conn.commit()
+        flash("Settings updated successfully.", "success")
+
+    user = conn.execute('SELECT * FROM users WHERE email = ?', (session['user_email'],)).fetchone()
     conn.close()
 
-    return render_template("settings.html", user=user)
+    return render_template('settings.html', user=user)
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
