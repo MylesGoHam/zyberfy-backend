@@ -4,11 +4,13 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 py-10">
+  <!-- Header -->
   <div class="mb-6">
-  <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
-  <h2 class="text-2xl font-bold mt-2">Your Settings</h2>
-</div>
+    <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
+    <h2 class="text-2xl font-bold mt-2">Your Settings</h2>
+  </div>
 
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -19,19 +21,57 @@
     {% endif %}
   {% endwith %}
 
+  <!-- Settings Form -->
   <form method="POST" action="{{ url_for('settings') }}" class="space-y-6">
+    <!-- First Name -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
       <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
+
+    <!-- Company Name -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
       <input type="text" name="company_name" value="{{ user.company_name }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
+
+    <!-- Position -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">Your Position</label>
       <input type="text" name="position" value="{{ user.position }}" class="w-full border px-4 py-2 rounded-lg" />
     </div>
+
+    <!-- Website URL -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+      <input type="url" name="website" value="{{ user.website }}" class="w-full border px-4 py-2 rounded-lg" placeholder="https://yourcompany.com" />
+    </div>
+
+    <!-- Business Phone -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Business Phone</label>
+      <input type="tel" name="phone" value="{{ user.phone }}" class="w-full border px-4 py-2 rounded-lg" placeholder="+1 (555) 123-4567" />
+    </div>
+
+    <!-- Reply-To Email -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Reply-To Email</label>
+      <input type="email" name="reply_to" value="{{ user.reply_to }}" class="w-full border px-4 py-2 rounded-lg" placeholder="you@yourcompany.com" />
+    </div>
+
+    <!-- Timezone -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+      <select name="timezone" class="w-full border px-4 py-2 rounded-lg">
+        <option value="">Select timezone</option>
+        <option value="PST" {% if user.timezone == 'PST' %}selected{% endif %}>PST (Pacific Time)</option>
+        <option value="MST" {% if user.timezone == 'MST' %}selected{% endif %}>MST (Mountain Time)</option>
+        <option value="CST" {% if user.timezone == 'CST' %}selected{% endif %}>CST (Central Time)</option>
+        <option value="EST" {% if user.timezone == 'EST' %}selected{% endif %}>EST (Eastern Time)</option>
+      </select>
+    </div>
+
+    <!-- Submit -->
     <div>
       <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Save Changes</button>
     </div>
