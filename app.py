@@ -26,6 +26,8 @@ from flask import send_file
 import csv
 from io import StringIO
 
+import uuid
+
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -305,13 +307,24 @@ def automation():
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
     if request.method == "POST":
-        # handle form submission (save data, send proposal, etc.)
-        flash("Proposal submitted successfully.", "success")
-        return redirect(url_for("dashboard"))
+        name     = request.form.get("name")
+        email    = request.form.get("email")
+        company  = request.form.get("company")
+        details  = request.form.get("details")
+        budget   = request.form.get("budget")
+        public_id = str(uuid.uuid4())
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO proposals (public_id, name, email, company, details, budget, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """, (public_id, name, email, company, details, budget))
+        conn.commit()
+        conn.close()
+
+        flash("Proposal submitted successfully!", "success")
+        return redirect(url_for("thank_you", pid=public_id))
 
     return render_template("proposal.html")
 
@@ -545,6 +558,26 @@ def log_event_route():
         log_event(session["email"], event_type)
         return jsonify({"status": "ok"}), 200
     return jsonify({"error": "missing event_type"}), 400
+
+@app.route("/proposal/view/<pid>")
+def view_proposal(pid):
+    conn = get_db_connection()
+    row = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
+    conn.close()
+    if not row:
+        return "Proposal not found.", 404
+
+    log_event(row["email"], "viewed_shared_proposal")  # optional tracking
+    return render_template("public_proposal.html", proposal=row)
+
+@app.route("/thank-you")
+def thank_you():
+    pid = request.args.get("pid")
+    if not pid:
+        return redirect(url_for("proposal"))
+    full_url = url_for("view_proposal", pid=pid, _external=True)
+    return render_template("thank_you.html", proposal_url=full_url)
+
 
 
 if __name__ == "__main__":
