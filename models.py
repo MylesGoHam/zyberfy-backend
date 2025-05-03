@@ -92,6 +92,23 @@ def get_user_automation(email: str):
     conn.close()
     return row
 
+def create_proposals_table():
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS proposals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            public_id TEXT UNIQUE,
+            name TEXT,
+            email TEXT,
+            company TEXT,
+            details TEXT,
+            budget TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    conn.commit()
+    conn.close()
+
 def log_event(user_email: str, event_type: str):
     conn = get_db_connection()
     user = conn.execute(
