@@ -245,6 +245,11 @@ def dashboard():
         (session["email"],)
     ).fetchone()
 
+    if not row:
+        conn.close()
+        flash("User not found", "error")
+        return redirect(url_for("login"))
+
     # Pull last 7 days of analytics
     uid = row["id"]
     range_days = 7
@@ -265,13 +270,13 @@ def dashboard():
     sent_data = [0] * range_days
     labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
 
-    for row in raw:
-        idx = date_map.get(row["day"])
+    for r in raw:
+        idx = date_map.get(r["day"])
         if idx is not None:
-            if row["event_type"] == "generated_proposal":
-                gen_data[idx] = row["cnt"]
-            elif row["event_type"] == "sent_proposal":
-                sent_data[idx] = row["cnt"]
+            if r["event_type"] == "generated_proposal":
+                gen_data[idx] = r["cnt"]
+            elif r["event_type"] == "sent_proposal":
+                sent_data[idx] = r["cnt"]
 
     return render_template(
         "dashboard.html",
