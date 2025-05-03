@@ -202,38 +202,34 @@ def billing_portal():
     return redirect(portal.url, code=303)
 
 
-@app.route("/stripe_webhook", methods=["POST"])
+@app.route('/webhook', methods=['POST'])
 def stripe_webhook():
-    payload    = request.data
+    payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except Exception as e:
-        logger.exception("Webhook verification failed")
-        return jsonify(error=str(e)), 400
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
-    obj = event['data']['object']
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        return 'Invalid signature', 400
+
     if event['type'] == 'checkout.session.completed':
-        cid = obj['customer']
+        session_obj = event['data']['object']
+        customer_email = session_obj.get('customer_email')
+
         conn = get_db_connection()
         conn.execute(
-            "UPDATE users SET plan_status='pro' WHERE stripe_customer_id = ?", (cid,)
+            "UPDATE users SET plan_status = ? WHERE email = ?",
+            ("active", customer_email)
         )
         conn.commit()
         conn.close()
 
-    elif event['type'].startswith('invoice.'):
-        cid  = obj['customer']
-        paid = obj.get('paid', False)
-        conn = get_db_connection()
-        if not paid:
-            conn.execute(
-                "UPDATE users SET plan_status='free' WHERE stripe_customer_id = ?", (cid,)
-            )
-            conn.commit()
-        conn.close()
-
-    return jsonify(status='success')
+    return '', 200
 
 
 @app.route("/dashboard")
@@ -570,34 +566,6 @@ def create_checkout_session():
     except Exception as e:
         return jsonify(error=str(e)), 400
     
-@app.route('/webhook', methods=['POST'])
-def stripe_webhook():
-    payload = request.data
-    sig_header = request.headers.get('Stripe-Signature')
-    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        return 'Invalid payload', 400
-    except stripe.error.SignatureVerificationError as e:
-        return 'Invalid signature', 400
-
-    if event['type'] == 'checkout.session.completed':
-        session_obj = event['data']['object']
-        customer_email = session_obj.get('customer_email')
-
-        conn = get_db_connection()
-        conn.execute(
-            "UPDATE users SET plan_status = ? WHERE email = ?",
-            ("active", customer_email)
-        )
-        conn.commit()
-        conn.close()
-
-    return '', 200
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
