@@ -1,26 +1,47 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose Your Plan | Zyberfy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
 
-{% block title %}Choose a Plan · Zyberfy{% endblock %}
+  <div class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-xl w-full">
+      <div class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-gray-900">Choose Your Plan</h1>
+        <p class="mt-2 text-gray-500 text-sm">Unlock full access to automation, analytics, and unlimited proposals.</p>
+      </div>
 
-{% block content %}
-<div class="max-w-md mx-auto p-6 space-y-6">
-  <h1 class="text-2xl font-semibold">Choose Your Plan</h1>
+      <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800 mb-2">Pro Subscription</h2>
+        <p class="text-gray-600 mb-4">Access all features: analytics, automation, unlimited proposals.</p>
+        
+        <div class="text-4xl font-extrabold text-gray-900 mb-4">$597<span class="text-base font-medium text-gray-500">/mo</span></div>
+        
+        <form action="/subscribe" method="POST" class="space-y-4">
+          <div class="flex items-center">
+            <input id="terms" name="terms" type="checkbox" required
+                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+            <label for="terms" class="ml-2 block text-sm text-gray-700">
+              I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 underline">Terms of Service</a>
+            </label>
+          </div>
 
-  <div class="bg-white p-4 rounded-lg shadow space-y-4">
-    <h2 class="text-xl font-medium">Pro Subscription</h2>
-    <p class="text-gray-600">Access all features: analytics, automation, unlimited proposals.</p>
-    <p class="text-3xl font-bold">${{ price_amount }}<span class="text-lg font-light">/mo</span></p>
+          <button type="submit"
+                  class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-sm transition duration-200">
+            Subscribe
+          </button>
+        </form>
+      </div>
 
-    <form method="POST" class="space-y-4">
-      <label class="flex items-center">
-        <input type="checkbox" name="terms" class="mr-2" />
-        I agree to the <a href="{{ url_for('terms') }}" class="text-blue-600 hover:underline">Terms of Service</a>.
-      </label>
-      <button type="submit"
-              class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-        Subscribe
-      </button>
-    </form>
+      <p class="text-center text-xs text-gray-400 mt-6">
+        You’ll be redirected to secure checkout via Stripe.
+      </p>
+    </div>
   </div>
-</div>
-{% endblock %}
+
+</body>
+</html>
