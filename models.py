@@ -43,13 +43,14 @@ def create_users_table():
 def create_automation_settings_table():
     conn = get_db_connection()
     conn.execute("""
-      CREATE TABLE IF NOT EXISTS automation_settings (
-        email             TEXT PRIMARY KEY,
-        tone              TEXT,
-        style             TEXT,
-        additional_notes  TEXT,
-        FOREIGN KEY(email) REFERENCES users(email)
-      );
+        CREATE TABLE IF NOT EXISTS automation_settings (
+            email TEXT PRIMARY KEY,
+            tone TEXT,
+            full_auto INTEGER DEFAULT 0,
+            accept_offers INTEGER DEFAULT 0,
+            reject_offers INTEGER DEFAULT 0,
+            length TEXT DEFAULT 'concise'
+        );
     """)
     conn.commit()
     conn.close()
