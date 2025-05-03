@@ -1,15 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Send a Proposal | Zyberfy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start py-12">
+{% extends "base.html" %}
+{% block title %}Send a Proposal – Zyberfy{% endblock %}
 
-  <!-- Share Button -->
-  <div class="w-full max-w-xl px-6 mb-6 flex justify-end">
+{% block content %}
+  <!-- Load Tailwind for this page -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Top Buttons -->
+  <div class="w-full max-w-xl px-6 mb-6 flex justify-between items-center">
+    <a
+      href="{{ url_for('dashboard') }}"
+      class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition"
+    >
+      ← Back to Dashboard
+    </a>
     <button
       id="shareBtn"
       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
@@ -97,23 +100,21 @@
       </button>
     </form>
   </div>
+{% endblock %}
 
-  <script>
-    const shareBtn = document.getElementById('shareBtn');
-    shareBtn.addEventListener('click', () => {
-      const url = window.location.href;
-      // try clipboard API
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-          shareBtn.textContent = 'Link Copied!';
-          setTimeout(() => shareBtn.textContent = 'Share this Form', 2000);
-        });
-      } else {
-        // fallback: open mailto
-        window.location.href = `mailto:?subject=Proposal%20Form&body=Please%20fill%20out%20this%20form:%20${encodeURIComponent(url)}`;
-      }
-    });
-  </script>
-
-</body>
-</html>
+{% block scripts %}
+<script>
+  const shareBtn = document.getElementById('shareBtn');
+  shareBtn.addEventListener('click', () => {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        shareBtn.textContent = 'Link Copied!';
+        setTimeout(() => shareBtn.textContent = 'Share this Form', 2000);
+      });
+    } else {
+      window.location.href = `mailto:?subject=Proposal%20Form&body=Please%20fill%20out%20this%20form:%20${encodeURIComponent(url)}`;
+    }
+  });
+</script>
+{% endblock %}
