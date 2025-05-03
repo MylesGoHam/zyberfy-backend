@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 py-10">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-bold">Your Settings</h2>
-    <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
-  </div>
+  <div class="mb-6">
+  <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
+  <h2 class="text-2xl font-bold mt-2">Your Settings</h2>
+</div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
