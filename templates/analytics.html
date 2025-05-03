@@ -58,19 +58,35 @@
     <canvas id="analyticsChart" height="100"></canvas>
   </div>
 
-<!-- Recent Activity Table -->
-<div class="flex items-center justify-between mb-3">
-  <h3 class="text-lg font-semibold">Recent Activity</h3>
-  <div class="flex gap-2 items-center">
-    <select id="activityFilter" class="border px-2 py-1 rounded text-sm">
-      <option value="">All</option>
-      <option value="generated_proposal">Proposals Generated</option>
-      <option value="sent_proposal">Proposals Sent</option>
-    </select>
-    <select id="activitySort" class="border px-2 py-1 rounded text-sm">
-      <option value="desc">Newest First</option>
-      <option value="asc">Oldest First</option>
-    </select>
+  <!-- Recent Activity Table -->
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold">Recent Activity</h3>
+    <div class="flex gap-2 items-center">
+      <select id="activityFilter" class="border px-2 py-1 rounded text-sm">
+        <option value="">All</option>
+        <option value="proposal_generated">Proposals Generated</option>
+        <option value="proposal_sent">Proposals Sent</option>
+      </select>
+      <select id="activitySort" class="border px-2 py-1 rounded text-sm">
+        <option value="desc">Newest First</option>
+        <option value="asc">Oldest First</option>
+      </select>
+    </div>
+  </div>
+  <div class="bg-white p-4 rounded-lg shadow overflow-y-auto max-h-96">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-100 text-gray-600">
+        <tr>
+          <th class="py-2 px-4">Event</th>
+          <th class="py-2 px-4">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="analytics-tbody">
+        <tr>
+          <td colspan="2" class="py-4 text-center text-gray-400">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}
@@ -81,12 +97,23 @@
   const ctx = document.getElementById('analyticsChart').getContext('2d');
   const chart = new Chart(ctx, {
     type: 'line',
-    data: { labels: [], datasets: [
-      { label: 'Pageviews', data: [], borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 2, fill: false },
-      { label: 'Generated Proposals', data: [], borderColor: 'rgba(255, 159, 64, 1)', borderWidth: 2, fill: false },
-      { label: 'Sent Proposals', data: [], borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 2, fill: false }
-    ]},
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Pageviews', data: [], borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 2, fill: false },
+        { label: 'Generated Proposals', data: [], borderColor: 'rgba(255, 159, 64, 1)', borderWidth: 2, fill: false },
+        { label: 'Sent Proposals', data: [], borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 2, fill: false }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
   });
 
   async function refreshAnalytics() {
@@ -106,10 +133,24 @@
     chart.data.datasets[2].data = data.sent_data;
     chart.update();
 
+    // Filter + Sort
+    const filterValue = document.getElementById("activityFilter").value;
+    const sortValue = document.getElementById("activitySort").value;
+    let filteredEvents = [...data.recent_events];
+
+    if (filterValue) {
+      filteredEvents = filteredEvents.filter(e => e.event_type === filterValue);
+    }
+    filteredEvents.sort((a, b) => {
+      return sortValue === "asc"
+        ? new Date(a.timestamp) - new Date(b.timestamp)
+        : new Date(b.timestamp) - new Date(a.timestamp);
+    });
+
     const tbody = document.getElementById('analytics-tbody');
-    tbody.innerHTML = data.recent_events.length === 0
+    tbody.innerHTML = filteredEvents.length === 0
       ? `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`
-      : data.recent_events.map(e => `
+      : filteredEvents.map(e => `
         <tr>
           <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
           <td class="py-2 px-4">${e.timestamp}</td>
@@ -125,6 +166,9 @@
 
   document.getElementById("range").addEventListener("change", refreshAnalytics);
   document.getElementById("eventType").addEventListener("change", refreshAnalytics);
+  document.getElementById("activityFilter").addEventListener("change", refreshAnalytics);
+  document.getElementById("activitySort").addEventListener("change", refreshAnalytics);
+
   refreshAnalytics();
   setInterval(refreshAnalytics, 10000);
 </script>
