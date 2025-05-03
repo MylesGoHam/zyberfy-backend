@@ -22,15 +22,17 @@
     <div class="bg-white rounded-2xl shadow-lg p-8">
       <h1 class="text-2xl font-bold mb-6 text-gray-800">Send a Proposal</h1>
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="mb-4 space-y-2">
-            {% for category, msg in messages %}
-              <div class="text-red-600">{{ msg }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mb-6">
+      {% for category, msg in messages %}
+        <div class="bg-green-100 text-green-800 px-4 py-3 rounded-lg border border-green-300 shadow-sm">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
       <form action="{{ url_for('proposal') }}" method="POST" class="space-y-6">
         <div>
