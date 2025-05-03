@@ -101,16 +101,16 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email    = request.form.get("email")
+        email = request.form.get("email")
         password = request.form.get("password")
-        conn     = get_db_connection()
-        user     = conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email,)
-        ).fetchone()
+
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
 
         if user and user["password"] == password:
             session["email"]       = email
+            session["user_id"]     = user["id"]           # ← Fix: Add this
             session["first_name"]  = user["first_name"]
             session["plan_status"] = user["plan_status"]
             return redirect(url_for("dashboard"))
