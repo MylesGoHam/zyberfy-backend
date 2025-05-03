@@ -264,36 +264,33 @@ def automation():
         return redirect(url_for("login"))
 
     if request.method == "GET":
-        conn = get_db_connection()
-
-        # Get automation settings
-        settings_row = conn.execute("""
-            SELECT tone, full_auto, accept_offers, reject_offers, length
-            FROM automation_settings WHERE email = ?
-        """, (session["email"],)).fetchone()
-
-        settings = {
-            "tone": settings_row["tone"] if settings_row else "",
-            "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
-            "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
-            "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
-            "length": settings_row["length"] if settings_row else "concise"
-        }
-
-        # Get user name + company
-        user = conn.execute("SELECT first_name, company_name FROM users WHERE email = ?", (session["email"],)).fetchone()
-        conn.close()
-
-        first_name = user["first_name"] if user and user["first_name"] else "Your Name"
-        company = user["company_name"] if user and user["company_name"] else "Your Company"
-
-        # AI Preview Prompt
-        prompt = (
-            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-            f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
-        )
-
         try:
+            conn = get_db_connection()
+
+            settings_row = conn.execute("""
+                SELECT tone, full_auto, accept_offers, reject_offers, length
+                FROM automation_settings WHERE email = ?
+            """, (session["email"],)).fetchone()
+
+            settings = {
+                "tone": settings_row["tone"] if settings_row and "tone" in settings_row else "",
+                "full_auto": bool(settings_row["full_auto"]) if settings_row and "full_auto" in settings_row else False,
+                "accept_offers": bool(settings_row["accept_offers"]) if settings_row and "accept_offers" in settings_row else False,
+                "reject_offers": bool(settings_row["reject_offers"]) if settings_row and "reject_offers" in settings_row else False,
+                "length": settings_row["length"] if settings_row and "length" in settings_row else "concise"
+            }
+
+            user = conn.execute("SELECT first_name, company_name FROM users WHERE email = ?", (session["email"],)).fetchone()
+            conn.close()
+
+            first_name = user["first_name"] if user and user["first_name"] else "Your Name"
+            company = user["company_name"] if user and user["company_name"] else "Your Company"
+
+            prompt = (
+                f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
+                f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
+            )
+
             response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
@@ -303,12 +300,16 @@ def automation():
             preview = response["choices"][0]["message"]["content"].strip()
 
         except Exception as e:
-            logger.exception("Failed to generate AI preview: %s", e)
-            preview = "(Error generating preview — please try again later.)"
+            logger.exception("Error generating automation preview")
+            preview = "(AI preview could not be loaded. Please try again later.)"
+            settings = {
+                "tone": "", "full_auto": False,
+                "accept_offers": False, "reject_offers": False,
+                "length": "concise"
+            }
 
         return render_template("automation.html", settings=settings, preview=preview)
 
-    # fallback for unsupported POST (shouldn't normally hit this)
     return redirect(url_for("automation"))
 
 
