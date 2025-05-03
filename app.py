@@ -570,7 +570,7 @@ def create_checkout_session():
     except Exception as e:
         return jsonify(error=str(e)), 400
     
-    @app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
@@ -586,11 +586,14 @@ def stripe_webhook():
         return 'Invalid signature', 400
 
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        customer_email = session.get('customer_email')
+        session_obj = event['data']['object']
+        customer_email = session_obj.get('customer_email')
 
         conn = get_db_connection()
-        conn.execute("UPDATE users SET plan_status = ? WHERE email = ?", ("active", customer_email))
+        conn.execute(
+            "UPDATE users SET plan_status = ? WHERE email = ?",
+            ("active", customer_email)
+        )
         conn.commit()
         conn.close()
 
