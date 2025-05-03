@@ -1,13 +1,17 @@
 import os
 import logging
 import sqlite3
+import uuid
+import csv
 
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
-    flash, jsonify
+    flash, jsonify, send_file
 )
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+
 import openai
 import stripe
 
@@ -23,12 +27,6 @@ from models import (
 )
 
 from email_utils import send_proposal_email
-from datetime import datetime, timedelta
-from flask import send_file
-import csv
-from io import StringIO
-
-import uuid
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +51,9 @@ create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
+create_proposals_table()  # ← This is the fix that ensures your `proposals` table is created
+
+# You’re now ready to continue building routes below…
 
 # Ensure stripe_customer_id exists
 conn = get_db_connection()
