@@ -59,21 +59,19 @@
   </div>
 
 <!-- Recent Activity Table -->
-<h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
-<div class="bg-white p-4 rounded-lg shadow overflow-y-auto max-h-96">
-  <table class="w-full text-sm text-left">
-    <thead class="bg-gray-100 text-gray-600">
-      <tr>
-        <th class="py-2 px-4">Event</th>
-        <th class="py-2 px-4">Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="analytics-tbody">
-      <tr>
-        <td colspan="2" class="py-4 text-center text-gray-400">Loading...</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="flex items-center justify-between mb-3">
+  <h3 class="text-lg font-semibold">Recent Activity</h3>
+  <div class="flex gap-2 items-center">
+    <select id="activityFilter" class="border px-2 py-1 rounded text-sm">
+      <option value="">All</option>
+      <option value="generated_proposal">Proposals Generated</option>
+      <option value="sent_proposal">Proposals Sent</option>
+    </select>
+    <select id="activitySort" class="border px-2 py-1 rounded text-sm">
+      <option value="desc">Newest First</option>
+      <option value="asc">Oldest First</option>
+    </select>
+  </div>
 </div>
 {% endblock %}
 
