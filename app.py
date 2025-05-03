@@ -545,6 +545,31 @@ def subscribe():
     flash("Subscription successful! You now have full access.")
     return redirect(url_for("dashboard"))
 
+
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    if "email" not in session:
+        return redirect("/login")
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=session["email"],
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price": "price_1RERpGKpgIhBPea4wZhu3gEC",  # Your real Stripe price ID (Pro)
+                    "quantity": 1,
+                }
+            ],
+            mode="subscription",
+            success_url=url_for("dashboard", _external=True),
+            cancel_url=url_for("memberships", _external=True),
+        )
+        return redirect(checkout_session.url, code=303)
+
+    except Exception as e:
+        return jsonify(error=str(e)), 400
+
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if "email" not in session:
