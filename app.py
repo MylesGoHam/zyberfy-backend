@@ -305,9 +305,15 @@ def automation():
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    ...
-    # keep your existing /proposal implementation
-    ...
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        # handle form submission (save data, send proposal, etc.)
+        flash("Proposal submitted successfully.", "success")
+        return redirect(url_for("dashboard"))
+
+    return render_template("proposal.html")
 
 @app.route("/generate-proposal", methods=["POST"])
 def generate_proposal():
