@@ -241,52 +241,20 @@ def dashboard():
 
     conn = get_db_connection()
     row = conn.execute(
-        "SELECT first_name, plan_status, id FROM users WHERE email = ?",
+        "SELECT first_name, plan_status FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
-
-    if not row:
-        conn.close()
-        flash("User not found", "error")
-        return redirect(url_for("login"))
-
-    # Pull last 7 days of analytics
-    uid = row["id"]
-    range_days = 7
-    since = datetime.utcnow().date() - timedelta(days=range_days)
-
-    raw = conn.execute("""
-        SELECT event_type, DATE(timestamp) as day, COUNT(*) as cnt
-        FROM analytics_events
-        WHERE user_id = ? AND date(timestamp) >= ?
-        GROUP BY event_type, day
-    """, (uid, since)).fetchall()
-
     conn.close()
 
-    # Format for chart
-    date_map = { (since + timedelta(days=i)).strftime("%Y-%m-%d"): i for i in range(range_days) }
-    gen_data = [0] * range_days
-    sent_data = [0] * range_days
-    labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
-
-    for r in raw:
-        idx = date_map.get(r["day"])
-        if idx is not None:
-            if r["event_type"] == "generated_proposal":
-                gen_data[idx] = r["cnt"]
-            elif r["event_type"] == "sent_proposal":
-                sent_data[idx] = r["cnt"]
+    session["plan_status"] = row["plan_status"]
+    log_event(session["email"], "pageview")
 
     return render_template(
         "dashboard.html",
         first_name=row["first_name"],
         plan_status=row["plan_status"],
         automation=get_user_automation(session["email"]),
-        automation_complete=bool(get_user_automation(session["email"])),
-        line_labels=labels,
-        generated_data=gen_data,
-        sent_data=sent_data
+        automation_complete=bool(get_user_automation(session["email"]))
     )
 
 
