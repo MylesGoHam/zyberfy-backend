@@ -583,69 +583,24 @@ def create_checkout_session():
         return jsonify(error=str(e)), 400
     
 
-@app.route('/settings', methods=['GET', 'POST'])
+@app.route('/settings')
 def settings():
-    if 'user_id' not in session:
-        print("DEBUG: user_id NOT in session")
+    if 'email' not in session:
         return redirect(url_for('login'))
 
-    print("DEBUG: user_id in session?", session.get('user_id'))
+    # Temporary mock user object for display only
+    mock_user = {
+        "first_name": "Admin",
+        "company_name": "Zyberfy",
+        "position": "Founder",
+        "website": "https://zyberfy.com",
+        "phone": "+1 (555) 123-4567",
+        "reply_to": "hello@zyberfy.com",
+        "timezone": "PST",
+        "logo": None  # Add later if needed
+    }
 
-    conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-
-    if request.method == 'POST':
-        first_name = request.form.get('first_name')
-        company_name = request.form.get('company_name')
-        position = request.form.get('position')
-        website = request.form.get('website')
-        phone = request.form.get('phone')
-        reply_to = request.form.get('reply_to')
-        timezone = request.form.get('timezone')
-
-        # Optional password update
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-
-        # Validate passwords match if provided
-        if password and password != confirm_password:
-            flash("Passwords do not match", "error")
-            return redirect(url_for('settings'))
-
-        # Save uploaded logo if present
-        logo = request.files.get('logo')
-        logo_path = None
-        if logo and logo.filename:
-            filename = secure_filename(logo.filename)
-            logo_path = os.path.join('static/uploads', filename)
-            logo.save(logo_path)
-
-        # Update user in database
-        update_fields = {
-            'first_name': first_name,
-            'company_name': company_name,
-            'position': position,
-            'website': website,
-            'phone': phone,
-            'reply_to': reply_to,
-            'timezone': timezone,
-        }
-
-        if logo_path:
-            update_fields['logo'] = logo_path
-
-        if password:
-            update_fields['password'] = generate_password_hash(password)
-
-        for field, value in update_fields.items():
-            conn.execute(f'UPDATE users SET {field} = ? WHERE id = ?', (value, session['user_id']))
-        conn.commit()
-        conn.close()
-
-        flash("Settings updated successfully!", "success")
-        return redirect(url_for('settings'))
-
-    return render_template('settings.html', user=user)
+    return render_template('settings.html', user=mock_user)
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
