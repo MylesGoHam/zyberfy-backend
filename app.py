@@ -263,7 +263,6 @@ def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    # Only run preview logic on GET
     if request.method == "GET":
         conn = get_db_connection()
 
@@ -285,8 +284,8 @@ def automation():
         user = conn.execute("SELECT first_name, company_name FROM users WHERE email = ?", (session["email"],)).fetchone()
         conn.close()
 
-        first_name = user["first_name"] or "Your Name"
-        company = user["company_name"] or "Your Company"
+        first_name = user["first_name"] if user and user["first_name"] else "Your Name"
+        company = user["company_name"] if user and user["company_name"] else "Your Company"
 
         # AI Preview Prompt
         prompt = (
@@ -294,14 +293,19 @@ def automation():
             f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
         )
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=500,
+                temperature=0.7
+            )
+            preview = response["choices"][0]["message"]["content"].strip()
 
-        preview = response["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            logger.exception("Failed to generate AI preview: %s", e)
+            preview = "(Error generating preview — please try again later.)"
+
         return render_template("automation.html", settings=settings, preview=preview)
 
     # fallback for unsupported POST (shouldn't normally hit this)
