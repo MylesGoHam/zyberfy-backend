@@ -525,6 +525,26 @@ def export_analytics():
         download_name="zyberfy_analytics.csv"
     )
 
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    # Confirm terms were agreed to
+    agreed = request.form.get("terms")
+    if not agreed:
+        flash("You must agree to the Terms of Service.")
+        return redirect(url_for("memberships"))
+
+    # You could trigger Stripe checkout or update the user's plan in your DB here
+    conn = get_db_connection()
+    conn.execute("UPDATE users SET plan_status = ? WHERE email = ?", ("elite", session["email"]))
+    conn.commit()
+    conn.close()
+
+    flash("Subscription successful! You now have full access.")
+    return redirect(url_for("dashboard"))
+
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if "email" not in session:
