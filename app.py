@@ -351,38 +351,52 @@ def analytics():
     range_days = int(request.args.get("range", 7))
     since = datetime.utcnow().date() - timedelta(days=range_days)
 
-    # Totals
-    pageviews = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp) >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
-    generated = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp) >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
-    sent = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp) >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
+    # Aggregate totals (1 query)
+    totals = conn.execute("""
+        SELECT 
+            event_type, 
+            COUNT(*) AS cnt 
+        FROM analytics_events 
+        WHERE user_id = ? AND date(timestamp) >= ? 
+        GROUP BY event_type
+    """, (uid, since)).fetchall()
+
+    # Map totals
+    stats = {row["event_type"]: row["cnt"] for row in totals}
+    pageviews = stats.get("pageview", 0)
+    generated = stats.get("generated_proposal", 0)
+    sent = stats.get("sent_proposal", 0)
     conversion_rate = (sent / generated * 100) if generated else 0
 
-    # Line Chart Data
-    dates = [since + timedelta(days=i) for i in range(range_days)]
-    labels = [d.strftime("%b %-d") for d in dates]
-    line_data, gen_data, sent_data = [], [], []
-    for d in dates:
-        date_str = d.isoformat()
-        line_data.append(
-            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
-        )
-        gen_data.append(
-            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
-        )
-        sent_data.append(
-            conn.execute("SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp) = ?", (uid, date_str)).fetchone()["cnt"]
-        )
+    # Line Chart Data (1 query total, not 3 per day)
+    raw = conn.execute("""
+        SELECT 
+            event_type, 
+            DATE(timestamp) as day, 
+            COUNT(*) AS cnt 
+        FROM analytics_events 
+        WHERE user_id = ? AND date(timestamp) >= ? 
+        GROUP BY event_type, day
+    """, (uid, since)).fetchall()
 
-    # Recent Events
+    # Organize by date
+    date_map = {d.strftime("%Y-%m-%d"): i for i, d in enumerate([since + timedelta(days=i) for i in range(range_days)])}
+    line_data = [0] * range_days
+    gen_data = [0] * range_days
+    sent_data = [0] * range_days
+
+    for row in raw:
+        idx = date_map.get(row["day"])
+        if idx is not None:
+            if row["event_type"] == "pageview":
+                line_data[idx] = row["cnt"]
+            elif row["event_type"] == "generated_proposal":
+                gen_data[idx] = row["cnt"]
+            elif row["event_type"] == "sent_proposal":
+                sent_data[idx] = row["cnt"]
+
+    labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
+
     recent_events = conn.execute(
         "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? ORDER BY timestamp DESC LIMIT 50", (uid,)
     ).fetchall()
