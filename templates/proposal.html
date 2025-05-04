@@ -1,58 +1,38 @@
+<!-- templates/proposal.html -->
 {% extends "base.html" %}
-{% block title %}Proposal Preview – Zyberfy{% endblock %}
+{% block title %}Proposal Setup | Zyberfy{% endblock %}
 
 {% block content %}
-<style>
-  .proposal-preview {
-    max-width: 800px;
-    margin: 2rem auto;
-    background: #fff;
-    padding: 2rem;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-  .proposal-preview h2 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #1e90ff;
-    margin-bottom: 1rem;
-  }
-  .proposal-preview pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    background: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    line-height: 1.6;
-    border: 1px solid #ddd;
-  }
-  .proposal-preview .copy-btn {
-    margin-top: 1rem;
-    padding: 10px 16px;
-    background-color: #1e90ff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-</style>
+<div class="max-w-3xl mx-auto p-6">
+  <h1 class="text-3xl font-bold text-blue-600 mb-4">Proposal Inquiry Form</h1>
+  <p class="mb-6 text-gray-700">Share this form with leads. When they submit it, we'll auto-generate and send a personalized proposal based on your automation settings.</p>
 
-<div class="proposal-preview">
-  <h2>📄 AI-Generated Proposal Preview</h2>
-  <pre id="proposal-text">{{ preview }}</pre>
-  <button class="copy-btn" id="copyBtn">Copy to Clipboard</button>
+  <form method="POST" action="{{ url_for('submit_proposal_form') }}" class="bg-white p-6 rounded-lg shadow-md">
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Full Name</label>
+      <input type="text" name="name" class="w-full border px-4 py-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Email Address</label>
+      <input type="email" name="email" class="w-full border px-4 py-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Budget or Offer (optional)</label>
+      <input type="text" name="budget" class="w-full border px-4 py-2 rounded">
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Project Details or Message</label>
+      <textarea name="message" rows="5" class="w-full border px-4 py-2 rounded" required></textarea>
+    </div>
+
+    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Submit Proposal Request</button>
+  </form>
+
+  <div class="mt-8 text-center text-sm text-gray-500">
+    This form is powered by Zyberfy AI. You can customize, share, or embed this page anywhere.
+  </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  document.getElementById('copyBtn').addEventListener('click', () => {
-    const text = document.getElementById('proposal-text').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Copied to clipboard!');
-    });
-  });
-</script>
 {% endblock %}
