@@ -312,6 +312,31 @@ def automation():
 
     return redirect(url_for("automation"))
 
+@app.route("/patch-users-columns")
+def patch_users_columns():
+    conn = get_db_connection()
+    try:
+        # Use individual ALTERs with IF NOT EXISTS handling
+        for column in [
+            "company_name TEXT",
+            "position TEXT",
+            "website TEXT",
+            "phone TEXT",
+            "reply_to TEXT",
+            "timezone TEXT",
+            "logo TEXT"
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE users ADD COLUMN {column};")
+            except sqlite3.OperationalError:
+                pass  # Column already exists, skip
+        conn.commit()
+        return "Users table successfully patched on Render."
+    except Exception as e:
+        return f"Error: {str(e)}"
+    finally:
+        conn.close()
+
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
