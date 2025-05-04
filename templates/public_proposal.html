@@ -1,0 +1,51 @@
+<!-- templates/public_proposal.html -->
+{% extends "base.html" %}
+{% block title %}Proposal | {{ company_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-10 bg-white rounded-lg shadow-md mt-10">
+
+  <!-- Header -->
+  <div class="mb-8 text-center">
+    <h1 class="text-3xl font-bold text-blue-700">Your Proposal</h1>
+    <p class="text-gray-600 mt-1">Prepared by {{ first_name }} from {{ company_name }}</p>
+  </div>
+
+  <!-- Proposal Body -->
+  <div class="whitespace-pre-wrap text-gray-800 text-base leading-relaxed bg-gray-50 p-6 rounded-lg border border-gray-200">
+    {{ proposal_content }}
+  </div>
+
+  <!-- Call to Action -->
+  <div class="mt-8 text-center">
+    <a href="{{ url_for('make_offer', proposal_id=proposal_id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow">
+      Make an Offer
+    </a>
+  </div>
+
+  <!-- Divider -->
+  <div class="border-t mt-10 pt-6 text-sm text-gray-500 text-center">
+    Sent by <strong>{{ company_name }}</strong> • <a href="{{ website }}" class="text-blue-600 hover:underline">{{ website }}</a>
+  </div>
+
+  <!-- Tools -->
+  <div class="flex items-center justify-center gap-4 mt-6">
+    <!-- Copy Link -->
+    <button onclick="copyLink()" class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded border text-gray-700">Copy Link</button>
+    <!-- Print -->
+    <button onclick="window.print()" class="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded border text-gray-700">Print</button>
+    <!-- QR Code -->
+    <img src="{{ qr_code_url }}" alt="QR Code" class="w-20 h-20" />
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Proposal link copied!");
+  }
+</script>
+{% endblock %}
