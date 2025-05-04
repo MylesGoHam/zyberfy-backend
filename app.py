@@ -294,59 +294,51 @@ def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    conn = get_db_connection()
-
     if request.method == "POST":
-        # Grab all form values
-        tone           = request.form.get("tone", "").strip()
+        tone           = request.form.get("tone", "")
         full_auto      = bool(request.form.get("full_auto"))
         accept_offers  = bool(request.form.get("accept_offers"))
         reject_offers  = bool(request.form.get("reject_offers"))
         length         = request.form.get("length", "concise")
 
-        # Optional: update branding fields in future (for now just AI-related)
+        # New branding fields
+        first_name     = request.form.get("first_name", "")
+        company_name   = request.form.get("company_name", "")
+        position       = request.form.get("position", "")
+        website        = request.form.get("website", "")
+        phone          = request.form.get("phone", "")
+        reply_to       = request.form.get("reply_to", "")
+        timezone       = request.form.get("timezone", "")
+
+        conn = get_db_connection()
         conn.execute("""
-            UPDATE automation_settings SET
-                tone = ?, full_auto = ?, accept_offers = ?, reject_offers = ?, length = ?
-            WHERE email = ?
-        """, (tone, full_auto, accept_offers, reject_offers, length, session["email"]))
+            INSERT INTO automation_settings (
+                email, tone, full_auto, accept_offers, reject_offers, length,
+                first_name, company_name, position, website, phone, reply_to, timezone
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                tone = excluded.tone,
+                full_auto = excluded.full_auto,
+                accept_offers = excluded.accept_offers,
+                reject_offers = excluded.reject_offers,
+                length = excluded.length,
+                first_name = excluded.first_name,
+                company_name = excluded.company_name,
+                position = excluded.position,
+                website = excluded.website,
+                phone = excluded.phone,
+                reply_to = excluded.reply_to,
+                timezone = excluded.timezone
+        """, (
+            session["email"], tone, full_auto, accept_offers, reject_offers, length,
+            first_name, company_name, position, website, phone, reply_to, timezone
+        ))
         conn.commit()
+        conn.close()
+
         flash("Settings saved successfully!", "success")
-
-    # Always fetch updated settings
-    settings_row = conn.execute("""
-        SELECT tone, full_auto, accept_offers, reject_offers, length,
-               first_name, company_name
-        FROM automation_settings WHERE email = ?
-    """, (session["email"],)).fetchone()
-    conn.close()
-
-    settings = {
-        "tone": settings_row["tone"] if settings_row else "",
-        "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
-        "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
-        "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
-        "length": settings_row["length"] if settings_row else "concise"
-    }
-
-    first_name = settings_row["first_name"] or "Your Name"
-    company    = settings_row["company_name"] or "Your Company"
-
-    # AI Preview
-    prompt = (
-        f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-        f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
-    )
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.7
-    )
-    preview = response["choices"][0]["message"]["content"].strip()
-
-    return render_template("automation.html", settings=settings, preview=preview, **settings)
+        return redirect(url_for("automation"))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
