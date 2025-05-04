@@ -337,6 +337,8 @@ def automation():
             request.form.get("timezone", "")
         ))
         conn.commit()
+        flash("Your automation settings have been updated ✅", "info")
+        return redirect(url_for("automation"))
 
     # Load settings for GET or after saving
     row = conn.execute("""
