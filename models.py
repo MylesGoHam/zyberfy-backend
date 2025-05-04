@@ -85,11 +85,12 @@ def create_analytics_events_table():
 
 def get_user_automation(email: str):
     conn = get_db_connection()
-    row = conn.execute(
-        "SELECT email, tone, style, additional_notes "
-        "FROM automation_settings WHERE email = ?",
-        (email,)
-    ).fetchone()
+    row = conn.execute("""
+        SELECT tone, full_auto, accept_offers, reject_offers, length,
+               first_name, company_name, position, website, phone, reply_to, timezone, logo
+        FROM automation_settings
+        WHERE email = ?
+    """, (email,)).fetchone()
     conn.close()
     return row
 
