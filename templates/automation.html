@@ -12,15 +12,16 @@
   </div>
 
   <!-- Success Banner -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="w-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6 shadow text-center">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+<!-- Success Banner -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div id="success-banner" class="w-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6 shadow text-center transition-opacity duration-700 ease-in-out">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
   <form method="POST" action="{{ url_for('automation') }}" class="space-y-6">
     <!-- Tone Input -->
