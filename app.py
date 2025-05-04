@@ -429,10 +429,10 @@ def automation_preview():
 
     return render_template("automation_preview.html", preview=preview, **settings)
 
-@app.route("/proposal")
-def proposal():
+@app.route("/proposal", endpoint="proposal")
+def generate_proposal():
     if "email" not in session:
-        return render_template("proposal.html")
+        return redirect(url_for("login"))
 
     conn = get_db_connection()
     row = conn.execute("""
@@ -474,22 +474,6 @@ def proposal():
     preview = response["choices"][0]["message"]["content"].strip()
 
     return render_template("proposal.html", preview=preview, **settings)
-
-@app.route("/proposal-history")
-def proposal_history():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    conn = get_db_connection()
-    rows = conn.execute("""
-        SELECT id, lead_name, proposal_text, created_at
-        FROM proposals
-        WHERE user_email = ?
-        ORDER BY created_at DESC
-    """, (session["email"],)).fetchall()
-    conn.close()
-
-    return render_template("proposal_history.html", proposals=rows)
 
 
 @app.route("/analytics")
