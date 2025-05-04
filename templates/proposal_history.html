@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Proposal History | Zyberfy{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Your Proposals</h2>
+    <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Dashboard</a>
+  </div>
+
+  {% if proposals %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% for proposal in proposals %}
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Proposal #{{ proposal.id }}</h3>
+          <p class="text-sm text-gray-500 mb-2">Status: {{ proposal.status }}</p>
+          <p class="text-sm text-gray-500 mb-2">Date: {{ proposal.created_at }}</p>
+          <a href="{{ url_for('public_proposal', proposal_id=proposal.id) }}" target="_blank" class="text-blue-600 hover:underline text-sm">
+            View Public Link
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-600">No proposals found.</p>
+  {% endif %}
+</div>
+{% endblock %}
