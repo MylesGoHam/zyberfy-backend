@@ -12,18 +12,16 @@
   </div>
 
   <!-- Success Banner -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div id="success-banner" class="w-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6 shadow text-center flex justify-center items-center gap-2 transition-opacity duration-700 ease-in-out">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+<!-- Success Banner -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div id="success-banner" class="w-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6 shadow text-center transition-opacity duration-700 ease-in-out">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
   <form method="POST" action="{{ url_for('automation') }}" class="space-y-6">
     <!-- Tone Input -->
