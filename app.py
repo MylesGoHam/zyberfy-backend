@@ -430,36 +430,35 @@ def automation_preview():
     return render_template("automation_preview.html", preview=preview, **settings)
 
 @app.route("/proposals")
-def proposal_history():
+def proposals():
     if "email" not in session:
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    proposals = conn.execute("""
-        SELECT id, content, status, created_at
+    rows = conn.execute("""
+        SELECT id, lead_name, created_at
         FROM proposals
-        WHERE user_email = ?
+        WHERE client_email = ?
         ORDER BY created_at DESC
     """, (session["email"],)).fetchall()
     conn.close()
 
-    return render_template("proposal_history.html", proposals=proposals)
+    return render_template("proposal_history.html", proposals=rows)
 
-# Public view of an individual proposal
 @app.route("/proposal/<int:proposal_id>")
 def public_proposal(proposal_id):
     conn = get_db_connection()
-    proposal = conn.execute("""
-        SELECT content
+    row = conn.execute("""
+        SELECT id, lead_name, proposal_text, created_at
         FROM proposals
         WHERE id = ?
     """, (proposal_id,)).fetchone()
     conn.close()
 
-    if not proposal:
-        return "Proposal not found", 404
+    if row is None:
+        return "Proposal not found.", 404
 
-    return render_template("public_proposal.html", proposal=proposal)
+    return render_template("public_proposal.html", proposal=row)
 
 @app.route("/analytics")
 def analytics():
