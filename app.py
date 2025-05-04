@@ -432,7 +432,7 @@ def automation_preview():
 @app.route("/proposal")
 def proposal():
     if "email" not in session:
-        return redirect(url_for("login"))
+        return render_template("proposal.html")
 
     conn = get_db_connection()
     row = conn.execute("""
