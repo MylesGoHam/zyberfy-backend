@@ -429,57 +429,6 @@ def automation_preview():
 
     return render_template("automation_preview.html", preview=preview, **settings)
 
-@app.route("/proposal", endpoint="proposal")
-def generate_proposal():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    try:
-        conn = get_db_connection()
-        row = conn.execute("""
-            SELECT tone, full_auto, accept_offers, reject_offers, length,
-                   first_name, company_name, position, website, phone, reply_to, timezone
-            FROM automation_settings
-            WHERE email = ?
-        """, (session["email"],)).fetchone()
-        conn.close()
-
-        settings = {
-            "tone": row["tone"] if row else "friendly",
-            "full_auto": bool(row["full_auto"]) if row else False,
-            "accept_offers": bool(row["accept_offers"]) if row else False,
-            "reject_offers": bool(row["reject_offers"]) if row else False,
-            "length": row["length"] if row else "concise",
-            "first_name": row["first_name"] if row else "Your Name",
-            "company_name": row["company_name"] if row else "Your Company",
-            "position": row["position"] if row else "",
-            "website": row["website"] if row else "",
-            "phone": row["phone"] if row else "",
-            "reply_to": row["reply_to"] if row else "",
-            "timezone": row["timezone"] if row else ""
-        }
-
-        prompt = (
-            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-            f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
-            f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
-            f"Pretend a lead has just inquired and you're writing the first follow-up."
-        )
-
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
-        preview = response["choices"][0]["message"]["content"].strip()
-
-        return render_template("proposal.html", preview=preview, **settings)
-
-    except Exception as e:
-        print(f"[ERROR] Failed to generate proposal: {e}")
-        return "An error occurred while generating the proposal. Please try again later.", 500
-
 
 @app.route("/analytics")
 def analytics():
@@ -727,6 +676,13 @@ def create_checkout_session():
 
     except Exception as e:
         return jsonify(error=str(e)), 400
+    
+@app.route("/proposal", endpoint="proposal")
+def proposal_page():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("proposal.html")
     
 
 @app.route('/settings')
