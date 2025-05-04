@@ -300,64 +300,92 @@ def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    if request.method == "GET":
-        conn = get_db_connection()
+    email = session["email"]
 
-        row = conn.execute("""
-            SELECT tone, full_auto, accept_offers, reject_offers, length,
-                   first_name, company_name, position, website, phone, reply_to, timezone
-            FROM automation_settings WHERE email = ?
-        """, (session["email"],)).fetchone()
+    if request.method == "POST":
+        form = request.form
+
+        conn = get_db_connection()
+        conn.execute("""
+            UPDATE automation_settings SET
+                tone = ?, full_auto = ?, accept_offers = ?, reject_offers = ?, length = ?,
+                first_name = ?, company_name = ?, position = ?, website = ?, phone = ?, reply_to = ?, timezone = ?
+            WHERE email = ?
+        """, (
+            form.get("tone", ""),
+            bool(form.get("full_auto")),
+            bool(form.get("accept_offers")),
+            bool(form.get("reject_offers")),
+            form.get("length", "concise"),
+            form.get("first_name", ""),
+            form.get("company_name", ""),
+            form.get("position", ""),
+            form.get("website", ""),
+            form.get("phone", ""),
+            form.get("reply_to", ""),
+            form.get("timezone", ""),
+            email
+        ))
+        conn.commit()
         conn.close()
 
-        # Provide defaults in case row is missing
-        tone         = row["tone"] if row else ""
-        full_auto    = bool(row["full_auto"]) if row else False
-        accept_offers= bool(row["accept_offers"]) if row else False
-        reject_offers= bool(row["reject_offers"]) if row else False
-        length       = row["length"] if row else "concise"
-        first_name   = row["first_name"] if row else "Your Name"
-        company_name = row["company_name"] if row else "Your Company"
-        position     = row["position"] if row else ""
-        website      = row["website"] if row else ""
-        phone        = row["phone"] if row else ""
-        reply_to     = row["reply_to"] if row else ""
-        timezone     = row["timezone"] if row else ""
+        flash("Automation settings updated!", "success")
+        return redirect(url_for("automation"))
 
-        # Generate AI test preview
-        prompt = (
-            f"Write a {length} business proposal in a {tone} tone.\n"
-            f"The sender is {first_name} ({position}) from {company_name}.\n"
-            f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
-            f"Pretend a lead has just inquired and you're writing the first follow-up."
-        )
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
-        preview = response["choices"][0]["message"]["content"].strip()
+    # GET request – fetch saved settings
+    conn = get_db_connection()
+    row = conn.execute("""
+        SELECT tone, full_auto, accept_offers, reject_offers, length,
+               first_name, company_name, position, website, phone, reply_to, timezone
+        FROM automation_settings WHERE email = ?
+    """, (email,)).fetchone()
+    conn.close()
 
-        return render_template(
-            "automation.html",
-            tone=tone,
-            full_auto=full_auto,
-            accept_offers=accept_offers,
-            reject_offers=reject_offers,
-            length=length,
-            first_name=first_name,
-            company_name=company_name,
-            position=position,
-            website=website,
-            phone=phone,
-            reply_to=reply_to,
-            timezone=timezone,
-            preview=preview
-        )
+    # Provide defaults
+    tone         = row["tone"] if row else ""
+    full_auto    = bool(row["full_auto"]) if row else False
+    accept_offers= bool(row["accept_offers"]) if row else False
+    reject_offers= bool(row["reject_offers"]) if row else False
+    length       = row["length"] if row else "concise"
+    first_name   = row["first_name"] if row else "Your Name"
+    company_name = row["company_name"] if row else "Your Company"
+    position     = row["position"] if row else ""
+    website      = row["website"] if row else ""
+    phone        = row["phone"] if row else ""
+    reply_to     = row["reply_to"] if row else ""
+    timezone     = row["timezone"] if row else ""
 
-    # fallback for POST
-    return redirect(url_for("automation"))
+    # AI preview
+    prompt = (
+        f"Write a {length} business proposal in a {tone} tone.\n"
+        f"The sender is {first_name} ({position}) from {company_name}.\n"
+        f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
+        f"Pretend a lead has just inquired and you're writing the first follow-up."
+    )
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.7
+    )
+    preview = response["choices"][0]["message"]["content"].strip()
+
+    return render_template(
+        "automation.html",
+        tone=tone,
+        full_auto=full_auto,
+        accept_offers=accept_offers,
+        reject_offers=reject_offers,
+        length=length,
+        first_name=first_name,
+        company_name=company_name,
+        position=position,
+        website=website,
+        phone=phone,
+        reply_to=reply_to,
+        timezone=timezone,
+        preview=preview
+    )
 
 
 @app.route("/proposal", methods=["GET", "POST"])
