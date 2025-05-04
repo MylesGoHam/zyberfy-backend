@@ -677,10 +677,22 @@ def create_checkout_session():
     except Exception as e:
         return jsonify(error=str(e)), 400
     
-@app.route("/proposal", endpoint="proposal")
-def proposal_page():
-    if "email" not in session:
-        return redirect(url_for("login"))
+@app.route("/proposal", methods=["GET", "POST"])
+def public_proposal():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        message = request.form.get("message")
+
+        # Optional: Log or save the proposal (e.g. insert into DB)
+        # Save or trigger automation logic here
+        print(f"[NEW PROPOSAL] From: {name} | Email: {email} | Message: {message}")
+
+        # Example: trigger automation (modify this to your logic)
+        # send_proposal_email(name, email, message)  ← if you have email_utils setup
+
+        flash("Your proposal has been submitted successfully!", "success")
+        return redirect(url_for("public_proposal"))
 
     return render_template("proposal.html")
     
