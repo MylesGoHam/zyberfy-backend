@@ -108,15 +108,46 @@ def login():
         user = conn.execute(
             "SELECT * FROM users WHERE email = ?", (email,)
         ).fetchone()
-        conn.close()
 
         if user and user["password"] == password:
             session["email"]       = email
             session["first_name"]  = user["first_name"]
             session["plan_status"] = user["plan_status"]
-            session["user_id"]     = user["id"]  # ✅ This fixes the settings redirect
+            session["user_id"]     = user["id"]
+
+            # ✅ Auto-create automation_settings if missing
+            exists = conn.execute(
+                "SELECT 1 FROM automation_settings WHERE email = ?", (email,)
+            ).fetchone()
+            if not exists:
+                conn.execute("""
+                    INSERT INTO automation_settings (
+                        email, tone, full_auto, accept_offers, reject_offers, length,
+                        first_name, company_name, position, website, phone, reply_to, timezone, logo
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    user["email"],
+                    "friendly",
+                    False,
+                    True,
+                    True,
+                    "concise",
+                    user["first_name"],
+                    user["company_name"],
+                    user["position"],
+                    user["website"],
+                    user["phone"],
+                    user["reply_to"],
+                    user["timezone"],
+                    user["logo"]
+                ))
+                conn.commit()
+
+            conn.close()
             return redirect(url_for("dashboard"))
 
+        conn.close()
         flash("Invalid email or password", "error")
         return redirect(url_for("login"))
 
