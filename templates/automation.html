@@ -108,17 +108,18 @@
   </div>
 </div>
 
+{% endblock %} {# end of content block #}
+
 {% block scripts %}
 <script>
   setTimeout(() => {
     const banner = document.getElementById("success-banner");
     if (banner) {
       banner.classList.add("opacity-0");
-      setTimeout(() => banner.remove(), 700); // fully remove from DOM
+      setTimeout(() => banner.remove(), 700);
     }
-  }, 3000); // fades after 3 seconds
-</script>
-<script>
+  }, 3000);
+
   const toggleBtn = document.getElementById("toggle-preview");
   const previewBox = document.getElementById("preview-box");
 
