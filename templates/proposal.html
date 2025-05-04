@@ -4,6 +4,7 @@
 {% block content %}
 <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
   <h1 class="text-2xl font-bold text-blue-600 mb-6">Proposal Submission Page</h1>
+  
   <form method="POST">
     <div class="mb-4">
       <label for="name" class="block font-medium text-gray-700 mb-1">Your Name</label>
@@ -50,5 +51,14 @@
       Submit Proposal
     </button>
   </form>
+
+  <!-- QR Code Section -->
+  <div class="mt-10 text-center">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">Share This Proposal Page</h2>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAAFyAQAAAADAX2ykAAAChElEQVR4nO2bQYrjMBBFX40MWdrQB8hR7KvNzeyj9AEapGWDzZ+FJDvdTM+kmcRjQ2lhQvQWH5SS9b8qJr4zph/fwsF555133nnnnf+KtzIamKzBhtTAZGaQ6tywox7nH8UjSaKXJMUgaJUfUgQpBt0g49H0O38fn0qFakxm9HExaGdsAHJh76vH+SfxfQxi6oIgNXfwz9bj/EN5s+uMRsCGtnz6n3qc/ze+lmgrIIFgadS/GkzdW567jUCOpt/5u/jJzMw6sCFdZANB9K8X2cCSj8/76nH+QXyu361CRVpMMKPp+m76WL3H0+/8PbwNaXW93TYZVGZZvH7PyRf/C9Xm5lVtVV1vDNLYuv89KZ/XV2M7Qx9hSzW2kIM+gq/vKfmaX0WQNJfvRoI05v05SNJcfwdH0+/8X0bZldu6Na9JZa5pqJ+8fs/La0xmkt7tdi5dVPONoA/8s/U4/2C+j+UQDZQQ68Pw8/NJ+byilvMr5kaT1RCrrOpigtUGH02/8/fwUlzK/e/2Jqa+fwGwYUc9zj+aT5dqc19LUkk+bsUyu7Me5x/Dr/4olCwje6EYVK/2Z+jl5+eT8tXXZms0ZxN84397zUDr/vek/E2+Qc4yIuWSv7x/KaXr63teXmMOnGfMuup111Ry6945qn7nvxrVH+URZpFe0LT53/QyM13n2gdwNP3O/3mUdetHgPRC7qrrI2jqomw1SbaPHuefw9cd2Na73psm6PJ23lOP84/hP7dIaureSlaVa7qNGKnbS4/zz+VtIIjJGvSzg9wJPV3l+cY5+d/0T4Ll1DkZkDrox6Xx/PmU/NqfA6ytOfWxplZ+/3tW3vz/3c4777zzzju/O/8LFWmpPBYq9y0AAAAASUVORK5CYII=" alt="Proposal QR Code" class="mx-auto mb-2 w-40 h-40" />
+    <a download="proposal_qr.png"
+       href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAAFyAQAAAADAX2ykAAAChElEQVR4nO2bQYrjMBBFX40MWdrQB8hR7KvNzeyj9AEapGWDzZ+FJDvdTM+kmcRjQ2lhQvQWH5SS9b8qJr4zph/fwsF555133nnnnf+KtzIamKzBhtTAZGaQ6tywox7nH8UjSaKXJMUgaJUfUgQpBt0g49H0O38fn0qFakxm9HExaGdsAHJh76vH+SfxfQxi6oIgNXfwz9bj/EN5s+uMRsCGtnz6n3qc/ze+lmgrIIFgadS/GkzdW567jUCOpt/5u/jJzMw6sCFdZANB9K8X2cCSj8/76nH+QXyu361CRVpMMKPp+m76WL3H0+/8PbwNaXW93TYZVGZZvH7PyRf/C9Xm5lVtVV1vDNLYuv89KZ/XV2M7Qx9hSzW2kIM+gq/vKfmaX0WQNJfvRoI05v05SNJcfwdH0+/8X0bZldu6Na9JZa5pqJ+8fs/La0xmkt7tdi5dVPONoA/8s/U4/2C+j+UQDZQQ68Pw8/NJ+byilvMr5kaT1RCrrOpigtUGH02/8/fwUlzK/e/2Jqa+fwGwYUc9zj+aT5dqc19LUkk+bsUyu7Me5x/Dr/4olCwje6EYVK/2Z+jl5+eT8tXXZms0ZxN84397zUDr/vek/E2+Qc4yIuWSv7x/KaXr63teXmMOnGfMuup111Ry6945qn7nvxrVH+URZpFe0LT53/QyM13n2gdwNP3O/3mUdetHgPRC7qrrI2jqomw1SbaPHuefw9cd2Na73psm6PJ23lOP84/hP7dIaureSlaVa7qNGKnbS4/zz+VtIIjJGvSzg9wJPV3l+cY5+d/0T4Ll1DkZkDrox6Xx/PmU/NqfA6ytOfWxplZ+/3tW3vz/3c4777zzzju/O/8LFWmpPBYq9y0AAAAASUVORK5CYII=" 
+       class="text-blue-600 underline hover:text-blue-800 text-sm">Download QR Code</a>
+  </div>
 </div>
 {% endblock %}
