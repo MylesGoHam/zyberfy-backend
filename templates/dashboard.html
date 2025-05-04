@@ -6,67 +6,56 @@
 <div class="max-w-6xl mx-auto p-6">
 
   <!-- Top bar with logo and hamburger -->
-<div class="flex items-start justify-between mb-6">
-  <div class="flex flex-col">
-    <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
-    <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
-  </div>
-  <div class="relative">
-    <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
-    <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
-      <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
-      <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
-      <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">New Proposal</a>
-      <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-      <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+  <div class="flex items-start justify-between mb-6">
+    <div class="flex flex-col">
+      <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
+      <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
+    </div>
+    <div class="relative">
+      <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
+      <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+        <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
+        <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+        <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">New Proposal</a>
+        <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+        <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-  <!-- Plan Status -->
-  <div class="bg-white p-6 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Plan Status</h3>
-    <p class="text-xl font-semibold text-green-600 flex justify-center items-center gap-1">
-      Active
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-      </svg>
-    </p>
-  </div>
-
-  <!-- Automation Status -->
-  <div class="bg-white p-6 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Automation</h3>
-    {% if automation_complete %}
+  <!-- Status Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Plan Status -->
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Plan Status</h3>
       <p class="text-xl font-semibold text-green-600 flex justify-center items-center gap-1">
-        Configured
+        Active
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
         </svg>
       </p>
-    {% else %}
-      <p class="text-xl font-semibold text-red-600 flex justify-center items-center gap-1">
-        Not Configured
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </p>
-    {% endif %}
-  </div>
-</div>
+    </div>
 
-  <!-- Automation -->
-  <div class="bg-white p-6 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Automation</h3>
-    <p class="text-xl font-semibold text-green-600 flex justify-center items-center gap-1">
-      Configured
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-      </svg>
-    </p>
+    <!-- Automation Status -->
+    <div class="bg-white p-6 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Automation</h3>
+      {% if automation_complete %}
+        <p class="text-xl font-semibold text-green-600 flex justify-center items-center gap-1">
+          Configured
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </p>
+      {% else %}
+        <p class="text-xl font-semibold text-red-600 flex justify-center items-center gap-1">
+          Not Configured
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </p>
+      {% endif %}
+    </div>
   </div>
-</div>
 
   <!-- Proposal stats -->
   <div>
