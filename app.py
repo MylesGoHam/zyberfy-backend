@@ -297,60 +297,56 @@ def automation():
     conn = get_db_connection()
 
     if request.method == "POST":
-        # Capture submitted form values
-        tone = request.form.get("tone", "").strip()
-        full_auto = bool(request.form.get("full_auto"))
-        accept_offers = bool(request.form.get("accept_offers"))
-        reject_offers = bool(request.form.get("reject_offers"))
-        length = request.form.get("length", "concise")
+        # Grab all form values
+        tone           = request.form.get("tone", "").strip()
+        full_auto      = bool(request.form.get("full_auto"))
+        accept_offers  = bool(request.form.get("accept_offers"))
+        reject_offers  = bool(request.form.get("reject_offers"))
+        length         = request.form.get("length", "concise")
 
-        # Save updated settings
+        # Optional: update branding fields in future (for now just AI-related)
         conn.execute("""
-            INSERT OR REPLACE INTO automation_settings (
-                email, tone, full_auto, accept_offers, reject_offers, length
-            ) VALUES (?, ?, ?, ?, ?, ?)
-        """, (session["email"], tone, full_auto, accept_offers, reject_offers, length))
+            UPDATE automation_settings SET
+                tone = ?, full_auto = ?, accept_offers = ?, reject_offers = ?, length = ?
+            WHERE email = ?
+        """, (tone, full_auto, accept_offers, reject_offers, length, session["email"]))
         conn.commit()
-        conn.close()
+        flash("Settings saved successfully!", "success")
 
-        flash("Automation settings updated successfully!", "success")
-        return redirect(url_for("automation"))
-
-    # GET request — fetch settings for preview
+    # Always fetch updated settings
     settings_row = conn.execute("""
         SELECT tone, full_auto, accept_offers, reject_offers, length,
-               first_name, company_name, position, website, phone, reply_to, timezone, logo
-        FROM automation_settings
-        WHERE email = ?
+               first_name, company_name
+        FROM automation_settings WHERE email = ?
     """, (session["email"],)).fetchone()
     conn.close()
 
-    if not settings_row:
-        flash("Missing automation settings.", "error")
-        return redirect(url_for("dashboard"))
+    settings = {
+        "tone": settings_row["tone"] if settings_row else "",
+        "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
+        "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
+        "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
+        "length": settings_row["length"] if settings_row else "concise"
+    }
 
-    settings = dict(settings_row)
+    first_name = settings_row["first_name"] or "Your Name"
+    company    = settings_row["company_name"] or "Your Company"
 
-    # Build preview prompt
+    # AI Preview
     prompt = (
         f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-        f"The sender is {settings['first_name']} from {settings['company_name']} "
-        f"({settings['position']}). Website: {settings['website']}. "
-        f"Pretend a lead has just inquired and you're following up."
+        f"The sender is {first_name} from {company}. Pretend a lead has just inquired and you are following up."
     )
 
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
-        preview = response["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        preview = f"⚠️ Error generating preview: {e}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.7
+    )
+    preview = response["choices"][0]["message"]["content"].strip()
 
-    return render_template("automation.html", settings=settings, preview=preview)
+    return render_template("automation.html", settings=settings, preview=preview, **settings)
 
 
 @app.route("/proposal", methods=["GET", "POST"])
