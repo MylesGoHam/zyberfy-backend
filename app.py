@@ -382,6 +382,52 @@ def automation():
 
     return render_template("automation.html", preview=preview, **settings)
 
+@app.route("/automation-preview")
+def automation_preview():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    row = conn.execute("""
+        SELECT tone, full_auto, accept_offers, reject_offers, length,
+               first_name, company_name, position, website, phone, reply_to, timezone
+        FROM automation_settings WHERE email = ?
+    """, (session["email"],)).fetchone()
+    conn.close()
+
+    if not row:
+        flash("Please configure your automation settings first.", "error")
+        return redirect(url_for("automation"))
+
+    # Extract and format
+    settings = {
+        "tone": row["tone"],
+        "length": row["length"],
+        "first_name": row["first_name"],
+        "company_name": row["company_name"],
+        "position": row["position"],
+        "website": row["website"],
+        "phone": row["phone"],
+        "reply_to": row["reply_to"],
+        "timezone": row["timezone"]
+    }
+
+    prompt = (
+        f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
+        f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
+        f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
+        f"Pretend a lead has just inquired and you're writing the first follow-up."
+    )
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.7
+    )
+    preview = response["choices"][0]["message"]["content"].strip()
+
+    return render_template("automation_preview.html", preview=preview, **settings)
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
