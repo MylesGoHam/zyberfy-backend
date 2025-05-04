@@ -362,7 +362,7 @@ def automation():
         conn.close()
 
         flash("Settings updated and preview regenerated!", "success")
-        return redirect(url_for("automation")))
+        return redirect(url_for("automation"))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
