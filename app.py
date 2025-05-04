@@ -312,18 +312,6 @@ def automation():
 
     return redirect(url_for("automation"))
 
-@app.route("/reset-automation-schema")
-def reset_automation_schema():
-    conn = get_db_connection()
-    conn.execute("DROP TABLE IF EXISTS automation_settings;")
-    conn.commit()
-    conn.close()
-
-    # Recreate with updated schema
-    create_automation_settings_table()
-
-    return "Automation settings table reset and recreated with new schema."
-
 
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
