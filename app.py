@@ -295,48 +295,51 @@ def automation():
         return redirect(url_for("login"))
 
     if request.method == "GET":
-    conn = get_db_connection()
+        conn = get_db_connection()
 
-    # Get all automation settings including branding fields
-    settings_row = conn.execute("""
-        SELECT tone, full_auto, accept_offers, reject_offers, length,
-               first_name, company_name, position, website, phone, reply_to, timezone
-        FROM automation_settings WHERE email = ?
-    """, (session["email"],)).fetchone()
-    conn.close()
+        # Get all automation settings including branding fields
+        settings_row = conn.execute("""
+            SELECT tone, full_auto, accept_offers, reject_offers, length,
+                   first_name, company_name, position, website, phone, reply_to, timezone
+            FROM automation_settings WHERE email = ?
+        """, (session["email"],)).fetchone()
+        conn.close()
 
-    settings = {
-        "tone": settings_row["tone"] if settings_row else "",
-        "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
-        "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
-        "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
-        "length": settings_row["length"] if settings_row else "concise",
-        "first_name": settings_row["first_name"] if settings_row else "Your Name",
-        "company_name": settings_row["company_name"] if settings_row else "Your Company",
-        "position": settings_row["position"] if settings_row else "",
-        "website": settings_row["website"] if settings_row else "",
-        "phone": settings_row["phone"] if settings_row else "",
-        "reply_to": settings_row["reply_to"] if settings_row else "",
-        "timezone": settings_row["timezone"] if settings_row else ""
-    }
+        settings = {
+            "tone": settings_row["tone"] if settings_row else "",
+            "full_auto": bool(settings_row["full_auto"]) if settings_row else False,
+            "accept_offers": bool(settings_row["accept_offers"]) if settings_row else False,
+            "reject_offers": bool(settings_row["reject_offers"]) if settings_row else False,
+            "length": settings_row["length"] if settings_row else "concise",
+            "first_name": settings_row["first_name"] if settings_row else "Your Name",
+            "company_name": settings_row["company_name"] if settings_row else "Your Company",
+            "position": settings_row["position"] if settings_row else "",
+            "website": settings_row["website"] if settings_row else "",
+            "phone": settings_row["phone"] if settings_row else "",
+            "reply_to": settings_row["reply_to"] if settings_row else "",
+            "timezone": settings_row["timezone"] if settings_row else ""
+        }
 
-    # AI Prompt including branding fields
-    prompt = (
-        f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-        f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
-        f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
-        f"Pretend a lead has just inquired and you're writing the first follow-up."
-    )
+        # AI Prompt including branding fields
+        prompt = (
+            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
+            f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
+            f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
+            f"Pretend a lead has just inquired and you're writing the first follow-up."
+        )
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.7
-    )
-    preview = response["choices"][0]["message"]["content"].strip()
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        preview = response["choices"][0]["message"]["content"].strip()
 
-    return render_template("automation.html", settings=settings, preview=preview)
+        return render_template("automation.html", settings=settings, preview=preview)
+
+    # fallback for unsupported POST (optional)
+    return redirect(url_for("automation"))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
