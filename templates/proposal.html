@@ -15,7 +15,63 @@
       </a>
       <button id="shareBtn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
         Share this Form
-      </button>
+      </button>{% extends "base.html" %}
+{% block title %}Test Proposal Preview – Zyberfy{% endblock %}
+
+{% block content %}
+  <style>
+    .preview-body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    .preview-body h2 {
+      color: #1e90ff;
+    }
+    .preview-body pre {
+      background-color: #f4f4f4;
+      padding: 1.5rem;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid #ddd;
+    }
+    .copy-btn {
+      margin-top: 1rem;
+      padding: 10px 16px;
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      text-decoration: none;
+      color: #555;
+      font-size: 0.9rem;
+    }
+  </style>
+
+  <div class="preview-body">
+    <h2>🧠 Preview: AI-Generated Proposal</h2>
+    <pre id="proposal-text">{{ generated_email }}</pre>
+    <button class="copy-btn" id="copyBtn">Copy to Clipboard</button><br>
+    <a class="back-link" href="{{ url_for('automation_page') }}">← Back to Automation Settings</a>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const text = document.getElementById('proposal-text').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    });
+  });
+</script>
+{% endblock %}
     </div>
 
     <!-- Proposal Form -->
