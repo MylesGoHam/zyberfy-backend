@@ -300,92 +300,69 @@ def automation():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    email = session["email"]
+    conn = get_db_connection()
 
     if request.method == "POST":
-        form = request.form
+        # Get form values
+        email          = session["email"]
+        tone           = request.form.get("tone", "")
+        full_auto      = "full_auto" in request.form
+        accept_offers  = "accept_offers" in request.form
+        reject_offers  = "reject_offers" in request.form
+        length         = request.form.get("length", "concise")
+        first_name     = request.form.get("first_name", "")
+        company_name   = request.form.get("company_name", "")
+        position       = request.form.get("position", "")
+        website        = request.form.get("website", "")
+        phone          = request.form.get("phone", "")
+        reply_to       = request.form.get("reply_to", "")
+        timezone       = request.form.get("timezone", "")
 
-        conn = get_db_connection()
+        # Create updated preview
+        prompt = (
+            f"Write a {length} business proposal in a {tone} tone.\n"
+            f"The sender is {first_name} ({position}) from {company_name}.\n"
+            f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
+            f"Pretend a lead has just inquired and you're writing the first follow-up."
+        )
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        preview = response["choices"][0]["message"]["content"].strip()
+
+        # Update automation_settings table
         conn.execute("""
-            UPDATE automation_settings SET
-                tone = ?, full_auto = ?, accept_offers = ?, reject_offers = ?, length = ?,
-                first_name = ?, company_name = ?, position = ?, website = ?, phone = ?, reply_to = ?, timezone = ?
-            WHERE email = ?
+            INSERT INTO automation_settings (
+                email, tone, full_auto, accept_offers, reject_offers, length,
+                first_name, company_name, position, website, phone, reply_to, timezone, preview
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                tone = excluded.tone,
+                full_auto = excluded.full_auto,
+                accept_offers = excluded.accept_offers,
+                reject_offers = excluded.reject_offers,
+                length = excluded.length,
+                first_name = excluded.first_name,
+                company_name = excluded.company_name,
+                position = excluded.position,
+                website = excluded.website,
+                phone = excluded.phone,
+                reply_to = excluded.reply_to,
+                timezone = excluded.timezone,
+                preview = excluded.preview
         """, (
-            form.get("tone", ""),
-            bool(form.get("full_auto")),
-            bool(form.get("accept_offers")),
-            bool(form.get("reject_offers")),
-            form.get("length", "concise"),
-            form.get("first_name", ""),
-            form.get("company_name", ""),
-            form.get("position", ""),
-            form.get("website", ""),
-            form.get("phone", ""),
-            form.get("reply_to", ""),
-            form.get("timezone", ""),
-            email
+            email, tone, full_auto, accept_offers, reject_offers, length,
+            first_name, company_name, position, website, phone, reply_to, timezone, preview
         ))
         conn.commit()
         conn.close()
 
-        flash("Automation settings updated!", "success")
-        return redirect(url_for("automation"))
-
-    # GET request – fetch saved settings
-    conn = get_db_connection()
-    row = conn.execute("""
-        SELECT tone, full_auto, accept_offers, reject_offers, length,
-               first_name, company_name, position, website, phone, reply_to, timezone
-        FROM automation_settings WHERE email = ?
-    """, (email,)).fetchone()
-    conn.close()
-
-    # Provide defaults
-    tone         = row["tone"] if row else ""
-    full_auto    = bool(row["full_auto"]) if row else False
-    accept_offers= bool(row["accept_offers"]) if row else False
-    reject_offers= bool(row["reject_offers"]) if row else False
-    length       = row["length"] if row else "concise"
-    first_name   = row["first_name"] if row else "Your Name"
-    company_name = row["company_name"] if row else "Your Company"
-    position     = row["position"] if row else ""
-    website      = row["website"] if row else ""
-    phone        = row["phone"] if row else ""
-    reply_to     = row["reply_to"] if row else ""
-    timezone     = row["timezone"] if row else ""
-
-    # AI preview
-    prompt = (
-        f"Write a {length} business proposal in a {tone} tone.\n"
-        f"The sender is {first_name} ({position}) from {company_name}.\n"
-        f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
-        f"Pretend a lead has just inquired and you're writing the first follow-up."
-    )
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.7
-    )
-    preview = response["choices"][0]["message"]["content"].strip()
-
-    return render_template(
-        "automation.html",
-        tone=tone,
-        full_auto=full_auto,
-        accept_offers=accept_offers,
-        reject_offers=reject_offers,
-        length=length,
-        first_name=first_name,
-        company_name=company_name,
-        position=position,
-        website=website,
-        phone=phone,
-        reply_to=reply_to,
-        timezone=timezone,
-        preview=preview
-    )
+        flash("Settings updated and preview regenerated!", "success")
+        return redirect(url_for("automation")))
 
 
 @app.route("/proposal", methods=["GET", "POST"])
