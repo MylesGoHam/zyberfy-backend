@@ -46,11 +46,19 @@ def create_automation_settings_table():
         CREATE TABLE IF NOT EXISTS automation_settings (
             email TEXT PRIMARY KEY,
             tone TEXT,
-            full_auto INTEGER DEFAULT 0,
-            accept_offers INTEGER DEFAULT 0,
-            reject_offers INTEGER DEFAULT 0,
-            length TEXT DEFAULT 'concise'
-        );
+            full_auto BOOLEAN,
+            accept_offers BOOLEAN,
+            reject_offers BOOLEAN,
+            length TEXT,
+            first_name TEXT,
+            company_name TEXT,
+            position TEXT,
+            website TEXT,
+            phone TEXT,
+            reply_to TEXT,
+            timezone TEXT,
+            logo TEXT
+        )
     """)
     conn.commit()
     conn.close()
