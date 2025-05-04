@@ -6,22 +6,21 @@
 <div class="max-w-6xl mx-auto p-6">
 
   <!-- Top bar with logo and hamburger -->
-  <div class="flex items-start justify-between mb-6">
-    <div class="flex flex-col">
-      <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
-      <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
-    </div>
-    <div class="relative">
-      <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
-      <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
-        <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
-        <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
-        <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">New Proposal</a>
-        <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-        <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
-      </div>
-    </div>
+<div class="flex items-start justify-between mb-6">
+  <div class="flex flex-col">
+    <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
+    <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
   </div>
+<div class="relative">
+  <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
+  <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+    <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
+    <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+    <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">Preview Proposal</a>
+    <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+    <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+  </div>
+</div>
 
   <!-- Status Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
