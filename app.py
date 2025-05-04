@@ -684,15 +684,13 @@ def proposal():
         email = request.form.get("email")
         message = request.form.get("message")
 
-        # Optional: Log or save the proposal (e.g. insert into DB)
-        # Save or trigger automation logic here
+        # Log to console (replace with DB or automation logic if needed)
         print(f"[NEW PROPOSAL] From: {name} | Email: {email} | Message: {message}")
 
-        # Example: trigger automation (modify this to your logic)
-        # send_proposal_email(name, email, message)  ← if you have email_utils setup
+        # OPTIONAL: Save to database or trigger email automation here
 
         flash("Your proposal has been submitted successfully!", "success")
-        return redirect(url_for("public_proposal"))
+        return redirect(url_for("proposal"))  # ← Redirect back to /proposal, NOT public_proposal
 
     return render_template("proposal.html")
     
