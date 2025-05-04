@@ -110,6 +110,15 @@
 
 {% block scripts %}
 <script>
+  setTimeout(() => {
+    const banner = document.getElementById("success-banner");
+    if (banner) {
+      banner.classList.add("opacity-0");
+      setTimeout(() => banner.remove(), 700); // fully remove from DOM
+    }
+  }, 3000); // fades after 3 seconds
+</script>
+<script>
   const toggleBtn = document.getElementById("toggle-preview");
   const previewBox = document.getElementById("preview-box");
 
@@ -126,5 +135,4 @@
     }
   });
 </script>
-{% endblock %}
 {% endblock %}
