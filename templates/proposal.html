@@ -1,38 +1,35 @@
-<!-- templates/proposal.html -->
 {% extends "base.html" %}
-{% block title %}Proposal Setup | Zyberfy{% endblock %}
+{% block title %}Your Proposal Page | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto p-6">
-  <h1 class="text-3xl font-bold text-blue-600 mb-4">Proposal Inquiry Form</h1>
-  <p class="mb-6 text-gray-700">Share this form with leads. When they submit it, we'll auto-generate and send a personalized proposal based on your automation settings.</p>
+<div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
+  <h2 class="text-2xl font-bold text-blue-600 mb-4">📄 Proposal Page Template</h2>
 
-  <form method="POST" action="{{ url_for('submit_proposal_form') }}" class="bg-white p-6 rounded-lg shadow-md">
-    <div class="mb-4">
-      <label class="block font-semibold mb-1">Full Name</label>
-      <input type="text" name="name" class="w-full border px-4 py-2 rounded" required>
-    </div>
-
-    <div class="mb-4">
-      <label class="block font-semibold mb-1">Email Address</label>
-      <input type="email" name="email" class="w-full border px-4 py-2 rounded" required>
-    </div>
-
-    <div class="mb-4">
-      <label class="block font-semibold mb-1">Budget or Offer (optional)</label>
-      <input type="text" name="budget" class="w-full border px-4 py-2 rounded">
-    </div>
-
-    <div class="mb-4">
-      <label class="block font-semibold mb-1">Project Details or Message</label>
-      <textarea name="message" rows="5" class="w-full border px-4 py-2 rounded" required></textarea>
-    </div>
-
-    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Submit Proposal Request</button>
-  </form>
-
-  <div class="mt-8 text-center text-sm text-gray-500">
-    This form is powered by Zyberfy AI. You can customize, share, or embed this page anywhere.
+  <div id="proposal-box" class="bg-gray-100 p-4 rounded text-sm leading-relaxed">
+    <p><strong>Subject:</strong> Premium Service Proposal for [Client Name]</p>
+    <p><br>Hello [Client Name],</p>
+    <p>
+      Thank you for your interest in [Your Company]. We're excited to offer a solution
+      tailored to your needs. Based on your inquiry, here’s what we propose...
+    </p>
+    <p>[Describe your services, timeline, pricing, etc.]</p>
+    <p>
+      Feel free to reach out if you have any questions. We're looking forward to working with you!
+    </p>
+    <p><br>Sincerely,<br>[Your Name]<br>[Your Company]</p>
   </div>
+
+  <button id="copyBtn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Copy to Clipboard</button>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const text = document.getElementById('proposal-box').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    });
+  });
+</script>
 {% endblock %}
