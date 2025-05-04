@@ -475,6 +475,22 @@ def proposal():
 
     return render_template("proposal.html", preview=preview, **settings)
 
+@app.route("/proposal-history")
+def proposal_history():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    rows = conn.execute("""
+        SELECT id, lead_name, proposal_text, created_at
+        FROM proposals
+        WHERE user_email = ?
+        ORDER BY created_at DESC
+    """, (session["email"],)).fetchall()
+    conn.close()
+
+    return render_template("proposal_history.html", proposals=rows)
+
 
 @app.route("/analytics")
 def analytics():
