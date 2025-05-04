@@ -275,6 +275,12 @@ def dashboard():
         "SELECT first_name, plan_status FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
+
+    # Get automation settings if they exist
+    automation_row = conn.execute(
+        "SELECT tone FROM automation_settings WHERE email = ?",
+        (session["email"],)
+    ).fetchone()
     conn.close()
 
     session["plan_status"] = row["plan_status"]
@@ -284,8 +290,8 @@ def dashboard():
         "dashboard.html",
         first_name=row["first_name"],
         plan_status=row["plan_status"],
-        automation=get_user_automation(session["email"]),
-        automation_complete=bool(get_user_automation(session["email"]))
+        automation=automation_row,
+        automation_complete=bool(automation_row)
     )
 
 
