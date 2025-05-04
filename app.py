@@ -429,34 +429,37 @@ def automation_preview():
 
     return render_template("automation_preview.html", preview=preview, **settings)
 
-@app.route("/proposal", methods=["GET", "POST"])
-def proposal():
-    if request.method == "POST":
-        name     = request.form.get("name")
-        email    = request.form.get("email")
-        company  = request.form.get("company")
-        details  = request.form.get("details")
-        budget   = request.form.get("budget")
-        public_id = str(uuid.uuid4())
+@app.route("/proposals")
+def proposal_history():
+    if "email" not in session:
+        return redirect(url_for("login"))
 
-        conn = get_db_connection()
-        conn.execute("""
-            INSERT INTO proposals (public_id, name, email, company, details, budget, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """, (public_id, name, email, company, details, budget))
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    proposals = conn.execute("""
+        SELECT id, content, status, created_at
+        FROM proposals
+        WHERE user_email = ?
+        ORDER BY created_at DESC
+    """, (session["email"],)).fetchall()
+    conn.close()
 
-        flash("Proposal submitted successfully!", "success")
-        return redirect(url_for("thank_you", pid=public_id))
+    return render_template("proposal_history.html", proposals=proposals)
 
-    return render_template("proposal.html")
+# Public view of an individual proposal
+@app.route("/proposal/<int:proposal_id>")
+def public_proposal(proposal_id):
+    conn = get_db_connection()
+    proposal = conn.execute("""
+        SELECT content
+        FROM proposals
+        WHERE id = ?
+    """, (proposal_id,)).fetchone()
+    conn.close()
 
-@app.route("/generate-proposal", methods=["POST"])
-def generate_proposal():
-    ...
-    # keep your existing /generate-proposal implementation
-    ...
+    if not proposal:
+        return "Proposal not found", 404
+
+    return render_template("public_proposal.html", proposal=proposal)
 
 @app.route("/analytics")
 def analytics():
