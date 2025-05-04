@@ -678,7 +678,7 @@ def create_checkout_session():
         return jsonify(error=str(e)), 400
     
 @app.route("/proposal", methods=["GET", "POST"])
-def public_proposal():
+def proposal():
     if request.method == "POST":
         name = request.form.get("name")
         email = request.form.get("email")
