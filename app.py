@@ -754,16 +754,6 @@ def log_event_route():
         return jsonify({"status": "ok"}), 200
     return jsonify({"error": "missing event_type"}), 400
 
-@app.route("/proposal/view/<pid>")
-def view_proposal(pid):
-    conn = get_db_connection()
-    row = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
-    conn.close()
-    if not row:
-        return "Proposal not found.", 404
-
-    log_event(row["email"], "viewed_shared_proposal")  # optional tracking
-    return render_template("public_proposal.html", proposal=row)
 
 @app.route("/thank-you")
 def thank_you():
