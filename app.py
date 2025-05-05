@@ -27,6 +27,9 @@ from models import (
 )
 
 from email_utils import send_proposal_email
+from email_assistant import handle_new_proposal
+
+
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -679,11 +682,7 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = False  # Only show QR if it's the client viewing
-
-    # Check if this is the client viewing their own proposal page
-    if "email" in session:
-        show_qr = True
+    show_qr = "email" in session  # Only show QR if client is logged in
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -694,16 +693,19 @@ def proposal():
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        print(f"[NEW PROPOSAL] From: {name} | Email: {email} | Company: {company}")
-        print(f"Services: {services} | Budget: {budget} | Timeline: {timeline}")
-        print(f"Message: {message}")
+        # Get client email (session or hidden field if public page)
+        client_email = session.get("email")
+        if not client_email:
+            flash("Submission failed. No client found.", "error")
+            return redirect(url_for("proposal"))
 
-        # TODO: Trigger AI proposal generation + email sending here
-        # Example:
-        # from email_assistant import handle_new_proposal
-        # handle_new_proposal(name, email, company, services, budget, timeline, message)
+        success = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
-        flash("Proposal submitted successfully!", "success")
+        if success:
+            flash("Proposal submitted and sent successfully!", "success")
+        else:
+            flash("Something went wrong while sending the proposal.", "error")
+
         return redirect(url_for("proposal"))
 
     return render_template("proposal.html", show_qr=show_qr)
