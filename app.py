@@ -4,6 +4,7 @@ import sqlite3
 import uuid
 import csv
 
+
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -28,6 +29,20 @@ from models import (
 
 from email_utils import send_proposal_email
 from email_assistant import handle_new_proposal
+
+# Existing imports
+import qrcode
+
+# --- QR Code Generator Function ---
+def generate_qr_code(public_id):
+    try:
+        url = f"https://zyberfy.com/proposal/{public_id}"
+        qr = qrcode.make(url)
+        path = f"static/qr/proposal_{public_id}.png"
+        qr.save(path)
+        print(f"[QR] Saved QR to {path}")
+    except Exception as e:
+        print(f"[ERROR] QR generation failed: {e}")
 
 
 
