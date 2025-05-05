@@ -1,7 +1,4 @@
 {% extends "base.html" %}
-{% block title %}Proposal Submission Page | Zyberfy{% endblock %}
-
-{% extends "base.html" %}
 {% block title %}Proposal Submission | Zyberfy{% endblock %}
 
 {% block content %}
@@ -62,18 +59,13 @@
       Submit Proposal
     </button>
   </form>
-</div>
 
-{% block scripts %}
-<!-- Add any page-specific scripts here in the future -->
-{% endblock %}
-
-  <!-- QR Code Section -->
-{% if show_qr %}
+  {% if show_qr %}
   <div class="mt-10 text-center">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
     <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
     <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
   </div>
-{% endif %}
+  {% endif %}
+</div>
 {% endblock %}
