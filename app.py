@@ -679,45 +679,31 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = session.get("email") is not None  # Only show QR code to logged-in clients
+    show_qr = False  # Only show QR if it's the client viewing
+
+    # Check if this is the client viewing their own proposal page
+    if "email" in session:
+        show_qr = True
 
     if request.method == "POST":
         name = request.form.get("name")
         email = request.form.get("email")
+        company = request.form.get("company")
+        services = request.form.get("services")
+        budget = request.form.get("budget")
+        timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        # Fetch automation settings for the client
-        conn = get_db_connection()
-        settings = conn.execute("""
-            SELECT tone, length, full_auto, first_name, company_name, position, website, phone, reply_to
-            FROM automation_settings WHERE email = ?
-        """, (session.get("client_email") or "demo@zyberfy.com",)).fetchone()
-        conn.close()
+        print(f"[NEW PROPOSAL] From: {name} | Email: {email} | Company: {company}")
+        print(f"Services: {services} | Budget: {budget} | Timeline: {timeline}")
+        print(f"Message: {message}")
 
-        if not settings:
-            return "Automation settings not configured.", 500
+        # TODO: Trigger AI proposal generation + email sending here
+        # Example:
+        # from email_assistant import handle_new_proposal
+        # handle_new_proposal(name, email, company, services, budget, timeline, message)
 
-        # Format prompt using lead and client info
-        prompt = (
-            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-            f"It's from {settings['first_name']} ({settings['position']}) at {settings['company_name']}\n"
-            f"Website: {settings['website']}, Phone: {settings['phone']}, Reply-To: {settings['reply_to']}\n"
-            f"The lead's name is {name}, email is {email}, and they said: '{message}'."
-        )
-
-        # Generate AI response
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=600,
-            temperature=0.7
-        )
-        proposal_text = response["choices"][0]["message"]["content"].strip()
-
-        # Send proposal email (implement send_proposal_email in email_utils.py)
-        send_proposal_email(client_email=settings['reply_to'], lead_email=email, lead_name=name, proposal=proposal_text)
-
-        flash("Proposal submitted and sent successfully!", "success")
+        flash("Proposal submitted successfully!", "success")
         return redirect(url_for("proposal"))
 
     return render_template("proposal.html", show_qr=show_qr)
