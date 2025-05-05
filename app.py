@@ -710,6 +710,35 @@ def proposal():
 
     return render_template("proposal.html", show_qr=show_qr)
 
+@app.route("/proposal/<public_id>", methods=["GET", "POST"])
+def public_proposal(public_id):
+    conn = get_db_connection()
+    user = conn.execute("SELECT email FROM users WHERE public_id = ?", (public_id,)).fetchone()
+    conn.close()
+
+    if not user:
+        return "Invalid proposal link.", 404
+
+    show_qr = "email" in session and session["email"] == user["email"]
+
+    if request.method == "POST":
+        # Grab form data
+        name = request.form.get("name")
+        email = request.form.get("email")
+        company = request.form.get("company")
+        services = request.form.get("services")
+        budget = request.form.get("budget")
+        timeline = request.form.get("timeline")
+        message = request.form.get("message")
+
+        # Call AI + save + send
+        handle_new_proposal(name, email, company, services, budget, timeline, message, user["email"])
+
+        flash("Proposal submitted successfully!", "success")
+        return redirect(url_for("public_proposal", public_id=public_id))
+
+    return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
+
 
 @app.route('/settings')
 def settings():
