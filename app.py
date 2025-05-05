@@ -739,6 +739,32 @@ def public_proposal(public_id):
 
     return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
 
+import qrcode
+
+@app.route("/generate_qr")
+def generate_qr():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    row = conn.execute("SELECT public_id FROM users WHERE email = ?", (session["email"],)).fetchone()
+    conn.close()
+
+    if not row or not row["public_id"]:
+        flash("No public ID found for your account.", "danger")
+        return redirect(url_for("dashboard"))
+
+    public_id = row["public_id"]
+    link = f"{request.host_url}proposal/{public_id}"
+
+    # Generate QR
+    img = qrcode.make(link)
+    path = os.path.join("static", "proposal_qr.png")
+    img.save(path)
+
+    flash("QR code generated successfully!", "success")
+    return redirect(url_for("proposal"))
+
 
 @app.route('/settings')
 def settings():
