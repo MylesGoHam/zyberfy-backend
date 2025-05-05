@@ -283,6 +283,8 @@ def stripe_webhook():
     return '', 200
 
 
+from pathlib import Path  # Make sure this import is at the top of your app.py
+
 @app.route("/dashboard")
 def dashboard():
     if "email" not in session:
@@ -290,16 +292,21 @@ def dashboard():
 
     conn = get_db_connection()
     row = conn.execute(
-        "SELECT first_name, plan_status FROM users WHERE email = ?",
+        "SELECT first_name, plan_status, public_id FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
 
-    # Get automation settings if they exist
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
     ).fetchone()
     conn.close()
+
+    # Generate QR code if it doesn't exist yet
+    if row and row["public_id"]:
+        qr_path = f"static/qr/proposal_{row['public_id']}.png"
+        if not Path(qr_path).exists():
+            generate_qr_code(row["public_id"])
 
     session["plan_status"] = row["plan_status"]
     log_event(session["email"], "pageview")
