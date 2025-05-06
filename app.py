@@ -30,8 +30,8 @@ from models import (
 from email_utils import send_proposal_email
 from email_assistant import handle_new_proposal
 
-# Existing imports
 import qrcode
+from sms_utils import send_sms_alert
 
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id):
