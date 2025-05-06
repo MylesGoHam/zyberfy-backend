@@ -60,10 +60,10 @@
     </button>
   </form>
 
-{% if show_qr %}
+  {% if show_qr %}
   <div class="mt-10 text-center">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
-    
+
     <!-- QR Code -->
     <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
     <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
@@ -98,6 +98,7 @@
       alert("Link copied to clipboard!");
     }
   </script>
-{% endif %}
+  {% endif %}
+
 </div>
 {% endblock %}

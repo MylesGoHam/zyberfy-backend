@@ -20,12 +20,10 @@ def add_stripe_column_if_missing():
         conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
         conn.commit()
     except sqlite3.OperationalError:
-        # column already exists
         pass
     conn.close()
 
 def create_users_table():
-    """Create users table if it doesn’t exist (with stripe_customer_id)."""
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS users (
@@ -108,12 +106,16 @@ def create_proposals_table():
         CREATE TABLE IF NOT EXISTS proposals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             public_id TEXT UNIQUE,
-            name TEXT,
-            email TEXT,
-            company TEXT,
-            details TEXT,
+            user_email TEXT,
+            lead_name TEXT,
+            lead_email TEXT,
+            lead_company TEXT,
+            services TEXT,
             budget TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timeline TEXT,
+            message TEXT,
+            proposal_text TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     """)
     conn.commit()

@@ -22,10 +22,10 @@ from models import (
     create_subscriptions_table,
     create_analytics_events_table,
     create_proposals_table,
-    get_user_automation
+    get_user_automation,
+    log_event
 )
 
-from analytics import log_event  # moved to its own file
 from email_utils import send_proposal_email
 from email_assistant import handle_new_proposal
 
@@ -42,9 +42,6 @@ def generate_qr_code(public_id):
         print(f"[QR] Saved QR to {path}")
     except Exception as e:
         print(f"[ERROR] QR generation failed: {e}")
-        
-
-
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -69,11 +66,9 @@ create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
-create_proposals_table()  # ← This is the fix that ensures your `proposals` table is created
+create_proposals_table()
 
-# You’re now ready to continue building routes below…
-
-# Ensure stripe_customer_id exists
+# Add stripe_customer_id column if missing
 conn = get_db_connection()
 try:
     conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
@@ -83,7 +78,7 @@ except sqlite3.OperationalError:
 finally:
     conn.close()
 
-# Seed an admin user if provided
+# Seed admin user if credentials are set
 if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn = get_db_connection()
     conn.execute(
@@ -95,35 +90,22 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.close()
 
 # ─── Authentication gating ──────────────────────────────────────────────────
-# allow anonymous access to these paths:
-PUBLIC_PATHS = {
-    "/", "/login", "/signup", "/test_proposal"
-}
+PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal", "/proposal", "/proposal/", "/proposal/public"}
 
-# Add dynamic match:
 @app.before_request
 def restrict_routes():
-    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
-
-    # ✅ Allow all /proposal/* routes
-    if request.path.startswith("/proposal/"):
+    if request.path.startswith("/static/") or request.path.startswith("/proposal/"):
         return
-
-    # ✅ Allow public paths even without login
     if request.path in PUBLIC_PATHS:
         return
-
-    # ❌ Block everything else unless logged in
     if "email" not in session:
         return redirect(url_for("login"))
-
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def home():
     return render_template("index.html")
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -160,14 +142,14 @@ def login():
                     True,
                     True,
                     "concise",
-                    user["first_name"],
-                    user["company_name"],
-                    user["position"],
-                    user["website"],
-                    user["phone"],
-                    user["reply_to"],
-                    user["timezone"],
-                    user["logo"]
+                    user.get("first_name", ""),
+                    user.get("company_name", ""),
+                    user.get("position", ""),
+                    user.get("website", ""),
+                    user.get("phone", ""),
+                    user.get("reply_to", ""),
+                    user.get("timezone", ""),
+                    user.get("logo", None)
                 ))
                 conn.commit()
 
@@ -754,6 +736,7 @@ def public_proposal(public_id):
     show_qr = "email" in session and session["email"] == client_email
 
     if request.method == "POST":
+        # Grab form data
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
@@ -762,13 +745,13 @@ def public_proposal(public_id):
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
+        # Call AI + save + send
         handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         flash("Proposal submitted successfully!", "success")
         return redirect(url_for("public_proposal", public_id=public_id))
 
     return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
-
 @app.route("/generate_qr")
 def generate_qr():
     if "email" not in session:

@@ -45,8 +45,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
         # Save proposal to DB
-        conn = get_db_connection()
         public_id = str(uuid.uuid4())
+        conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (user_email, lead_name, lead_email, lead_company,
                                    services, budget, timeline, message, proposal_text,
@@ -70,7 +70,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         # Send SMS to client
         if settings["phone"]:
             sms_message = f"New proposal from {name} for {services}. Check your dashboard."
-            send_sms_alert(settings["phone"], sms_message)
+            send_sms_alert(settings["phone"], sms_message, user_email=client_email)
 
         return True
 
