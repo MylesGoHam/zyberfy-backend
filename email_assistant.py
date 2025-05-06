@@ -2,12 +2,31 @@ import openai
 import uuid
 from datetime import datetime
 
+<<<<<<< Updated upstream
 from models import get_db_connection
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert  # ✅ Import goes here
+=======
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def generate_proposal(name, service, budget, location, special_requests):
+    prompt = f"""
+You are an elite concierge assistant writing high-end service proposals.
+Client Name: {name}
+Requested Service: {service}
+Budget: {budget}
+Location: {location}
+Special Requests: {special_requests}
+
+Write a polished, luxury-style service proposal in under 200 words.
+    """
+>>>>>>> Stashed changes
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
+<<<<<<< Updated upstream
         conn = get_db_connection()
         settings = conn.execute("""
             SELECT first_name, company_name, position, website, phone, reply_to, tone, length
@@ -71,3 +90,19 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     except Exception as e:
         print(f"[ERROR] handle_new_proposal failed: {e}")
         return False
+=======
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You write upscale, warm proposals for concierge clients."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"OpenAI Error: {e}")
+        return "We're preparing your custom proposal. A concierge will follow up shortly."
+>>>>>>> Stashed changes
