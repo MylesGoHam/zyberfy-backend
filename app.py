@@ -133,7 +133,7 @@ def login():
             session["plan_status"] = user["plan_status"]
             session["user_id"]     = user["id"]
 
-            # ✅ Auto-create automation_settings if missing
+            # Auto-create automation_settings if missing
             exists = conn.execute(
                 "SELECT 1 FROM automation_settings WHERE email = ?", (email,)
             ).fetchone()
@@ -151,14 +151,14 @@ def login():
                     True,
                     True,
                     "concise",
-                    user["first_name"],
-                    user["company_name"],
-                    user["position"],
-                    user["website"],
-                    user["phone"],
-                    user["reply_to"],
-                    user["timezone"],
-                    user["logo"]
+                    user.get("first_name", ""),
+                    user.get("company_name", ""),
+                    user.get("position", ""),
+                    user.get("website", ""),
+                    user.get("phone", ""),
+                    user.get("reply_to", ""),
+                    user.get("timezone", ""),
+                    user.get("logo", None)
                 ))
                 conn.commit()
 
