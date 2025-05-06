@@ -1,8 +1,10 @@
 import openai
-from email_utils import send_proposal_email
-from models import get_db_connection
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from models import get_db_connection
+from email_utils import send_proposal_email
+from sms_utils import send_sms_alert  # ✅ Import goes here
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
@@ -17,7 +19,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         if not settings:
             raise ValueError("Client automation settings not found.")
 
-        # Construct prompt for GPT
+        # Prompt for GPT
         prompt = (
             f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
             f"Client: {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
@@ -36,8 +38,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # Save to DB
+        # Save proposal to DB
         conn = get_db_connection()
+        public_id = str(uuid.uuid4())
         conn.execute("""
             INSERT INTO proposals (user_email, lead_name, lead_email, lead_company,
                                    services, budget, timeline, message, proposal_text,
@@ -45,18 +48,23 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             client_email, name, email, company, services, budget, timeline,
-            message, proposal_text, datetime.utcnow(), str(uuid.uuid4())
+            message, proposal_text, datetime.utcnow(), public_id
         ))
         conn.commit()
         conn.close()
 
-        # Send email to both client and lead
+        # Send email to lead and client
         send_proposal_email(
             to_lead=email,
             to_client=client_email,
             subject="New Proposal from " + settings['company_name'],
             proposal_body=proposal_text
         )
+
+        # ✅ Send SMS to client
+        if settings["phone"]:
+            sms_message = f"New proposal from {name} for {services}. Check your dashboard."
+            send_sms_alert(settings["phone"], sms_message)
 
         return True
 
