@@ -7,3 +7,4 @@ sendgrid==6.11.0
 gunicorn==21.2.0
 stripe==8.9.0
 qrcode
+pillow
