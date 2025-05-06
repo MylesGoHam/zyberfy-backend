@@ -6,3 +6,4 @@ Flask==3.1.0
 sendgrid==6.11.0
 gunicorn==21.2.0
 stripe==8.9.0
+qrcode
