@@ -96,16 +96,18 @@ PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal", "/proposal", "/propo
 def restrict_routes():
     PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
 
-    # ✅ Allow all /proposal/<id> routes (even if not logged in)
+    print(f"[DEBUG] Incoming path: {request.path}")  # ← Add this line
+
     if request.path.startswith("/proposal/"):
+        print("[DEBUG] Allowed: public proposal link")
         return
 
-    # ✅ Allow known public paths
     if request.path in PUBLIC_PATHS:
+        print("[DEBUG] Allowed: public path")
         return
 
-    # ❌ Require login for everything else
     if "email" not in session:
+        print("[DEBUG] Blocked: no session email")
         return "Unauthorized", 403
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
