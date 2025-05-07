@@ -94,10 +94,17 @@ PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal", "/proposal", "/propo
 
 @app.before_request
 def restrict_routes():
-    if request.path.startswith("/static/") or request.path.startswith("/proposal/"):
+    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
+
+    # ✅ Allow all /proposal/* links
+    if request.path.startswith("/proposal/"):
         return
+
+    # ✅ Allow these public paths
     if request.path in PUBLIC_PATHS:
         return
+
+    # ❌ Block everything else unless logged in
     if "email" not in session:
         return redirect(url_for("login"))
 
