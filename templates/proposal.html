@@ -31,7 +31,7 @@
 
     <div class="mb-4">
       <label for="services" class="block font-medium text-gray-700 mb-1">Services Needed</label>
-      <input type="text" id="services" name="services" placeholder="e.g. Website Design, Automation Setup" class="w-full border rounded px-3 py-2" />
+      <input type="text" id="services" name="services" class="w-full border rounded px-3 py-2" />
     </div>
 
     <div class="mb-4">
@@ -47,7 +47,7 @@
 
     <div class="mb-4">
       <label for="timeline" class="block font-medium text-gray-700 mb-1">Timeline / Deadline</label>
-      <input type="text" id="timeline" name="timeline" placeholder="e.g. Within 2 weeks" class="w-full border rounded px-3 py-2" />
+      <input type="text" id="timeline" name="timeline" class="w-full border rounded px-3 py-2" />
     </div>
 
     <div class="mb-6">
@@ -64,11 +64,9 @@
   <div class="mt-10 text-center">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
 
-    <!-- QR Code -->
     <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
     <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
 
-    <!-- Shareable Link -->
     <div class="mt-6">
       <h3 class="text-lg font-semibold mb-2">Copy Your Proposal Page Link</h3>
       <div class="flex justify-center items-center gap-2 px-4">
@@ -76,11 +74,11 @@
           id="proposalLink"
           type="text"
           readonly
-          value="{{ request.url_root }}proposal"
+          value="{{ request.url }}"
           class="border px-3 py-2 rounded w-2/3 text-sm"
         />
         <button
-          onclick="copyLink()"
+          id="copyBtn"
           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm transition"
         >
           Copy
@@ -88,17 +86,21 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function copyLink() {
-      const input = document.getElementById("proposalLink");
-      input.select();
-      input.setSelectionRange(0, 99999); // Mobile support
-      document.execCommand("copy");
-      alert("Link copied to clipboard!");
-    }
-  </script>
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const btn = document.getElementById("copyBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("proposalLink");
+      input.select();
+      document.execCommand("copy");
+      alert("Link copied to clipboard!");
+    });
+  }
+</script>
 {% endblock %}
