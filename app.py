@@ -94,20 +94,17 @@ PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal", "/proposal", "/propo
 
 @app.before_request
 def restrict_routes():
-    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
-
-    print(f"[DEBUG] Incoming path: {request.path}")  # ← Add this line
+    print(f"[DEBUG] Incoming path: {request.path}")  # ← Add this
 
     if request.path.startswith("/proposal/"):
-        print("[DEBUG] Allowed: public proposal link")
+        print("[DEBUG] Access granted to public proposal page")
         return
 
+    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
     if request.path in PUBLIC_PATHS:
-        print("[DEBUG] Allowed: public path")
         return
 
     if "email" not in session:
-        print("[DEBUG] Blocked: no session email")
         return "Unauthorized", 403
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
