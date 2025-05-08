@@ -739,10 +739,10 @@ def public_proposal(public_id):
         return "Invalid proposal link.", 404
 
     client_email = proposal["user_email"]
-    show_qr = "email" in session and session["email"] == client_email
+    is_owner = "email" in session and session["email"] == client_email
+    show_qr = is_owner
 
     if request.method == "POST":
-        # Grab form data
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
@@ -751,13 +751,26 @@ def public_proposal(public_id):
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        # Call AI + save + send
-        handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        handle_new_proposal(
+            name=name,
+            email=email,
+            company=company,
+            services=services,
+            budget=budget,
+            timeline=timeline,
+            message=message,
+            client_email=client_email
+        )
 
         flash("Proposal submitted successfully!", "success")
         return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
+    return render_template(
+        "proposal.html",
+        show_qr=show_qr,
+        public_id=public_id
+    )
+
 @app.route("/generate_qr")
 def generate_qr():
     if "email" not in session:
