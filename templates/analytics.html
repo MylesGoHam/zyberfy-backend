@@ -1,36 +1,42 @@
-<!-- Back Button -->
-<a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium block mb-4">
-  &larr; Back to Dashboard
-</a>
+<!-- templates/analytics.html -->
+{% extends "base.html" %}
+{% block title %}Analytics | Zyberfy{% endblock %}
 
-<!-- Page Title -->
-<h2 class="text-2xl font-bold mb-4">Analytics</h2>
+{% block content %}
+<div class="max-w-6xl mx-auto p-6">
+  <!-- Back Button -->
+  <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium block mb-4">
+    &larr; Back to Dashboard
+  </a>
 
-<!-- Filters and Download -->
-<div class="flex items-center justify-between mb-6">
-  <div class="flex items-center gap-3 flex-wrap">
-    <div>
-      <label for="range" class="mr-2 text-sm font-medium text-gray-600">Range:</label>
-      <select id="range" class="border rounded px-3 py-1 text-sm">
-        <option value="7">Last 7 Days</option>
-        <option value="30">Last 30 Days</option>
-        <option value="90">Last 90 Days</option>
-      </select>
+  <!-- Page Title -->
+  <h2 class="text-2xl font-bold mb-6">Analytics</h2>
+
+  <!-- Filters and Download -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3 flex-wrap">
+      <div>
+        <label for="range" class="mr-2 text-sm font-medium text-gray-600">Range:</label>
+        <select id="range" class="border rounded px-3 py-1 text-sm">
+          <option value="7">Last 7 Days</option>
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+        </select>
+      </div>
+      <div>
+        <label for="eventType" class="mr-2 text-sm font-medium text-gray-600">Event:</label>
+        <select id="eventType" class="border rounded px-3 py-1 text-sm">
+          <option value="">All</option>
+          <option value="pageview">Pageview</option>
+          <option value="proposal_generated">Proposal Generated</option>
+          <option value="proposal_sent">Proposal Sent</option>
+        </select>
+      </div>
     </div>
-    <div>
-      <label for="eventType" class="mr-2 text-sm font-medium text-gray-600">Event:</label>
-      <select id="eventType" class="border rounded px-3 py-1 text-sm">
-        <option value="">All</option>
-        <option value="pageview">Pageview</option>
-        <option value="proposal_generated">Proposal Generated</option>
-        <option value="proposal_sent">Proposal Sent</option>
-      </select>
-    </div>
+    <button onclick="downloadCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm shadow">
+      Download CSV
+    </button>
   </div>
-  <button onclick="downloadCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm shadow">
-    Download CSV
-  </button>
-</div>
 
   <!-- Summary Stats -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -132,7 +138,6 @@
     chart.data.datasets[2].data = data.sent_data;
     chart.update();
 
-    // Filter + Sort
     const filterValue = document.getElementById("activityFilter").value;
     const sortValue = document.getElementById("activitySort").value;
     let filteredEvents = [...data.recent_events];
