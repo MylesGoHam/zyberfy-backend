@@ -24,15 +24,18 @@
     {% block content %}{% endblock %}
   </div>
 
-  {% if session.email %}
-  <script>
+{% if session.email %}
+<script>
+  const excludedPaths = ["/dashboard", "/analytics"];
+  if (!excludedPaths.includes(window.location.pathname)) {
     fetch("/log_event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_type: "pageview" })
     });
-  </script>
-  {% endif %}
+  }
+</script>
+{% endif %}
 
   {% block scripts %}{% endblock %}
 </body>
