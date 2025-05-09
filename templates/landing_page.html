@@ -1,60 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zyberfy | AI Proposal Automation</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<!-- templates/landing.html -->
+{% extends "base.html" %}
+{% block title %}Zyberfy – Proposal Automation{% endblock %}
 
-  <!-- Hero Section with Demo Video -->
-  <section class="bg-white py-16 px-6">
-    <div class="max-w-5xl mx-auto text-center">
-      <h1 class="text-4xl md:text-5xl font-bold text-blue-600 mb-6">Let AI Handle Your Proposals</h1>
-      <p class="text-lg text-gray-600 mb-10">Zyberfy automates your proposals, follow-ups, and responses — so you can close deals in your sleep.</p>
-      <!-- Placeholder Video Embed -->
-      <div class="aspect-w-16 aspect-h-9">
-        <iframe class="w-full rounded-lg shadow-xl" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" title="Zyberfy Demo" frameborder="0" allowfullscreen></iframe>
-      </div>
+{% block content %}
+<div class="bg-white">
+  <!-- Demo Video Section -->
+  <div class="max-w-5xl mx-auto px-4 py-16 text-center">
+    <h1 class="text-4xl font-bold text-blue-600 mb-4">See Zyberfy In Action</h1>
+    <p class="text-gray-600 text-lg mb-8">Watch how our AI automates client proposals in seconds.</p>
+    <div class="aspect-w-16 aspect-h-9 mb-10">
+      <iframe class="w-full h-96 rounded-xl shadow-lg" src="https://www.youtube.com/embed/YOUR_DEMO_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
     </div>
-  </section>
+  </div>
 
-  <!-- Benefits Section -->
-  <section class="py-16 px-6 bg-gray-100">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-10">Why Use Zyberfy?</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
-        <div>
-          <h3 class="text-xl font-semibold text-blue-600 mb-2">AI-Generated Proposals</h3>
-          <p>Turn lead inquiries into personalized proposals in seconds, 24/7 — with zero effort.</p>
+  <!-- Features Section -->
+  <div class="bg-gray-50 py-16">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+      <h2 class="text-3xl font-bold text-gray-900 mb-6">Built for High-End Service Businesses</h2>
+      <p class="text-gray-600 mb-12 text-lg">Zyberfy is the fastest way to turn leads into paying clients—hands-free.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+        <div class="bg-white p-6 rounded-xl shadow border">
+          <h3 class="text-xl font-semibold text-blue-600 mb-2">Instant Proposal Generation</h3>
+          <p class="text-gray-600 text-sm">Submit a form, get a personalized proposal back in seconds. AI handles everything.</p>
         </div>
-        <div>
-          <h3 class="text-xl font-semibold text-blue-600 mb-2">Smart Follow-ups</h3>
-          <p>Enable auto-replies, offer logic, and tone-matching based on your business style.</p>
+        <div class="bg-white p-6 rounded-xl shadow border">
+          <h3 class="text-xl font-semibold text-blue-600 mb-2">AI-Tuned to Your Voice</h3>
+          <p class="text-gray-600 text-sm">Customize your tone once—Zyberfy adapts every response to your brand's voice.</p>
         </div>
-        <div>
-          <h3 class="text-xl font-semibold text-blue-600 mb-2">White-Labeled Branding</h3>
-          <p>Keep your brand front and center. Your clients won't know it's automated.</p>
-        </div>
-        <div>
-          <h3 class="text-xl font-semibold text-blue-600 mb-2">Built for Luxury & Service</h3>
-          <p>Designed specifically for concierge services, agencies, and premium offers.</p>
+        <div class="bg-white p-6 rounded-xl shadow border">
+          <h3 class="text-xl font-semibold text-blue-600 mb-2">Fully Automated Follow-ups</h3>
+          <p class="text-gray-600 text-sm">Accept offers, follow up with leads, and close deals—all while you sleep.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- Call to Action -->
-  <section class="bg-blue-600 text-white py-16 px-6">
-    <div class="max-w-2xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-6">Get 3 Free Proposals</h2>
-      <p class="text-lg mb-6">Try Zyberfy completely free — no commitment, no credit card. Automate your first 3 proposals now.</p>
-      <a href="/memberships" class="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow hover:bg-gray-100 transition">
-        Start Free
-      </a>
-    </div>
-  </section>
-
-</body>
-</html>
+  <div class="text-center py-16 bg-white">
+    <h2 class="text-3xl font-bold text-gray-900 mb-6">Ready to Automate Your Proposals?</h2>
+    <p class="text-gray-600 mb-8 text-lg">Start with 3 free proposals to experience the power of Zyberfy.</p>
+    <a href="{{ url_for('memberships') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg shadow-lg transition duration-300">
+      Get Started Now
+    </a>
+  </div>
+</div>
+{% endblock %}
