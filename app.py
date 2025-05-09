@@ -701,7 +701,7 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session  # Only show QR code if client is logged in
+    show_qr = "email" in session  # Show QR only to logged-in clients
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -712,28 +712,22 @@ def proposal():
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        # Use session client if logged in, otherwise fallback to automation_settings via proposal form logic
         client_email = session.get("email")
-
         if not client_email:
-            # Optional: support client lookup by hidden public_id (for later)
             flash("Submission failed. No client found.", "error")
             return redirect(url_for("proposal"))
 
-        success = handle_new_proposal(
+        # Submit and get the new proposal ID
+        proposal_id = handle_new_proposal(
             name, email, company, services, budget, timeline, message, client_email
         )
 
-        if success:
-            flash("Proposal submitted successfully! Check your inbox.", "success")
-
-            # Future: send SMS to client
-            # send_sms(client_phone, "New proposal received from " + name)
-
+        if proposal_id:
+            flash("Proposal submitted and sent successfully!", "success")
+            return redirect(url_for("thank_you", pid=proposal_id))
         else:
             flash("Something went wrong while sending the proposal.", "error")
-
-        return redirect(url_for("thank_you"))
+            return redirect(url_for("proposal"))
 
     return render_template("proposal.html", show_qr=show_qr)
 
