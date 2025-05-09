@@ -1,18 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Thank You | Zyberfy</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-6">
-  <div class="bg-white p-10 rounded-2xl shadow-lg text-center max-w-xl w-full">
-    <h1 class="text-4xl font-bold mb-4 text-blue-600">Thank You for Joining Zyberfy!</h1>
-    <p class="text-lg mb-6">Your subscription is now active. You're all set to start automating your proposals!</p>
-    <div class="flex justify-center space-x-4">
-      <a href="/dashboard" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">Go to Dashboard</a>
-      <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition">Return Home</a>
-    </div>
+{% extends "base.html" %}
+{% block title %}Proposal Received – Zyberfy{% endblock %}
+
+{% block content %}
+  <div class="bg-white p-10 rounded-2xl shadow-lg text-center max-w-xl mx-auto">
+    <h1 class="text-4xl font-bold mb-4 text-blue-600">Thank You!</h1>
+    <p class="text-lg mb-6">We've received your proposal request and it's being reviewed.</p>
+    <p class="text-sm text-gray-600 mb-8">Check your email shortly for a response from the business.</p>
+    
+    <a href="{{ url_for('home') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+      Return to Website
+    </a>
   </div>
-</body>
-</html>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
