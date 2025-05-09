@@ -9,6 +9,9 @@
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
+  <!-- AOS (Animate On Scroll) CSS -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
   <!-- Chart.js (for graph support) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -29,6 +32,12 @@
     });
   </script>
   {% endif %}
+
+  <!-- AOS (Animate On Scroll) JS -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
 
   {% block scripts %}{% endblock %}
 </body>
