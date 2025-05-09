@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from models import get_db_connection
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert
+from analytics import log_event
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +26,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         if not settings:
             raise ValueError("Client automation settings not found.")
 
-        # Prompt for GPT
+        # Prepare GPT prompt
         prompt = (
             f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
             f"Client: {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
@@ -43,37 +44,39 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
 
         proposal_text = response["choices"][0]["message"]["content"].strip()
-
-        # Save proposal to DB
         public_id = str(uuid.uuid4())
+
+        # Save to DB
         conn = get_db_connection()
         conn.execute("""
-            INSERT INTO proposals (user_email, lead_name, lead_email, lead_company,
-                                   services, budget, timeline, message, proposal_text,
-                                   created_at, public_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO proposals (
+                user_email, name, email, company, services, budget, timeline, message,
+                generated_proposal, public_id, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            client_email, name, email, company, services, budget, timeline,
-            message, proposal_text, datetime.utcnow(), public_id
+            client_email, name, email, company, services, budget, timeline, message,
+            proposal_text, public_id, datetime.utcnow()
         ))
         conn.commit()
         conn.close()
 
-        # Send email to lead and client
+        # Log event
+        log_event("proposal_generated", user_email=client_email, details={"lead_email": email})
+
+        # Send email
         send_proposal_email(
-            to_lead=email,
-            to_client=client_email,
-            subject="New Proposal from " + settings['company_name'],
-            proposal_body=proposal_text
+            to=email,
+            proposal=proposal_text,
+            from_name=settings["first_name"]
         )
 
-        # Send SMS to client
-        if settings["phone"]:
-            sms_message = f"New proposal from {name} for {services}. Check your dashboard."
-            send_sms_alert(settings["phone"], sms_message, user_email=client_email)
+        # Optional SMS (resume after toll-free approved)
+        # if settings["phone"]:
+        #     sms_message = f"New proposal from {name} for {services}. Check your dashboard."
+        #     send_sms_alert(settings["phone"], sms_message, user_email=client_email)
 
-        return True
+        return public_id
 
     except Exception as e:
-        print(f"[ERROR] handle_new_proposal failed: {e}")
-        return False
+        print(f"[ERROR] Failed to handle proposal: {e}")
+        return None
