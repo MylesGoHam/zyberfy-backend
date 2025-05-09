@@ -289,20 +289,19 @@ def dashboard():
 
     conn = get_db_connection()
 
-    # Get user info from users table (ONLY columns that actually exist)
+    # Get user info
     user_row = conn.execute(
         "SELECT first_name, plan_status, public_id FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
 
-    # Get automation settings if available
+    # Get automation status
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
     ).fetchone()
     conn.close()
 
-    # Generate QR code if needed
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
@@ -313,8 +312,7 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
-        first_name=user_row["first_name"],
-        plan_status=user_row["plan_status"],
+        user=user_row,  # ← pass user object
         automation_complete=bool(automation_row)
     )
 
