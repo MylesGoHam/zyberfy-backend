@@ -98,6 +98,7 @@ def restrict_routes():
         print("[DEBUG] Access granted to public proposal page")
         return
 
+    # Public paths (do not require login)
     PUBLIC_PATHS = {
         "/", 
         "/login", 
@@ -105,7 +106,8 @@ def restrict_routes():
         "/test_proposal", 
         "/proposal", 
         "/proposal/", 
-        "/landing"  # ← Make /landing publicly accessible
+        "/proposal/public", 
+        "/landing"  # Make /landing publicly accessible
     }
 
     if request.path in PUBLIC_PATHS:
