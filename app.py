@@ -701,31 +701,39 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session  # Only show QR if client is logged in
+    show_qr = "email" in session  # Only show QR code if client is logged in
 
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        company = request.form.get("company")
+        name     = request.form.get("name")
+        email    = request.form.get("email")
+        company  = request.form.get("company")
         services = request.form.get("services")
-        budget = request.form.get("budget")
+        budget   = request.form.get("budget")
         timeline = request.form.get("timeline")
-        message = request.form.get("message")
+        message  = request.form.get("message")
 
-        # Get client email (session or hidden field if public page)
+        # Use session client if logged in, otherwise fallback to automation_settings via proposal form logic
         client_email = session.get("email")
+
         if not client_email:
+            # Optional: support client lookup by hidden public_id (for later)
             flash("Submission failed. No client found.", "error")
             return redirect(url_for("proposal"))
 
-        success = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        success = handle_new_proposal(
+            name, email, company, services, budget, timeline, message, client_email
+        )
 
         if success:
-            flash("Proposal submitted and sent successfully!", "success")
+            flash("Proposal submitted successfully! Check your inbox.", "success")
+
+            # Future: send SMS to client
+            # send_sms(client_phone, "New proposal received from " + name)
+
         else:
             flash("Something went wrong while sending the proposal.", "error")
 
-        return redirect(url_for("proposal"))
+        return redirect(url_for("thank_you"))
 
     return render_template("proposal.html", show_qr=show_qr)
 
