@@ -701,30 +701,26 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session  # Show QR only to logged-in clients
+    show_qr = "email" in session  # Only show QR if client is logged in
 
     if request.method == "POST":
-        name     = request.form.get("name")
-        email    = request.form.get("email")
-        company  = request.form.get("company")
+        name = request.form.get("name")
+        email = request.form.get("email")
+        company = request.form.get("company")
         services = request.form.get("services")
-        budget   = request.form.get("budget")
+        budget = request.form.get("budget")
         timeline = request.form.get("timeline")
-        message  = request.form.get("message")
+        message = request.form.get("message")
 
         client_email = session.get("email")
         if not client_email:
             flash("Submission failed. No client found.", "error")
             return redirect(url_for("proposal"))
 
-        # Submit and get the new proposal ID
-        proposal_id = handle_new_proposal(
-            name, email, company, services, budget, timeline, message, client_email
-        )
+        public_id = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
-        if proposal_id:
-            flash("Proposal submitted and sent successfully!", "success")
-            return redirect(url_for("thank_you", pid=proposal_id))
+        if public_id:
+            return redirect(url_for("thank_you", pid=public_id))
         else:
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
