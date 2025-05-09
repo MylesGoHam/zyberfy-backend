@@ -10,7 +10,7 @@
   </a>
 
   <!-- Page Title -->
-  <h2 class="text-2xl font-bold mb-6">Your Settings</h2>
+  <h2 class="text-2xl font-bold mb-6 text-blue-600">Your Settings</h2>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -26,7 +26,7 @@
 
     <!-- Profile Info -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4">Profile Information</h3>
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Profile Information</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">First Name</label>
@@ -45,7 +45,7 @@
 
     <!-- Business Info -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4">Business Details</h3>
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Business Details</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">Website URL</label>
@@ -74,7 +74,7 @@
 
     <!-- Logo Upload -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4">Company Branding</h3>
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Company Branding</h3>
       <div>
         <label class="text-sm font-medium">Upload Logo</label>
         <input type="file" name="logo" accept="image/*" class="w-full border rounded-md px-3 py-2 text-sm bg-gray-50" />
@@ -83,7 +83,7 @@
 
     <!-- Business Preview -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4">Business Preview</h3>
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Business Preview</h3>
       <div class="border rounded-md p-4 text-sm text-gray-700 bg-gray-50 space-y-1">
         <p><strong>Name:</strong> {{ user.first_name }} from {{ user.company_name }}</p>
         <p><strong>Position:</strong> {{ user.position }}</p>
@@ -94,7 +94,7 @@
 
     <!-- Password Change -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4">Change Password</h3>
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Change Password</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">New Password</label>
