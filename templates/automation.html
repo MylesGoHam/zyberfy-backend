@@ -88,24 +88,23 @@
       </div>
     </div>
 
-    <!-- Save Button -->
-    <div>
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-4 mt-6">
       <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Save Settings</button>
+      <a href="{{ url_for('test_proposal') }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition">Test Proposal Output</a>
     </div>
   </form>
 
-  <!-- Collapsible Preview -->
-  <div class="mt-10">
-    <div class="flex items-center justify-between mb-2">
-      <h3 class="text-lg font-semibold">Test Output (Preview)</h3>
-      <button id="toggle-preview" class="text-blue-600 text-sm hover:underline font-medium">
-        Show Preview
-      </button>
-    </div>
-    <div id="preview-box" class="bg-gray-100 rounded-lg text-sm text-gray-700 whitespace-pre-wrap p-4 transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
-      {{ preview or 'Click "Save Settings" to see a preview of how the AI will sound.' }}
+  <!-- Test Output Preview Grid -->
+  {% if preview %}
+  <div class="mt-12">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Live Preview</h3>
+    <div class="bg-white p-6 rounded-lg shadow border border-blue-100">
+      <pre class="whitespace-pre-wrap text-gray-800 text-sm">{{ preview }}</pre>
     </div>
   </div>
+  {% endif %}
+
 </div>
 {% endblock %}
 
@@ -118,21 +117,5 @@
       setTimeout(() => banner.remove(), 700);
     }
   }, 3000);
-
-  const toggleBtn = document.getElementById("toggle-preview");
-  const previewBox = document.getElementById("preview-box");
-
-  toggleBtn.addEventListener("click", () => {
-    const expanded = previewBox.classList.contains("max-h-[1000px]");
-    if (expanded) {
-      previewBox.classList.remove("max-h-[1000px]", "py-4", "px-4");
-      previewBox.classList.add("max-h-0", "overflow-hidden");
-      toggleBtn.textContent = "Show Preview";
-    } else {
-      previewBox.classList.remove("max-h-0", "overflow-hidden");
-      previewBox.classList.add("max-h-[1000px]", "py-4", "px-4");
-      toggleBtn.textContent = "Hide Preview";
-    }
-  });
 </script>
 {% endblock %}
