@@ -686,7 +686,7 @@ def create_checkout_session():
             payment_method_types=["card"],
             line_items=[
                 {
-                    "price": "price_1RGEnNKpgIhBPea4U7GbbWJd",  # Your real Stripe price ID (Pro)
+                    "price": os.getenv("SECRET_BUNDLE_PRICE_ID"),
                     "quantity": 1,
                 }
             ],
