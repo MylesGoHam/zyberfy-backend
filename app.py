@@ -289,7 +289,7 @@ def dashboard():
 
     conn = get_db_connection()
     row = conn.execute(
-        "SELECT first_name, plan_status, public_id FROM users WHERE email = ?",
+        "SELECT first_name, plan_status, public_id, company_name, position, website, phone, reply_to, timezone FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
 
@@ -310,7 +310,7 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
-        first_name=row["first_name"],
+        user=row,
         plan_status=row["plan_status"],
         automation=automation_row,
         automation_complete=bool(automation_row)
