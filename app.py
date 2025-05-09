@@ -817,11 +817,16 @@ def settings():
 def log_event_route():
     if "email" not in session:
         return jsonify({"error": "unauthorized"}), 401
+
     data = request.get_json()
     event_type = data.get("event_type")
+    referrer = request.referrer or "unknown"
+
     if event_type:
+        print(f"[EVENT] {event_type} from {referrer}")
         log_event(session["email"], event_type)
         return jsonify({"status": "ok"}), 200
+
     return jsonify({"error": "missing event_type"}), 400
 
 
