@@ -5,12 +5,13 @@
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 py-8">
 
-<!-- Back to Dashboard Link -->
-<div class="mb-6">
-  <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-    &larr; Back to Dashboard
-  </a>
+<!-- Page Header and Back Link -->
+<div class="flex items-center justify-between mb-6">
+  <h2 class="text-2xl font-bold">Automation Settings</h2>
 </div>
+<a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium block mb-4">
+  &larr; Back to Dashboard
+</a>
 
   <!-- Success Banner -->
   {% with messages = get_flashed_messages(with_categories=true) %}
