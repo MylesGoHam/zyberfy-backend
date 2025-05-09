@@ -90,17 +90,24 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
     conn.close()
 
 # ─── Authentication gating ──────────────────────────────────────────────────
-PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal", "/proposal", "/proposal/", "/proposal/public"}
-
 @app.before_request
 def restrict_routes():
-    print(f"[DEBUG] Incoming path: {request.path}")  # ← Add this
+    print(f"[DEBUG] Incoming path: {request.path}")
 
     if request.path.startswith("/proposal/"):
         print("[DEBUG] Access granted to public proposal page")
         return
 
-    PUBLIC_PATHS = {"/", "/login", "/signup", "/test_proposal"}
+    PUBLIC_PATHS = {
+        "/", 
+        "/login", 
+        "/signup", 
+        "/test_proposal", 
+        "/proposal", 
+        "/proposal/", 
+        "/landing"  # ← Make /landing publicly accessible
+    }
+
     if request.path in PUBLIC_PATHS:
         return
 
@@ -184,6 +191,9 @@ def terms():
 def ping():
     return "pong"
 
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
 
 @app.route("/memberships", methods=["GET", "POST"])
 def memberships():
