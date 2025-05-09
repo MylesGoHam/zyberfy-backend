@@ -288,31 +288,33 @@ def dashboard():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    row = conn.execute(
-        "SELECT first_name, plan_status, public_id, company_name, position, website, phone, reply_to, timezone FROM users WHERE email = ?",
+
+    # Get user info from users table (ONLY columns that actually exist)
+    user_row = conn.execute(
+        "SELECT first_name, plan_status, public_id FROM users WHERE email = ?",
         (session["email"],)
     ).fetchone()
 
+    # Get automation settings if available
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
     ).fetchone()
     conn.close()
 
-    # Generate QR code if it doesn't exist yet
-    if row and row["public_id"]:
-        qr_path = f"static/qr/proposal_{row['public_id']}.png"
+    # Generate QR code if needed
+    if user_row and user_row["public_id"]:
+        qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
-            generate_qr_code(row["public_id"])
+            generate_qr_code(user_row["public_id"])
 
-    session["plan_status"] = row["plan_status"]
+    session["plan_status"] = user_row["plan_status"]
     log_event(session["email"], "pageview")
 
     return render_template(
         "dashboard.html",
-        user=row,
-        plan_status=row["plan_status"],
-        automation=automation_row,
+        first_name=user_row["first_name"],
+        plan_status=user_row["plan_status"],
         automation_complete=bool(automation_row)
     )
 
