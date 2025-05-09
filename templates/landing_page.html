@@ -3,11 +3,22 @@
 {% block title %}Zyberfy – Proposal Automation{% endblock %}
 
 {% block content %}
+<!-- AOS Animation Init -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    AOS.init();
+  });
+</script>
+
 <div class="bg-white">
   <!-- Demo Video Section -->
-  <div class="max-w-5xl mx-auto px-4 py-16 text-center">
+  <div class="max-w-5xl mx-auto px-4 py-16 text-center" data-aos="fade-up">
     <h1 class="text-4xl font-bold text-blue-600 mb-4">See Zyberfy In Action</h1>
-    <p class="text-gray-600 text-lg mb-8">Watch how our AI automates client proposals in seconds.</p>
+    <p class="text-gray-600 text-lg mb-4">Watch how our AI automates client proposals in seconds.</p>
+    <p class="text-gray-700 text-base max-w-3xl mx-auto mb-8">
+      Still sending proposals manually or losing leads to slow replies? Zyberfy automates your quoting,
+      follow-ups, and lead response — saving hours every week and helping you win deals faster.
+    </p>
     <div class="aspect-w-16 aspect-h-9 mb-10">
       <iframe class="w-full h-96 rounded-xl shadow-lg" src="https://www.youtube.com/embed/YOUR_DEMO_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
     </div>
@@ -16,19 +27,19 @@
   <!-- Features Section -->
   <div class="bg-gray-50 py-16">
     <div class="max-w-6xl mx-auto px-4 text-center">
-      <h2 class="text-3xl font-bold text-gray-900 mb-6">Built for High-End Service Businesses</h2>
-      <p class="text-gray-600 mb-12 text-lg">Zyberfy is the fastest way to turn leads into paying clients—hands-free.</p>
+      <h2 class="text-3xl font-bold text-gray-900 mb-6" data-aos="fade-up">Built for High-End Service Businesses</h2>
+      <p class="text-gray-600 mb-12 text-lg" data-aos="fade-up" data-aos-delay="100">Zyberfy is the fastest way to turn leads into paying clients—hands-free.</p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-        <div class="bg-white p-6 rounded-xl shadow border">
+        <div class="bg-white p-6 rounded-xl shadow border" data-aos="fade-up" data-aos-delay="200">
           <h3 class="text-xl font-semibold text-blue-600 mb-2">Instant Proposal Generation</h3>
           <p class="text-gray-600 text-sm">Submit a form, get a personalized proposal back in seconds. AI handles everything.</p>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow border">
+        <div class="bg-white p-6 rounded-xl shadow border" data-aos="fade-up" data-aos-delay="300">
           <h3 class="text-xl font-semibold text-blue-600 mb-2">AI-Tuned to Your Voice</h3>
           <p class="text-gray-600 text-sm">Customize your tone once—Zyberfy adapts every response to your brand's voice.</p>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow border">
+        <div class="bg-white p-6 rounded-xl shadow border" data-aos="fade-up" data-aos-delay="400">
           <h3 class="text-xl font-semibold text-blue-600 mb-2">Fully Automated Follow-ups</h3>
           <p class="text-gray-600 text-sm">Accept offers, follow up with leads, and close deals—all while you sleep.</p>
         </div>
@@ -37,7 +48,7 @@
   </div>
 
   <!-- Call to Action -->
-  <div class="text-center py-16 bg-white">
+  <div class="text-center py-16 bg-white" data-aos="fade-up">
     <h2 class="text-3xl font-bold text-gray-900 mb-6">Ready to Automate Your Proposals?</h2>
     <p class="text-gray-600 mb-8 text-lg">Start with 3 free proposals to experience the power of Zyberfy.</p>
     <a href="{{ url_for('memberships') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg shadow-lg transition duration-300">
