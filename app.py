@@ -734,44 +734,32 @@ def proposal():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
-    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+    proposal_user = conn.execute("SELECT user_email FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
     conn.close()
 
-    if not proposal:
+    if not proposal_user:
         return "Invalid proposal link.", 404
 
-    client_email = proposal["user_email"]
-    is_owner = "email" in session and session["email"] == client_email
-    show_qr = is_owner
+    client_email = proposal_user["user_email"]
+    show_qr = "email" in session and session["email"] == client_email
 
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        company = request.form.get("company")
+        name     = request.form.get("name")
+        email    = request.form.get("email")
+        company  = request.form.get("company")
         services = request.form.get("services")
-        budget = request.form.get("budget")
+        budget   = request.form.get("budget")
         timeline = request.form.get("timeline")
-        message = request.form.get("message")
+        message  = request.form.get("message")
 
-        handle_new_proposal(
-            name=name,
-            email=email,
-            company=company,
-            services=services,
-            budget=budget,
-            timeline=timeline,
-            message=message,
-            client_email=client_email
-        )
+        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        if pid:
+            return redirect(url_for("thank_you", pid=pid))
+        else:
+            flash("Failed to send proposal. Try again.", "error")
+            return redirect(url_for("public_proposal", public_id=public_id))
 
-        flash("Proposal submitted successfully!", "success")
-        return redirect(url_for("public_proposal", public_id=public_id))
-
-    return render_template(
-        "proposal.html",
-        show_qr=show_qr,
-        public_id=public_id
-    )
+    return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
 
 @app.route("/generate_qr")
 def generate_qr():
