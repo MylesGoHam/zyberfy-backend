@@ -192,8 +192,8 @@ def ping():
     return "pong"
 
 @app.route("/landing")
-def landing():
-    return render_template("landing.html")
+def landing_page():
+    return render_template("landing_page.html")
 
 @app.route("/memberships", methods=["GET", "POST"])
 def memberships():
