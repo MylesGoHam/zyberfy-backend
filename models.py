@@ -121,15 +121,14 @@ def create_proposals_table():
     conn.commit()
     conn.close()
 
-def log_event(user_email: str, event_type: str):
+import json
+from datetime import datetime
+
+def log_event(event_name, user_email=None, metadata=None):
     conn = get_db_connection()
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (user_email,)
-    ).fetchone()
-    if user:
-        conn.execute(
-            "INSERT INTO analytics_events (user_id, event_type) VALUES (?, ?)",
-            (user['id'], event_type)
-        )
-        conn.commit()
+    conn.execute(
+        "INSERT INTO analytics_events (event_name, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
+        (event_name, user_email, json.dumps(metadata or {}), datetime.utcnow().isoformat())
+    )
+    conn.commit()
     conn.close()
