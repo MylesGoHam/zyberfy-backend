@@ -761,10 +761,10 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = "email" in session and session["email"] == client_email
 
-    # ✅ Log pageview only if this is a lead (not the client) and hasn't been logged yet
-    if "email" not in session and not session.get("logged_proposal_view"):
+    # ✅ Only log pageview ONCE per visitor session if not logged in
+    if "email" not in session and not session.get(f"viewed_{public_id}"):
         log_event("public_lead", "pageview")
-        session["logged_proposal_view"] = True  # prevent duplicate logs this session
+        session[f"viewed_{public_id}"] = True
 
     if request.method == "POST":
         name     = request.form.get("name")
