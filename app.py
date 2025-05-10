@@ -770,16 +770,18 @@ def proposal():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
-    proposal_user = conn.execute("SELECT user_email FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+    proposal_user = conn.execute(
+        "SELECT user_email FROM proposals WHERE public_id = ?", (public_id,)
+    ).fetchone()
     conn.close()
 
     if not proposal_user:
         return "Invalid proposal link.", 404
 
     client_email = proposal_user["user_email"]
-    show_qr = "email" in session and session["email"] == client_email
+    show_qr = session.get("email") == client_email
 
-    # ✅ This does NOT block anyone — just sets session flag for future logic
+    # ✅ Session flag for non-logged-in leads (used for JS tracking logic if needed)
     if "email" not in session and not session.get(f"viewed_{public_id}"):
         session[f"viewed_{public_id}"] = True
 
@@ -799,7 +801,12 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template("proposal.html", show_qr=show_qr, public_id=public_id)
+    # ✅ Ensure public_id is passed into the template for safe JS usage
+    return render_template(
+        "proposal.html",
+        public_id=public_id,
+        show_qr=show_qr
+    )
 
 @app.route("/generate_qr")
 def generate_qr():
