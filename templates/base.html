@@ -24,17 +24,18 @@
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Log pageviews for public pages only -->
-  <script>
-    const publicPages = ["/", "/proposal", "/proposal/", "/proposal/public", "/landing"];
-    if (publicPages.includes(window.location.pathname)) {
-      fetch("/log_event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_type: "pageview" })
-      });
-    }
-  </script>
+{% if not email %}
+<script>
+  const publicLeadPages = ["/", "/proposal", "/proposal/", "/proposal/public", "/landing"];
+  if (publicLeadPages.includes(window.location.pathname)) {
+    fetch("/log_event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_type: "pageview" })
+    });
+  }
+</script>
+{% endif %}
 
   {% block scripts %}{% endblock %}
 </body>
