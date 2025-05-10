@@ -104,27 +104,21 @@
 
 {% block scripts %}
 <script>
-  // Handle copy button
-  const btn = document.getElementById("copyBtn");
-  if (btn) {
-    btn.addEventListener("click", () => {
-      const input = document.getElementById("proposalLink");
-      input.select();
-      document.execCommand("copy");
-      alert("Link copied to clipboard!");
-    });
-  }
-</script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("copyBtn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById("proposalLink");
+        input.select();
+        document.execCommand("copy");
+        alert("Link copied to clipboard!");
+      });
+    }
 
-<script>
-  (function () {
-    const proposalId = "{{ public_id|e }}";  // Escape for safety
-
+    const proposalId = "{{ public_id|e }}";
     if (proposalId && typeof proposalId === "string") {
       const storageKey = `viewed_${proposalId}`;
-      const viewed = sessionStorage.getItem(storageKey);
-
-      if (!viewed) {
+      if (!sessionStorage.getItem(storageKey)) {
         fetch("/track_event", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -135,17 +129,17 @@
         })
         .then(() => {
           sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview for proposal:", proposalId);
+          console.log("✅ Tracked pageview for:", proposalId);
         })
         .catch(err => {
-          console.error("❌ Failed to track pageview:", err);
+          console.error("❌ Failed to track event:", err);
         });
       } else {
-        console.log("ℹ️ Already tracked pageview this session for", proposalId);
+        console.log("ℹ️ Already tracked this pageview:", proposalId);
       }
     } else {
-      console.warn("⚠️ No valid proposalId found for tracking.");
+      console.warn("⚠️ No valid proposalId available for tracking.");
     }
-  })();
+  });
 </script>
 {% endblock %}
