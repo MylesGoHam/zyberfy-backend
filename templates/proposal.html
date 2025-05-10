@@ -118,7 +118,7 @@
 
 <script>
   (function () {
-    const proposalId = "{{ public_id }}";
+    const proposalId = "{{ public_id|e }}";  // Escape for safety
 
     if (proposalId && typeof proposalId === "string") {
       const storageKey = `viewed_${proposalId}`;
@@ -127,9 +127,7 @@
       if (!viewed) {
         fetch("/track_event", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             event_name: "pageview",
             metadata: { public_id: proposalId, type: "lead_visit" }
