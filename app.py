@@ -667,6 +667,15 @@ def export_analytics():
         download_name="zyberfy_analytics.csv"
     )
 
+@app.route("/track_event", methods=["POST"])
+def track_event():
+    data = request.get_json()
+    event_name = data.get("event_name")
+    metadata = data.get("metadata", {})
+
+    log_event(event_name, user_email=None, metadata=metadata)
+    return jsonify({"status": "ok"})
+
 @app.before_request
 def load_user():
     g.email = session.get("email")
