@@ -31,6 +31,7 @@ from email_assistant import handle_new_proposal
 
 import qrcode
 from sms_utils import send_sms_alert
+from flask import g
 
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id):
@@ -665,6 +666,15 @@ def export_analytics():
         as_attachment=True,
         download_name="zyberfy_analytics.csv"
     )
+
+@app.before_request
+def load_user():
+    g.email = session.get("email")
+    
+
+@app.context_processor
+def inject_user():
+    return dict(email=g.email)
 
 @app.route("/subscribe", methods=["POST"])
 def subscribe():
