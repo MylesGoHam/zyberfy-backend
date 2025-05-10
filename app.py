@@ -674,11 +674,15 @@ def track_event():
         event_name = data.get("event_name")
         metadata = data.get("metadata", {})
 
+        print("📩 Incoming track_event:")
+        print("Event:", event_name)
+        print("Metadata:", metadata)
+
         log_event(event_name, user_email=None, metadata=metadata)
         return jsonify({"status": "ok"}), 200
 
     except Exception as e:
-        print("Track event error:", e)
+        print("❌ Track event error:", e)
         return jsonify({"error": "Tracking failed"}), 500
 
 @app.before_request
