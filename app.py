@@ -674,7 +674,6 @@ def track_event():
         event_name = data.get("event_name")
         metadata = data.get("metadata", {})
 
-        # You must have a working log_event() function imported
         log_event(event_name, user_email=None, metadata=metadata)
         return jsonify({"status": "ok"}), 200
 
