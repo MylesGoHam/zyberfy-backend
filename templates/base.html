@@ -24,14 +24,20 @@
     {% block content %}{% endblock %}
   </div>
 
-{% if not email %}
+{% if not session.email %}
 <script>
+  // Only run if the user is not logged in AND hasn't already logged a view in this session
   const publicLeadPages = ["/", "/proposal", "/proposal/", "/proposal/public", "/landing"];
-  if (publicLeadPages.includes(window.location.pathname)) {
+  const currentPath = window.location.pathname;
+  const hasLogged = sessionStorage.getItem("zyberfy_view_logged");
+
+  if (publicLeadPages.includes(currentPath) && !hasLogged) {
     fetch("/log_event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event_type: "pageview" })
+    }).then(() => {
+      sessionStorage.setItem("zyberfy_view_logged", "true");
     });
   }
 </script>
