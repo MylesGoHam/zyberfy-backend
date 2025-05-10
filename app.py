@@ -669,12 +669,18 @@ def export_analytics():
 
 @app.route("/track_event", methods=["POST"])
 def track_event():
-    data = request.get_json()
-    event_name = data.get("event_name")
-    metadata = data.get("metadata", {})
+    try:
+        data = request.get_json()
+        event_name = data.get("event_name")
+        metadata = data.get("metadata", {})
 
-    log_event(event_name, user_email=None, metadata=metadata)
-    return jsonify({"status": "ok"})
+        # You must have a working log_event() function imported
+        log_event(event_name, user_email=None, metadata=metadata)
+        return jsonify({"status": "ok"}), 200
+
+    except Exception as e:
+        print("Track event error:", e)
+        return jsonify({"error": "Tracking failed"}), 500
 
 @app.before_request
 def load_user():
