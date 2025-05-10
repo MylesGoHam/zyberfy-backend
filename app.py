@@ -770,7 +770,7 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = "email" in session and session["email"] == client_email
 
-    # ✅ Only log pageview ONCE per anonymous visitor session# Mark as viewed (optional: used for other logic but not logging)
+    # ✅ This does NOT block anyone — just sets session flag for future logic
     if "email" not in session and not session.get(f"viewed_{public_id}"):
         session[f"viewed_{public_id}"] = True
 
