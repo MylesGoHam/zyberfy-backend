@@ -24,36 +24,41 @@
     {% block content %}{% endblock %}
   </div>
 
-  {% block scripts %}
-  <script>
-    // Copy button logic
-    const btn = document.getElementById("copyBtn");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        const input = document.getElementById("proposalLink");
-        input.select();
-        document.execCommand("copy");
-        alert("Link copied to clipboard!");
-      });
-    }
-
-    // Pageview logging only for proposal page, once per session per URL
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
     const pathname = window.location.pathname;
-    const isLeadPage = pathname.startsWith("/proposal/") && !pathname.includes("/dashboard") && !pathname.includes("/edit");
-    const alreadyLogged = sessionStorage.getItem("pageview_logged_" + pathname);
 
-    {% if not session.email %}
-    if (isLeadPage && !alreadyLogged) {
+    // Log only public proposal views, not client or admin views
+    const isLeadPage = pathname.startsWith("/proposal/") && !pathname.includes("/dashboard") && !pathname.includes("/admin");
+
+    // Prevent duplicate logs with sessionStorage (once per page per session)
+    const storageKey = "pageview_logged_" + pathname;
+    const isClient = {{ "true" if session.email else "false" }};
+
+    if (isLeadPage && !isClient && !sessionStorage.getItem(storageKey)) {
       fetch("/log_event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_type: "pageview" })
+      }).then(() => {
+        sessionStorage.setItem(storageKey, "true");
       });
-      sessionStorage.setItem("pageview_logged_" + pathname, "true");
     }
-    {% endif %}
-  </script>
-  {% endblock %}
+  });
+
+  // Optional: Copy link button handler
+  const btn = document.getElementById("copyBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("proposalLink");
+      input.select();
+      document.execCommand("copy");
+      alert("Link copied to clipboard!");
+    });
+  }
+</script>
+{% endblock %}
 
 </body>
 </html>
