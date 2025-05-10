@@ -26,28 +26,7 @@
 
 {% block scripts %}
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const pathname = window.location.pathname;
-
-    // Log only public proposal views, not client or admin views
-    const isLeadPage = pathname.startsWith("/proposal/") && !pathname.includes("/dashboard") && !pathname.includes("/admin");
-
-    // Prevent duplicate logs with sessionStorage (once per page per session)
-    const storageKey = "pageview_logged_" + pathname;
-    const isClient = {{ "true" if session.email else "false" }};
-
-    if (isLeadPage && !isClient && !sessionStorage.getItem(storageKey)) {
-      fetch("/log_event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_type: "pageview" })
-      }).then(() => {
-        sessionStorage.setItem(storageKey, "true");
-      });
-    }
-  });
-
-  // Optional: Copy link button handler
+  // Optional: Copy link button handler for proposal pages
   const btn = document.getElementById("copyBtn");
   if (btn) {
     btn.addEventListener("click", () => {
