@@ -670,7 +670,7 @@ def export_analytics():
 @app.before_request
 def load_user():
     g.email = session.get("email")
-    
+
 
 @app.context_processor
 def inject_user():
@@ -760,6 +760,11 @@ def public_proposal(public_id):
 
     client_email = proposal_user["user_email"]
     show_qr = "email" in session and session["email"] == client_email
+
+    # ✅ Log pageview only if this is a lead (not the client) and hasn't been logged yet
+    if "email" not in session and not session.get("logged_proposal_view"):
+        log_event("public_lead", "pageview")
+        session["logged_proposal_view"] = True  # prevent duplicate logs this session
 
     if request.method == "POST":
         name     = request.form.get("name")
