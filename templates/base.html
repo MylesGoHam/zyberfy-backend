@@ -24,25 +24,36 @@
     {% block content %}{% endblock %}
   </div>
 
-{% if not session.email %}
-<script>
-  // Only run if the user is not logged in AND hasn't already logged a view in this session
-  const publicLeadPages = ["/", "/proposal", "/proposal/", "/proposal/public", "/landing"];
-  const currentPath = window.location.pathname;
-  const hasLogged = sessionStorage.getItem("zyberfy_view_logged");
+  {% block scripts %}
+  <script>
+    // Copy button logic
+    const btn = document.getElementById("copyBtn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById("proposalLink");
+        input.select();
+        document.execCommand("copy");
+        alert("Link copied to clipboard!");
+      });
+    }
 
-  if (publicLeadPages.includes(currentPath) && !hasLogged) {
-    fetch("/log_event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_type: "pageview" })
-    }).then(() => {
-      sessionStorage.setItem("zyberfy_view_logged", "true");
-    });
-  }
-</script>
-{% endif %}
+    // Pageview logging only for proposal page, once per session per URL
+    const pathname = window.location.pathname;
+    const isLeadPage = pathname.startsWith("/proposal/") && !pathname.includes("/dashboard") && !pathname.includes("/edit");
+    const alreadyLogged = sessionStorage.getItem("pageview_logged_" + pathname);
 
-  {% block scripts %}{% endblock %}
+    {% if not session.email %}
+    if (isLeadPage && !alreadyLogged) {
+      fetch("/log_event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_type: "pageview" })
+      });
+      sessionStorage.setItem("pageview_logged_" + pathname, "true");
+    }
+    {% endif %}
+  </script>
+  {% endblock %}
+
 </body>
 </html>
