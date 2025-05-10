@@ -104,6 +104,7 @@
 
 {% block scripts %}
 <script>
+  // Handle copy button
   const btn = document.getElementById("copyBtn");
   if (btn) {
     btn.addEventListener("click", () => {
@@ -114,17 +115,39 @@
     });
   }
 </script>
-<script>
-  // Only log if it's a public proposal page (not a logged-in client viewing it)
-  const isLeadView = {{ "true" if not session.email else "false" }};
 
-  if (isLeadView && !sessionStorage.getItem("pageview_logged")) {
-    fetch("/log_event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_type: "pageview" })
-    });
-    sessionStorage.setItem("pageview_logged", "true");
-  }
+<script>
+  (function () {
+    const proposalId = "{{ public_id }}";
+
+    if (proposalId && typeof proposalId === "string") {
+      const storageKey = `viewed_${proposalId}`;
+      const viewed = sessionStorage.getItem(storageKey);
+
+      if (!viewed) {
+        fetch("/track_event", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            event_name: "pageview",
+            metadata: { public_id: proposalId, type: "lead_visit" }
+          })
+        })
+        .then(() => {
+          sessionStorage.setItem(storageKey, "true");
+          console.log("✅ Tracked pageview for proposal:", proposalId);
+        })
+        .catch(err => {
+          console.error("❌ Failed to track pageview:", err);
+        });
+      } else {
+        console.log("ℹ️ Already tracked pageview this session for", proposalId);
+      }
+    } else {
+      console.warn("⚠️ No valid proposalId found for tracking.");
+    }
+  })();
 </script>
 {% endblock %}
