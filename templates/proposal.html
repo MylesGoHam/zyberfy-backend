@@ -115,7 +115,8 @@
       });
     }
 
-    const proposalId = "{{ public_id|e }}";
+    const proposalId = "{{ public_id | tojson | safe }}";  // Fully safe and valid JS string
+
     if (proposalId && typeof proposalId === "string") {
       const storageKey = `viewed_${proposalId}`;
       if (!sessionStorage.getItem(storageKey)) {
@@ -129,16 +130,16 @@
         })
         .then(() => {
           sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview for:", proposalId);
+          console.log("✅ Tracked pageview:", proposalId);
         })
         .catch(err => {
-          console.error("❌ Failed to track event:", err);
+          console.error("❌ Error tracking pageview:", err);
         });
       } else {
-        console.log("ℹ️ Already tracked this pageview:", proposalId);
+        console.log("ℹ️ Pageview already tracked for:", proposalId);
       }
     } else {
-      console.warn("⚠️ No valid proposalId available for tracking.");
+      console.warn("⚠️ No valid proposal ID found for tracking.");
     }
   });
 </script>
