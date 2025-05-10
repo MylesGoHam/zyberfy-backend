@@ -770,14 +770,9 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = "email" in session and session["email"] == client_email
 
-    # ✅ Only log pageview ONCE per anonymous visitor session
+    # ✅ Only log pageview ONCE per anonymous visitor session# Mark as viewed (optional: used for other logic but not logging)
     if "email" not in session and not session.get(f"viewed_{public_id}"):
         session[f"viewed_{public_id}"] = True
-        log_event(
-            "pageview",
-            user_email=None,
-            metadata={"public_id": public_id, "type": "lead_visit"}
-        )
 
     if request.method == "POST":
         name     = request.form.get("name")
