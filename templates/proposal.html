@@ -114,4 +114,17 @@
     });
   }
 </script>
+<script>
+  // Only log if it's a public proposal page (not a logged-in client viewing it)
+  const isLeadView = {{ "true" if not session.email else "false" }};
+
+  if (isLeadView && !sessionStorage.getItem("pageview_logged")) {
+    fetch("/log_event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_type: "pageview" })
+    });
+    sessionStorage.setItem("pageview_logged", "true");
+  }
+</script>
 {% endblock %}
