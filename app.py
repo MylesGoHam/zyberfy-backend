@@ -475,7 +475,8 @@ def analytics():
     user_email = session["email"]
 
     range_days = int(request.args.get("range", 7))
-    since = datetime.utcnow().date() - timedelta(days=range_days)
+    since_dt = datetime.utcnow() - timedelta(days=range_days)
+    since = since_dt.isoformat()
 
     # Aggregate totals
     totals = conn.execute("""
@@ -483,11 +484,10 @@ def analytics():
             event_name, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE user_email = ? AND date(timestamp) >= ? 
+        WHERE user_email = ? AND timestamp >= ? 
         GROUP BY event_name
     """, (user_email, since)).fetchall()
 
-    # Map totals
     stats = {row["event_name"]: row["cnt"] for row in totals}
     pageviews = stats.get("pageview", 0)
     generated = stats.get("generated_proposal", 0)
@@ -501,11 +501,14 @@ def analytics():
             DATE(timestamp) as day, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE user_email = ? AND date(timestamp) >= ? 
+        WHERE user_email = ? AND timestamp >= ? 
         GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
-    date_map = {d.strftime("%Y-%m-%d"): i for i, d in enumerate([since + timedelta(days=i) for i in range(range_days)])}
+    date_map = {
+        (since_dt + timedelta(days=i)).strftime("%Y-%m-%d"): i
+        for i in range(range_days)
+    }
     line_data = [0] * range_days
     gen_data = [0] * range_days
     sent_data = [0] * range_days
@@ -520,7 +523,10 @@ def analytics():
             elif row["event_name"] == "sent_proposal":
                 sent_data[idx] = row["cnt"]
 
-    labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
+    labels = [
+        (since_dt + timedelta(days=i)).strftime("%b %-d")
+        for i in range(range_days)
+    ]
 
     recent_events = conn.execute(
         "SELECT event_name, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
@@ -551,9 +557,11 @@ def analytics_data():
     range_days = int(request.args.get("range", 7))
     conn = get_db_connection()
 
-    since = datetime.utcnow() - timedelta(days=range_days)
-    today = datetime.utcnow().date()
-    dates = [today - timedelta(days=i) for i in reversed(range(range_days))]
+    since_dt = datetime.utcnow() - timedelta(days=range_days)
+    since = since_dt.isoformat()
+
+    # Labels and date map
+    dates = [since_dt + timedelta(days=i) for i in range(range_days)]
     labels = [d.strftime("%b %-d") for d in dates]
 
     # Totals
@@ -574,17 +582,18 @@ def analytics_data():
     # Daily breakdown
     pv_data, gen_data, sent_data = [], [], []
     for d in dates:
+        date_str = d.strftime("%Y-%m-%d")
         pv = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'pageview' AND date(timestamp) = ?",
-            (user_email, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'pageview' AND DATE(timestamp) = ?",
+            (user_email, date_str)
         ).fetchone()["cnt"]
         gp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'generated_proposal' AND date(timestamp) = ?",
-            (user_email, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'generated_proposal' AND DATE(timestamp) = ?",
+            (user_email, date_str)
         ).fetchone()["cnt"]
         sp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'sent_proposal' AND date(timestamp) = ?",
-            (user_email, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'sent_proposal' AND DATE(timestamp) = ?",
+            (user_email, date_str)
         ).fetchone()["cnt"]
         pv_data.append(pv)
         gen_data.append(gp)
