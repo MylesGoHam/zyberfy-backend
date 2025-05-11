@@ -61,7 +61,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.close()
 
         # Log event
-        log_event("proposal_generated", user_email=client_email, details={"lead_email": email})
+        log_event("generated_proposal", user_email=client_email, metadata={"lead_email": email})
 
         # Send email
         send_proposal_email(
