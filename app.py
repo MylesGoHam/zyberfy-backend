@@ -501,15 +501,16 @@ def analytics():
     conversion_rate = (sent / generated * 100) if generated else 0
 
     # Line Chart Data (1 query total, not 3 per day)
+
     raw = conn.execute("""
-        SELECT 
-            event_type, 
-            DATE(timestamp) as day, 
-            COUNT(*) AS cnt 
-        FROM analytics_events 
-        WHERE user_id = ? AND date(timestamp) >= ? 
-        GROUP BY event_type, day
-    """, (uid, since)).fetchall()
+    SELECT 
+        event_type, 
+        DATE(timestamp) as day, 
+        COUNT(*) AS cnt 
+    FROM analytics_events 
+    WHERE user_email = ? AND date(timestamp) >= ? 
+    GROUP BY event_type, day
+""", (user_email, since)).fetchall()
 
     # Organize by date
     date_map = {d.strftime("%Y-%m-%d"): i for i, d in enumerate([since + timedelta(days=i) for i in range(range_days)])}
