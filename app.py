@@ -772,9 +772,8 @@ def proposal_view():
     # Log the lead pageview for the client
     log_event(
         event_name="pageview",
-        user_email=proposal["user_email"],  # <-- fixed here
-        metadata={"form_id": form_id},
-        event_type="pageview"
+        user_email=proposal["user_email"],
+        metadata={"form_id": form_id}
     )
 
     return render_template("public_proposal.html", proposal=proposal)
