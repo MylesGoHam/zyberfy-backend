@@ -105,7 +105,7 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Handle copy button
+    // Copy Button
     const btn = document.getElementById("copyBtn");
     if (btn) {
       btn.addEventListener("click", () => {
@@ -116,31 +116,37 @@
       });
     }
 
-    // Track pageview once per session
-    const proposalId = {{ public_id | tojson }};
+    // Safe proposal ID from backend
+    const proposalId = {{ public_id | tojson | safe }};
+    const storageKey = `viewed_${proposalId}`;
+
     if (proposalId && typeof proposalId === "string") {
-      const storageKey = `viewed_${proposalId}`;
       if (!sessionStorage.getItem(storageKey)) {
         fetch("/track_event", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             event_name: "pageview",
-            metadata: { public_id: proposalId, type: "lead_visit" }
+            metadata: {
+              public_id: proposalId,
+              type: "lead_visit"
+            }
           })
         })
         .then(() => {
           sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview:", proposalId);
+          console.log("✅ Tracked pageview for:", proposalId);
         })
-        .catch(err => {
-          console.error("❌ Error tracking pageview:", err);
+        .catch((err) => {
+          console.error("❌ Tracking failed:", err);
         });
       } else {
         console.log("ℹ️ Pageview already tracked for:", proposalId);
       }
     } else {
-      console.warn("⚠️ No valid proposal ID found for tracking.");
+      console.warn("⚠️ No valid proposal ID for tracking.");
     }
   });
 </script>
