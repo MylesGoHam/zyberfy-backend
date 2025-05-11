@@ -756,16 +756,27 @@ def proposal():
 @app.route("/proposal_view")
 def proposal_view():
     form_id = request.args.get("form_id")
-
     if not form_id:
         return "Missing form ID", 400
 
-    proposal = get_proposal_by_form_id(form_id)
+    # Fetch proposal from DB by form_id
+    conn = get_db_connection()
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE form_id = ?", (form_id,)
+    ).fetchone()
+    conn.close()
+
     if not proposal:
         return "Proposal not found", 404
 
+    # Log the pageview to analytics
     client_email = proposal["client_email"]
-    log_event("pageview", user_email=client_email, metadata={"form_id": form_id})
+    log_event(
+        event_name="pageview",
+        user_email=client_email,
+        metadata={"form_id": form_id, "source": request.referrer},
+        event_type="pageview"
+    )
 
     return render_template("public_proposal.html", proposal=proposal)
 
