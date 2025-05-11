@@ -546,51 +546,44 @@ def analytics_data():
     if "email" not in session:
         return jsonify({"error": "unauthorized"}), 401
 
+    user_email = session["email"]
     range_days = int(request.args.get("range", 7))
     conn = get_db_connection()
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (session["email"],)
-    ).fetchone()
-    if not user:
-        conn.close()
-        return jsonify({"error": "user not found"}), 404
 
-    uid = user["id"]
     since = datetime.utcnow() - timedelta(days=range_days)
-
-    # Totals
-    pageviews = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND timestamp >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
-    generated = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND timestamp >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
-    sent = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND timestamp >= ?",
-        (uid, since)
-    ).fetchone()["cnt"]
-    conversion_rate = (sent / generated * 100) if generated else 0
-
-    # Line chart data
     today = datetime.utcnow().date()
     dates = [today - timedelta(days=i) for i in reversed(range(range_days))]
     labels = [d.strftime("%b %-d") for d in dates]
 
+    # Totals
+    pageviews = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'pageview' AND timestamp >= ?",
+        (user_email, since)
+    ).fetchone()["cnt"]
+    generated = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'generated_proposal' AND timestamp >= ?",
+        (user_email, since)
+    ).fetchone()["cnt"]
+    sent = conn.execute(
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'sent_proposal' AND timestamp >= ?",
+        (user_email, since)
+    ).fetchone()["cnt"]
+    conversion_rate = (sent / generated * 100) if generated else 0
+
+    # Daily breakdown
     pv_data, gen_data, sent_data = [], [], []
     for d in dates:
         pv = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'pageview' AND date(timestamp)=?",
-            (uid, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'pageview' AND date(timestamp) = ?",
+            (user_email, d)
         ).fetchone()["cnt"]
         gp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'generated_proposal' AND date(timestamp)=?",
-            (uid, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'generated_proposal' AND date(timestamp) = ?",
+            (user_email, d)
         ).fetchone()["cnt"]
         sp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_id = ? AND event_type = 'sent_proposal' AND date(timestamp)=?",
-            (uid, d)
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'sent_proposal' AND date(timestamp) = ?",
+            (user_email, d)
         ).fetchone()["cnt"]
         pv_data.append(pv)
         gen_data.append(gp)
@@ -601,11 +594,11 @@ def analytics_data():
         """
         SELECT event_type, timestamp 
         FROM analytics_events 
-        WHERE user_id = ? 
+        WHERE user_email = ? 
         ORDER BY datetime(timestamp) DESC 
         LIMIT 50
         """,
-        (uid,)
+        (user_email,)
     ).fetchall()
 
     conn.close()
