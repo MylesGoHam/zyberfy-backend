@@ -489,7 +489,7 @@ def analytics():
             event_type, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE user_id = ? AND date(timestamp) >= ? 
+        WHERE user_email = ? AND date(timestamp) >= ? 
         GROUP BY event_type
     """, (uid, since)).fetchall()
 
