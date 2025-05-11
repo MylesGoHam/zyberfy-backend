@@ -117,7 +117,7 @@
     }
 
     // Pageview tracking
-    const proposalId = {{ public_id | tojson }};
+    const proposalId = {{ public_id | tojson | safe }};
     const storageKey = "viewed_" + proposalId;
 
     if (proposalId && typeof proposalId === "string") {
