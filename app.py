@@ -759,7 +759,6 @@ def proposal_view():
     if not form_id:
         return "Missing form ID", 400
 
-    # Fetch proposal from DB by form_id
     conn = get_db_connection()
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE form_id = ?", (form_id,)
@@ -769,12 +768,11 @@ def proposal_view():
     if not proposal:
         return "Proposal not found", 404
 
-    # Log the pageview to analytics
-    client_email = proposal["client_email"]
+    # Public route: No session check needed here
     log_event(
         event_name="pageview",
-        user_email=client_email,
-        metadata={"form_id": form_id, "source": request.referrer},
+        user_email=proposal["client_email"],
+        metadata={"form_id": form_id},
         event_type="pageview"
     )
 
