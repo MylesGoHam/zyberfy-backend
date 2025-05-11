@@ -105,7 +105,7 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Copy Button
+    // Copy Button Handler
     const btn = document.getElementById("copyBtn");
     if (btn) {
       btn.addEventListener("click", () => {
@@ -116,17 +116,15 @@
       });
     }
 
-    // Safe proposal ID from backend
-    const proposalId = {{ public_id | tojson | safe }};
+    // Injected safely
+    const proposalId = "{{ public_id }}";
     const storageKey = `viewed_${proposalId}`;
 
     if (proposalId && typeof proposalId === "string") {
       if (!sessionStorage.getItem(storageKey)) {
         fetch("/track_event", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             event_name: "pageview",
             metadata: {
@@ -140,13 +138,13 @@
           console.log("✅ Tracked pageview for:", proposalId);
         })
         .catch((err) => {
-          console.error("❌ Tracking failed:", err);
+          console.error("❌ Tracking error:", err);
         });
       } else {
         console.log("ℹ️ Pageview already tracked for:", proposalId);
       }
     } else {
-      console.warn("⚠️ No valid proposal ID for tracking.");
+      console.warn("⚠️ No proposal ID found.");
     }
   });
 </script>
