@@ -105,6 +105,7 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // Handle copy button
     const btn = document.getElementById("copyBtn");
     if (btn) {
       btn.addEventListener("click", () => {
@@ -115,8 +116,8 @@
       });
     }
 
-    const proposalId = "{{ public_id | tojson | safe }}";  // Fully safe and valid JS string
-
+    // Track pageview once per session
+    const proposalId = {{ public_id | tojson }};
     if (proposalId && typeof proposalId === "string") {
       const storageKey = `viewed_${proposalId}`;
       if (!sessionStorage.getItem(storageKey)) {
