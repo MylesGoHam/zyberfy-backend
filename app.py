@@ -762,17 +762,17 @@ def proposal_view():
 
     conn = get_db_connection()
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE form_id = ?", (form_id,)
+        "SELECT * FROM proposals WHERE public_id = ?", (form_id,)
     ).fetchone()
     conn.close()
 
     if not proposal:
         return "Proposal not found", 404
 
-    # Public route: No session check needed here
+    # Log the lead pageview for the client
     log_event(
         event_name="pageview",
-        user_email=proposal["client_email"],
+        user_email=proposal["user_email"],  # <-- fixed here
         metadata={"form_id": form_id},
         event_type="pageview"
     )
