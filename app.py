@@ -471,19 +471,12 @@ def analytics():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    user = conn.execute(
-        "SELECT id FROM users WHERE email = ?", (session["email"],)
-    ).fetchone()
-    if not user:
-        conn.close()
-        flash("User not found", "error")
-        return redirect(url_for("dashboard"))
-    uid = user["id"]
+    user_email = session["email"]
 
     range_days = int(request.args.get("range", 7))
     since = datetime.utcnow().date() - timedelta(days=range_days)
 
-    # Aggregate totals (1 query)
+    # Aggregate totals
     totals = conn.execute("""
         SELECT 
             event_type, 
@@ -491,7 +484,7 @@ def analytics():
         FROM analytics_events 
         WHERE user_email = ? AND date(timestamp) >= ? 
         GROUP BY event_type
-    """, (uid, since)).fetchall()
+    """, (user_email, since)).fetchall()
 
     # Map totals
     stats = {row["event_type"]: row["cnt"] for row in totals}
@@ -500,19 +493,17 @@ def analytics():
     sent = stats.get("sent_proposal", 0)
     conversion_rate = (sent / generated * 100) if generated else 0
 
-    # Line Chart Data (1 query total, not 3 per day)
-
+    # Line chart data
     raw = conn.execute("""
-    SELECT 
-        event_type, 
-        DATE(timestamp) as day, 
-        COUNT(*) AS cnt 
-    FROM analytics_events 
-    WHERE user_email = ? AND date(timestamp) >= ? 
-    GROUP BY event_type, day
-""", (user_email, since)).fetchall()
+        SELECT 
+            event_type, 
+            DATE(timestamp) as day, 
+            COUNT(*) AS cnt 
+        FROM analytics_events 
+        WHERE user_email = ? AND date(timestamp) >= ? 
+        GROUP BY event_type, day
+    """, (user_email, since)).fetchall()
 
-    # Organize by date
     date_map = {d.strftime("%Y-%m-%d"): i for i, d in enumerate([since + timedelta(days=i) for i in range(range_days)])}
     line_data = [0] * range_days
     gen_data = [0] * range_days
@@ -531,7 +522,8 @@ def analytics():
     labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
 
     recent_events = conn.execute(
-        "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? ORDER BY timestamp DESC LIMIT 50", (uid,)
+        "SELECT event_type, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
+        (user_email,)
     ).fetchall()
 
     conn.close()
