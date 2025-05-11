@@ -104,11 +104,11 @@
 
 {% block scripts %}
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Copy Button Handler
+  document.addEventListener("DOMContentLoaded", function () {
+    // Copy button
     const btn = document.getElementById("copyBtn");
     if (btn) {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", function () {
         const input = document.getElementById("proposalLink");
         input.select();
         document.execCommand("copy");
@@ -116,9 +116,9 @@
       });
     }
 
-    // Injected safely
-    const proposalId = "{{ public_id }}";
-    const storageKey = `viewed_${proposalId}`;
+    // Pageview tracking
+    const proposalId = {{ public_id | tojson }};
+    const storageKey = "viewed_" + proposalId;
 
     if (proposalId && typeof proposalId === "string") {
       if (!sessionStorage.getItem(storageKey)) {
@@ -127,24 +127,19 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             event_name: "pageview",
-            metadata: {
-              public_id: proposalId,
-              type: "lead_visit"
-            }
+            metadata: { public_id: proposalId, type: "lead_visit" }
           })
-        })
-        .then(() => {
+        }).then(() => {
           sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview for:", proposalId);
-        })
-        .catch((err) => {
-          console.error("❌ Tracking error:", err);
+          console.log("✅ Tracked pageview:", proposalId);
+        }).catch((err) => {
+          console.error("❌ Error sending pageview:", err);
         });
       } else {
         console.log("ℹ️ Pageview already tracked for:", proposalId);
       }
     } else {
-      console.warn("⚠️ No proposal ID found.");
+      console.warn("⚠️ proposalId not defined.");
     }
   });
 </script>
