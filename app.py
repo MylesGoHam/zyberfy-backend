@@ -101,15 +101,16 @@ def restrict_routes():
 
     # Public paths (do not require login)
     PUBLIC_PATHS = {
-        "/", 
-        "/login", 
-        "/signup", 
-        "/test_proposal", 
-        "/proposal", 
-        "/proposal/", 
-        "/proposal/public", 
-        "/landing"  # Make /landing publicly accessible
-    }
+    "/", 
+    "/login", 
+    "/signup", 
+    "/test_proposal", 
+    "/proposal", 
+    "/proposal/", 
+    "/proposal/public", 
+    "/proposal_view", 
+    "/landing"
+}
 
     if request.path in PUBLIC_PATHS:
         return
