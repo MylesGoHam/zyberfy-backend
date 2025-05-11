@@ -753,6 +753,22 @@ def proposal():
 
     return render_template("proposal.html", show_qr=show_qr)
 
+@app.route("/proposal_view")
+def proposal_view():
+    form_id = request.args.get("form_id")
+
+    if not form_id:
+        return "Missing form ID", 400
+
+    proposal = get_proposal_by_form_id(form_id)
+    if not proposal:
+        return "Proposal not found", 404
+
+    client_email = proposal["client_email"]
+    log_event("pageview", user_email=client_email, metadata={"form_id": form_id})
+
+    return render_template("public_proposal.html", proposal=proposal)
+
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
