@@ -480,15 +480,15 @@ def analytics():
     # Aggregate totals
     totals = conn.execute("""
         SELECT 
-            event_type, 
+            event_name, 
             COUNT(*) AS cnt 
         FROM analytics_events 
         WHERE user_email = ? AND date(timestamp) >= ? 
-        GROUP BY event_type
+        GROUP BY event_name
     """, (user_email, since)).fetchall()
 
     # Map totals
-    stats = {row["event_type"]: row["cnt"] for row in totals}
+    stats = {row["event_name"]: row["cnt"] for row in totals}
     pageviews = stats.get("pageview", 0)
     generated = stats.get("generated_proposal", 0)
     sent = stats.get("sent_proposal", 0)
@@ -497,12 +497,12 @@ def analytics():
     # Line chart data
     raw = conn.execute("""
         SELECT 
-            event_type, 
+            event_name, 
             DATE(timestamp) as day, 
             COUNT(*) AS cnt 
         FROM analytics_events 
         WHERE user_email = ? AND date(timestamp) >= ? 
-        GROUP BY event_type, day
+        GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
     date_map = {d.strftime("%Y-%m-%d"): i for i, d in enumerate([since + timedelta(days=i) for i in range(range_days)])}
@@ -513,17 +513,17 @@ def analytics():
     for row in raw:
         idx = date_map.get(row["day"])
         if idx is not None:
-            if row["event_type"] == "pageview":
+            if row["event_name"] == "pageview":
                 line_data[idx] = row["cnt"]
-            elif row["event_type"] == "generated_proposal":
+            elif row["event_name"] == "generated_proposal":
                 gen_data[idx] = row["cnt"]
-            elif row["event_type"] == "sent_proposal":
+            elif row["event_name"] == "sent_proposal":
                 sent_data[idx] = row["cnt"]
 
     labels = [(since + timedelta(days=i)).strftime("%b %-d") for i in range(range_days)]
 
     recent_events = conn.execute(
-        "SELECT event_type, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
+        "SELECT event_name, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
         (user_email,)
     ).fetchall()
 
@@ -558,15 +558,15 @@ def analytics_data():
 
     # Totals
     pageviews = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'pageview' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'pageview' AND timestamp >= ?",
         (user_email, since)
     ).fetchone()["cnt"]
     generated = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'generated_proposal' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'generated_proposal' AND timestamp >= ?",
         (user_email, since)
     ).fetchone()["cnt"]
     sent = conn.execute(
-        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'sent_proposal' AND timestamp >= ?",
+        "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'sent_proposal' AND timestamp >= ?",
         (user_email, since)
     ).fetchone()["cnt"]
     conversion_rate = (sent / generated * 100) if generated else 0
@@ -575,15 +575,15 @@ def analytics_data():
     pv_data, gen_data, sent_data = [], [], []
     for d in dates:
         pv = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'pageview' AND date(timestamp) = ?",
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'pageview' AND date(timestamp) = ?",
             (user_email, d)
         ).fetchone()["cnt"]
         gp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'generated_proposal' AND date(timestamp) = ?",
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'generated_proposal' AND date(timestamp) = ?",
             (user_email, d)
         ).fetchone()["cnt"]
         sp = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_type = 'sent_proposal' AND date(timestamp) = ?",
+            "SELECT COUNT(*) AS cnt FROM analytics_events WHERE user_email = ? AND event_name = 'sent_proposal' AND date(timestamp) = ?",
             (user_email, d)
         ).fetchone()["cnt"]
         pv_data.append(pv)
@@ -593,7 +593,7 @@ def analytics_data():
     # Recent events
     recent_events = conn.execute(
         """
-        SELECT event_type, timestamp 
+        SELECT event_name, timestamp 
         FROM analytics_events 
         WHERE user_email = ? 
         ORDER BY datetime(timestamp) DESC 
@@ -614,7 +614,7 @@ def analytics_data():
         "gen_data": gen_data,
         "sent_data": sent_data,
         "recent_events": [
-            {"event_type": e["event_type"], "timestamp": e["timestamp"]} for e in recent_events
+            {"event_type": e["event_name"], "timestamp": e["timestamp"]} for e in recent_events
         ]
     })
 
@@ -634,7 +634,7 @@ def export_analytics():
     uid = user["id"]
 
     events = conn.execute(
-        "SELECT event_type, timestamp FROM analytics_events WHERE user_id = ? ORDER BY timestamp DESC",
+        "SELECT event_name, timestamp FROM analytics_events WHERE user_id = ? ORDER BY timestamp DESC",
         (uid,)
     ).fetchall()
     conn.close()
@@ -642,9 +642,9 @@ def export_analytics():
     # Write to CSV in memory
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Event Type", "Timestamp"])
+    writer.writerow(["Event Name", "Timestamp"])
     for row in events:
-        writer.writerow([row["event_type"], row["timestamp"]])
+        writer.writerow([row["event_name"], row["timestamp"]])
     output.seek(0)
 
     return send_file(
@@ -874,7 +874,11 @@ def log_event_route():
 
     if event_type:
         print(f"[EVENT] {event_type} from {referrer}")
-        log_event(session["email"], event_type)
+        log_event(
+            event_name=event_type,
+            user_email=session["email"],
+            metadata={"referrer": referrer}
+        )
         return jsonify({"status": "ok"}), 200
 
     return jsonify({"error": "missing event_type"}), 400
