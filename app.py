@@ -812,15 +812,15 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Track 1 pageview per visitor per session — always, even if logged in
-    if not session.get(f"viewed_{public_id}"):
-        session[f"viewed_{public_id}"] = True
-        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
+    # 🔐 SERVER-SIDE pageview logging fallback (for private mode, JS-disabled, etc.)
+    if not session.get("email") and not session.get(f"server_viewed_{public_id}"):
+        session[f"server_viewed_{public_id}"] = True
         log_event(
             event_name="pageview",
             user_email=client_email,
-            metadata={"public_id": public_id, "source": "lead_proposal"}
+            metadata={"public_id": public_id, "source": "server_fallback"}
         )
+        
     else:
         print(f"[TRACK] Pageview already tracked this session.")
 
