@@ -801,18 +801,18 @@ def proposal_view():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
-    proposal_user = conn.execute(
-        "SELECT user_email FROM proposals WHERE public_id = ?", (public_id,)
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
     ).fetchone()
     conn.close()
 
-    if not proposal_user:
+    if not proposal:
         return "Invalid proposal link.", 404
 
-    client_email = proposal_user["user_email"]
+    client_email = proposal["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Only track if visitor is not logged in and hasn't already triggered it
+    # ✅ Only track if visitor is NOT logged in and hasn't already viewed it
     if "email" not in session and not session.get(f"viewed_{public_id}"):
         session[f"viewed_{public_id}"] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
@@ -840,11 +840,8 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template(
-        "public_proposal.html",
-        public_id=public_id,
-        show_qr=show_qr
-    )
+    # ✅ Now rendering the full proposal info for the template
+    return render_template("public_proposal.html", proposal=proposal)
 
 @app.route("/generate_qr")
 def generate_qr():
