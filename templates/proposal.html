@@ -5,9 +5,9 @@
 <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
 
   <!-- Back to Dashboard Link -->
-  <a href="{{ url_for('dashboard') }}" class="inline-block text-sm text-blue-600 hover:underline mb-4">
-    ← Back to Dashboard
-  </a>
+{% if show_qr %}
+  <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">← Back to Dashboard</a>
+{% endif %}
 
   <!-- Page Title -->
   <h1 class="text-2xl font-bold text-blue-600 mb-6">Proposal Submission Page</h1>
