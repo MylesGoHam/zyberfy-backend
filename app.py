@@ -801,14 +801,17 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Track pageview from visitors (not logged-in users)
+    # ✅ Track only 1 pageview per visitor session
     if "email" not in session and not session.get(f"viewed_{public_id}"):
         session[f"viewed_{public_id}"] = True
+        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
             event_name="pageview",
             user_email=client_email,
-            metadata={"source": "public_proposal", "public_id": public_id}
+            metadata={"public_id": public_id, "source": "public_proposal"}
         )
+    else:
+        print(f"[TRACK] Pageview already tracked or user is logged in.")
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -819,9 +822,7 @@ def public_proposal(public_id):
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        pid = handle_new_proposal(
-            name, email, company, services, budget, timeline, message, client_email
-        )
+        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
         if pid:
             return redirect(url_for("thank_you", pid=pid))
         else:
