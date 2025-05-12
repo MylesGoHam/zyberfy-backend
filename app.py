@@ -801,6 +801,15 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
+    # ✅ Track pageview from visitors (not logged-in users)
+    if "email" not in session and not session.get(f"viewed_{public_id}"):
+        session[f"viewed_{public_id}"] = True
+        log_event(
+            event_name="pageview",
+            user_email=client_email,
+            metadata={"source": "public_proposal", "public_id": public_id}
+        )
+
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
