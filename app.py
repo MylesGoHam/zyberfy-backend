@@ -819,7 +819,7 @@ def public_proposal(public_id):
         log_event(
             event_name="pageview",
             user_email=client_email,
-            metadata={"public_id": public_id, "source": "public_proposal"}
+            metadata={"public_id": public_id, "source": "lead_proposal"}
         )
     else:
         print(f"[TRACK] Pageview already tracked this session.")
