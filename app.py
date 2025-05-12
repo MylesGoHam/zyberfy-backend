@@ -669,29 +669,23 @@ def track_event():
         data = request.get_json()
         event_name = data.get("event_name")
         metadata = data.get("metadata", {})
+        user_email = None
 
-        print("📩 Incoming track_event:")
-        print("Event:", event_name)
-        print("Metadata:", metadata)
-
-        user_email = data.get("user_email")
+        # Resolve user_email from public_id if present
         public_id = metadata.get("public_id")
-
-        # Fallback: Look up client email from proposals table using public_id
-        if not user_email and public_id:
+        if public_id:
             conn = get_db_connection()
             row = conn.execute(
-                "SELECT user_email FROM proposals WHERE public_id = ?", (public_id,)
+                "SELECT user_email FROM proposals WHERE public_id = ?",
+                (public_id,)
             ).fetchone()
             conn.close()
             if row:
                 user_email = row["user_email"]
 
-        if not user_email:
-            print("❌ No user_email could be resolved")
-            return jsonify({"error": "Missing user_email"}), 400
-
+        # Log the event
         log_event(event_name, user_email=user_email, metadata=metadata)
+        print(f"[TRACK] {event_name} for user: {user_email}")
         return jsonify({"status": "ok"}), 200
 
     except Exception as e:
