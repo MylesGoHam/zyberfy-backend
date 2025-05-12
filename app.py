@@ -801,9 +801,15 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Session flag for non-logged-in leads (used for JS tracking logic if needed)
-    if "email" not in session and not session.get(f"viewed_{public_id}"):
-        session[f"viewed_{public_id}"] = True
+    # ✅ Public visitor only: log 1 pageview per session per proposal
+    session_key = f"viewed_{public_id}"
+    if "email" not in session and not session.get(session_key):
+        log_event(
+            event_name="pageview",
+            user_email=client_email,
+            metadata={"source": "public_form", "public_id": public_id}
+        )
+        session[session_key] = True
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -821,7 +827,6 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    # ✅ Ensure public_id is passed into the template for safe JS usage
     return render_template(
         "proposal.html",
         public_id=public_id,
