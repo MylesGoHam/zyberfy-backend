@@ -772,7 +772,7 @@ def proposal():
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
 
-    return render_template("proposal.html", show_qr=show_qr)
+    return render_template("dashboard_proposal.html", show_qr=show_qr)
 
 @app.route("/proposal_view")
 def proposal_view():
@@ -812,17 +812,17 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
-    # 🔐 SERVER-SIDE pageview logging fallback (for private mode, JS-disabled, etc.)
-    if not session.get("email") and not session.get(f"server_viewed_{public_id}"):
-        session[f"server_viewed_{public_id}"] = True
+    # ✅ Only track if visitor is not logged in and hasn't already triggered it
+    if "email" not in session and not session.get(f"viewed_{public_id}"):
+        session[f"viewed_{public_id}"] = True
+        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
             event_name="pageview",
             user_email=client_email,
-            metadata={"public_id": public_id, "source": "server_fallback"}
+            metadata={"public_id": public_id, "source": "public_proposal"}
         )
-        
     else:
-        print(f"[TRACK] Pageview already tracked this session.")
+        print(f"[TRACK] Pageview already tracked or client is logged in.")
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -841,7 +841,7 @@ def public_proposal(public_id):
             return redirect(url_for("public_proposal", public_id=public_id))
 
     return render_template(
-        "proposal.html",
+        "public_proposal.html",
         public_id=public_id,
         show_qr=show_qr
     )
