@@ -801,16 +801,6 @@ def public_proposal(public_id):
     client_email = proposal_user["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Public visitor only: log 1 pageview per session per proposal
-    session_key = f"viewed_{public_id}"
-    if "email" not in session and not session.get(session_key):
-        log_event(
-            event_name="pageview",
-            user_email=client_email,
-            metadata={"source": "public_form", "public_id": public_id}
-        )
-        session[session_key] = True
-
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -820,7 +810,9 @@ def public_proposal(public_id):
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        pid = handle_new_proposal(
+            name, email, company, services, budget, timeline, message, client_email
+        )
         if pid:
             return redirect(url_for("thank_you", pid=pid))
         else:
@@ -929,6 +921,10 @@ def patch_users_columns():
         return f"Error: {str(e)}"
     finally:
         conn.close()
+
+@app.context_processor
+def inject_user():
+    return dict(email=session.get("email"))
 
 
 
