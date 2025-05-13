@@ -322,7 +322,6 @@ def dashboard():
             generate_qr_code(user_row["public_id"])
 
     session["plan_status"] = user_row["plan_status"]
-    log_event("pageview", session["email"])  
 
     return render_template(
         "dashboard.html",
@@ -812,20 +811,20 @@ def public_proposal(public_id):
     client_email = proposal["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Track only if visitor is NOT the logged-in client and hasn't viewed it yet
-    already_viewed = session.get(f"viewed_{public_id}")
-    viewer_is_client = session.get("email") == client_email
+    # ✅ Only count pageview if user is NOT logged in as that client and hasn't viewed this public_id
+    is_client = session.get("email") == client_email
+    has_viewed = session.get(f"viewed_{public_id}")
 
-    if not viewer_is_client and not already_viewed:
+    if not is_client and not has_viewed:
         session[f"viewed_{public_id}"] = True
-        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
+        print(f"[TRACK ✅] Logging pageview for public proposal: {public_id}")
         log_event(
             event_name="pageview",
             user_email=client_email,
             metadata={"public_id": public_id, "source": "public_proposal"}
         )
     else:
-        print(f"[TRACK] Pageview skipped (already viewed or client logged in): {public_id}")
+        print(f"[SKIP 🚫] Not logging pageview (logged in or already tracked): {public_id}")
 
     if request.method == "POST":
         name     = request.form.get("name")
