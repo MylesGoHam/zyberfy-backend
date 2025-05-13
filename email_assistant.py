@@ -8,25 +8,23 @@ from models import get_db_connection
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert
 from analytics import log_event
+from models import get_user_automation
 
-# Load environment variables
+# Load API keys
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
-        conn = get_db_connection()
-        settings = conn.execute("""
-            SELECT first_name, company_name, position, website, phone, reply_to, tone, length
-            FROM automation_settings
-            WHERE email = ?
-        """, (client_email,)).fetchone()
-        conn.close()
+        public_id = str(uuid.uuid4())
 
+        # Get automation settings
+        settings = get_user_automation(client_email)
         if not settings:
-            raise ValueError("Client automation settings not found.")
+            print("[ERROR] No automation settings found.")
+            return None
 
-        # Prepare GPT prompt
+        # Generate proposal using OpenAI
         prompt = (
             f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
             f"Client: {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
@@ -42,38 +40,51 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             max_tokens=500,
             temperature=0.7
         )
-
         proposal_text = response["choices"][0]["message"]["content"].strip()
-        public_id = str(uuid.uuid4())
 
-        # Save to DB
+        # Save proposal to database
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (
-                user_email, name, email, company, services, budget, timeline, message,
-                generated_proposal, public_id, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                public_id,
+                user_email,
+                lead_name,
+                lead_email,
+                lead_company,
+                services,
+                budget,
+                timeline,
+                message,
+                proposal_text
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            client_email, name, email, company, services, budget, timeline, message,
-            proposal_text, public_id, datetime.utcnow()
+            public_id,
+            client_email,
+            name,
+            email,
+            company,
+            services,
+            budget,
+            timeline,
+            message,
+            proposal_text
         ))
         conn.commit()
         conn.close()
 
-        # Log event
-        log_event("generated_proposal", user_email=client_email, metadata={"lead_email": email})
+        # Log analytics event
+        log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
 
-        # Send email
+        # Send proposal email
         send_proposal_email(
             to=email,
             proposal=proposal_text,
             from_name=settings["first_name"]
         )
 
-        # Optional SMS (resume after toll-free approved)
-        # if settings["phone"]:
-        #     sms_message = f"New proposal from {name} for {services}. Check your dashboard."
-        #     send_sms_alert(settings["phone"], sms_message, user_email=client_email)
+        # Optional SMS
+        # sms_msg = f"New proposal from {name} for {services} just submitted."
+        # send_sms_alert(settings["phone"], sms_msg, user_email=client_email)
 
         return public_id
 
