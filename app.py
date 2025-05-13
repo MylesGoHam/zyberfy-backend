@@ -22,6 +22,7 @@ from models import (
     create_subscriptions_table,
     create_analytics_events_table,
     create_proposals_table,
+    create_offers_table,
     get_user_automation,
     log_event
 )
