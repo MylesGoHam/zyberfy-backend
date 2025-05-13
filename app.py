@@ -471,6 +471,9 @@ def analytics():
     if "email" not in session:
         return redirect(url_for("login"))
 
+    # ✅ Track pageview when visiting the analytics page
+    log_event("pageview", session["email"], metadata={"source": "analytics"})
+
     conn = get_db_connection()
     user_email = session["email"]
 
