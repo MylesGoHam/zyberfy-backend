@@ -844,6 +844,48 @@ def public_proposal(public_id):
 
     return render_template("public_proposal.html", proposal=proposal)
 
+@app.route("/submit_offer", methods=["POST"])
+def submit_offer():
+    public_id = request.form.get("form_id")
+    amount = request.form.get("offer_amount")
+
+    if not public_id or not amount:
+        flash("Missing required information.", "error")
+        return redirect(request.referrer or "/")
+
+    try:
+        amount_int = int(amount)
+    except ValueError:
+        flash("Offer must be a valid number.", "error")
+        return redirect(request.referrer or "/")
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO offers (public_id, offer_amount)
+        VALUES (?, ?)
+    """, (public_id, amount_int))
+    conn.commit()
+
+    # Look up the proposal’s client
+    proposal = conn.execute(
+        "SELECT user_email FROM proposals WHERE public_id = ?",
+        (public_id,)
+    ).fetchone()
+    conn.close()
+
+    if proposal:
+        log_event(
+            "offer_submitted",
+            user_email=proposal["user_email"],
+            metadata={"public_id": public_id, "amount": amount_int}
+        )
+
+        # Later: email/SMS alert to client
+        print(f"[OFFER] ${amount_int} submitted for proposal: {public_id}")
+
+    flash("Offer submitted successfully!", "success")
+    return redirect(url_for("thank_you", pid=public_id))
+
 @app.route("/generate_qr")
 def generate_qr():
     if "email" not in session:
