@@ -811,20 +811,20 @@ def public_proposal(public_id):
     client_email = proposal["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Only count pageview if user is NOT logged in as that client and hasn't viewed this public_id
+    # ✅ Only skip tracking if the current user IS the client
     is_client = session.get("email") == client_email
-    has_viewed = session.get(f"viewed_{public_id}")
+    viewed_key = f"viewed_{public_id}"
 
-    if not is_client and not has_viewed:
-        session[f"viewed_{public_id}"] = True
-        print(f"[TRACK ✅] Logging pageview for public proposal: {public_id}")
+    if not is_client and not session.get(viewed_key):
+        session[viewed_key] = True
+        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
             event_name="pageview",
             user_email=client_email,
             metadata={"public_id": public_id, "source": "public_proposal"}
         )
     else:
-        print(f"[SKIP 🚫] Not logging pageview (logged in or already tracked): {public_id}")
+        print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -842,7 +842,7 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template("public_proposal.html", proposal=proposal, show_qr=show_qr)
+    return render_template("public_proposal.html", proposal=proposal)
 
 @app.route("/generate_qr")
 def generate_qr():
