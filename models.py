@@ -124,11 +124,7 @@ def create_proposals_table():
 import json
 from datetime import datetime
 
-def log_event(event_name, user_email, metadata=None):
-    if not user_email:
-        print(f"[LOG EVENT] Skipped: No user_email provided for {event_name}")
-        return
-
+def log_event(event_name, user_email=None, metadata=None):
     print(f"[LOG EVENT] {event_name=} {user_email=} {metadata=}")
     conn = get_db_connection()
     conn.execute(
