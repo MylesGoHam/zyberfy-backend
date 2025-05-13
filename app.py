@@ -848,45 +848,36 @@ def public_proposal(public_id):
 @app.route("/submit_offer", methods=["POST"])
 def submit_offer():
     form_id = request.form.get("form_id")
-    amount = request.form.get("offer_amount")
+    offer_amount = request.form.get("offer_amount")
 
-    if not form_id or not amount:
-        flash("Missing form ID or offer amount.", "error")
+    if not form_id or not offer_amount:
+        flash("Missing required fields.", "error")
         return redirect(request.referrer or "/")
 
     try:
-        offer_amount = int(amount)
-    except ValueError:
-        flash("Invalid offer amount.", "error")
-        return redirect(request.referrer or "/")
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO offers (public_id, offer_amount)
+            VALUES (?, ?)
+        """, (form_id, offer_amount))
+        conn.commit()
 
-    # Insert the offer
-    conn = get_db_connection()
-    conn.execute(
-        """
-        INSERT INTO offers (public_id, offer_amount)
-        VALUES (?, ?)
-        """,
-        (form_id, offer_amount)
-    )
-    conn.commit()
+        # Lookup user_email from proposals
+        row = conn.execute("SELECT user_email FROM proposals WHERE public_id = ?", (form_id,)).fetchone()
+        user_email = row["user_email"] if row else None
+        conn.close()
 
-    # Fetch the client email to log and potentially notify
-    row = conn.execute(
-        "SELECT user_email FROM proposals WHERE public_id = ?",
-        (form_id,)
-    ).fetchone()
-    conn.close()
+        # Log event
+        if user_email:
+            log_event("offer_submitted", user_email=user_email, metadata={"public_id": form_id, "amount": offer_amount})
 
-    if row:
-        log_event(
-            event_name="offer_submitted",
-            user_email=row["user_email"],
-            metadata={"form_id": form_id, "amount": offer_amount}
-        )
+        flash("Offer submitted successfully!", "success")
+        return redirect(url_for("public_proposal", public_id=form_id))
 
-    flash("Offer submitted successfully!", "success")
-    return redirect(request.referrer or "/")
+    except Exception as e:
+        print("[ERROR] Offer submission failed:", e)
+        flash("There was an error submitting your offer.", "error")
+        return redirect(url_for("public_proposal", public_id=form_id))
 
 @app.route("/generate_qr")
 def generate_qr():
