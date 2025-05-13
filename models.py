@@ -78,13 +78,13 @@ def create_subscriptions_table():
 def create_analytics_events_table():
     conn = get_db_connection()
     conn.execute("""
-      CREATE TABLE IF NOT EXISTS analytics_events (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id    INTEGER NOT NULL,
-        event_type TEXT    NOT NULL,
-        timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-      );
+        CREATE TABLE IF NOT EXISTS analytics_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_name TEXT NOT NULL,
+            user_email TEXT,
+            metadata TEXT,
+            timestamp TEXT
+        )
     """)
     conn.commit()
     conn.close()
@@ -124,7 +124,12 @@ def create_proposals_table():
 import json
 from datetime import datetime
 
-def log_event(event_name, user_email=None, metadata=None):
+def log_event(event_name, user_email, metadata=None):
+    if not user_email:
+        print(f"[LOG EVENT] Skipped: No user_email provided for {event_name}")
+        return
+
+    print(f"[LOG EVENT] {event_name=} {user_email=} {metadata=}")
     conn = get_db_connection()
     conn.execute(
         "INSERT INTO analytics_events (event_name, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
