@@ -812,8 +812,11 @@ def public_proposal(public_id):
     client_email = proposal["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Only track if visitor is NOT the logged-in client and hasn't viewed it yet
-    if (not session.get("email") or session["email"] != client_email) and not session.get(f"viewed_{public_id}"):
+    # ✅ Track only if visitor is NOT the logged-in client and hasn't viewed it yet
+    already_viewed = session.get(f"viewed_{public_id}")
+    viewer_is_client = session.get("email") == client_email
+
+    if not viewer_is_client and not already_viewed:
         session[f"viewed_{public_id}"] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
@@ -840,7 +843,7 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template("public_proposal.html", proposal=proposal)
+    return render_template("public_proposal.html", proposal=proposal, show_qr=show_qr)
 
 @app.route("/generate_qr")
 def generate_qr():
