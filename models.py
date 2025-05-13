@@ -100,6 +100,21 @@ def get_user_automation(email: str):
     conn.close()
     return row
 
+def create_offers_table():
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS offers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            public_id TEXT NOT NULL,
+            offer_amount INTEGER NOT NULL,
+            status TEXT DEFAULT 'pending',
+            submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(public_id) REFERENCES proposals(public_id)
+        );
+    """)
+    conn.commit()
+    conn.close()
+
 def create_proposals_table():
     conn = get_db_connection()
     conn.execute("""
