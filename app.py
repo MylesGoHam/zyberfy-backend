@@ -322,7 +322,7 @@ def dashboard():
             generate_qr_code(user_row["public_id"])
 
     session["plan_status"] = user_row["plan_status"]
-    log_event(session["email"], "pageview")
+    log_event("pageview", session["email"])  
 
     return render_template(
         "dashboard.html",
