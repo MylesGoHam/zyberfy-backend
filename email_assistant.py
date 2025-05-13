@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from models import get_db_connection
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert
-from analytics import log_event
+from models import log_event
 from models import get_user_automation
 
 # Load API keys
