@@ -127,17 +127,22 @@
     const res = await fetch(`/analytics-data?range=${range}&event_type=${eventType}`);
     const data = await res.json();
 
+    if (data.error) return;
+
+    // Update summary stats
     document.getElementById('stat-pageviews').textContent = data.pageviews;
     document.getElementById('stat-generated').textContent = data.generated;
     document.getElementById('stat-sent').textContent = data.sent;
     document.getElementById('stat-conversion').textContent = data.conversion_rate + '%';
 
+    // Update chart
     chart.data.labels = data.labels;
     chart.data.datasets[0].data = data.pv_data;
     chart.data.datasets[1].data = data.gen_data;
     chart.data.datasets[2].data = data.sent_data;
     chart.update();
 
+    // Update recent events
     const filterValue = document.getElementById("activityFilter").value;
     const sortValue = document.getElementById("activitySort").value;
     let filteredEvents = [...data.recent_events];
@@ -168,11 +173,13 @@
     window.location.href = `/export-analytics?range=${range}&event_type=${eventType}`;
   }
 
+  // Bind events
   document.getElementById("range").addEventListener("change", refreshAnalytics);
   document.getElementById("eventType").addEventListener("change", refreshAnalytics);
   document.getElementById("activityFilter").addEventListener("change", refreshAnalytics);
   document.getElementById("activitySort").addEventListener("change", refreshAnalytics);
 
+  // Refresh on page load and every 10 seconds
   refreshAnalytics();
   setInterval(refreshAnalytics, 10000);
 </script>
