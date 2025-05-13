@@ -811,19 +811,20 @@ def public_proposal(public_id):
     client_email = proposal["user_email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Only track if user is not the client, regardless of incognito or not
+    # ✅ Only skip tracking if the current user IS the client
     is_client = session.get("email") == client_email
-    has_viewed = request.cookies.get(f"viewed_{public_id}")
+    viewed_key = f"viewed_{public_id}"
 
-    if not is_client and not has_viewed:
+    if not is_client and not session.get(viewed_key):
+        session[viewed_key] = True
+        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
             event_name="pageview",
             user_email=client_email,
             metadata={"public_id": public_id, "source": "public_proposal"}
         )
-        print(f"[TRACK] ✅ Counted pageview for client: {client_email}")
     else:
-        print(f"[TRACK] ❌ Skipped pageview (client or already viewed): {client_email}")
+        print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
     if request.method == "POST":
         name     = request.form.get("name")
@@ -836,18 +837,12 @@ def public_proposal(public_id):
 
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
         if pid:
-            response = redirect(url_for("thank_you", pid=pid))
+            return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
-    else:
-        response = make_response(render_template("public_proposal.html", proposal=proposal))
 
-    # ✅ Set cookie to mark as viewed
-    if not has_viewed and not is_client:
-        response.set_cookie(f"viewed_{public_id}", "true", max_age=60*60*24*30)
-
-    return response
+    return render_template("public_proposal.html", proposal=proposal)
 
 @app.route("/generate_qr")
 def generate_qr():
