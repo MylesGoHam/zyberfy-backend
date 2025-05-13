@@ -847,45 +847,46 @@ def public_proposal(public_id):
 
 @app.route("/submit_offer", methods=["POST"])
 def submit_offer():
-    public_id = request.form.get("form_id")
+    form_id = request.form.get("form_id")
     amount = request.form.get("offer_amount")
 
-    if not public_id or not amount:
-        flash("Missing required information.", "error")
+    if not form_id or not amount:
+        flash("Missing form ID or offer amount.", "error")
         return redirect(request.referrer or "/")
 
     try:
-        amount_int = int(amount)
+        offer_amount = int(amount)
     except ValueError:
-        flash("Offer must be a valid number.", "error")
+        flash("Invalid offer amount.", "error")
         return redirect(request.referrer or "/")
 
+    # Insert the offer
     conn = get_db_connection()
-    conn.execute("""
+    conn.execute(
+        """
         INSERT INTO offers (public_id, offer_amount)
         VALUES (?, ?)
-    """, (public_id, amount_int))
+        """,
+        (form_id, offer_amount)
+    )
     conn.commit()
 
-    # Look up the proposal’s client
-    proposal = conn.execute(
+    # Fetch the client email to log and potentially notify
+    row = conn.execute(
         "SELECT user_email FROM proposals WHERE public_id = ?",
-        (public_id,)
+        (form_id,)
     ).fetchone()
     conn.close()
 
-    if proposal:
+    if row:
         log_event(
-            "offer_submitted",
-            user_email=proposal["user_email"],
-            metadata={"public_id": public_id, "amount": amount_int}
+            event_name="offer_submitted",
+            user_email=row["user_email"],
+            metadata={"form_id": form_id, "amount": offer_amount}
         )
 
-        # Later: email/SMS alert to client
-        print(f"[OFFER] ${amount_int} submitted for proposal: {public_id}")
-
     flash("Offer submitted successfully!", "success")
-    return redirect(url_for("thank_you", pid=public_id))
+    return redirect(request.referrer or "/")
 
 @app.route("/generate_qr")
 def generate_qr():
