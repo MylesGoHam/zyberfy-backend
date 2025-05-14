@@ -948,9 +948,18 @@ def log_event_route():
 def thank_you():
     pid = request.args.get("pid")
     if not pid:
-        return redirect(url_for("proposal"))
-    full_url = url_for("view_proposal", pid=pid, _external=True)
-    return render_template("thank_you.html", proposal_url=full_url)
+        return "Missing proposal ID", 400
+
+    conn = get_db_connection()
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE public_id = ?", (pid,)
+    ).fetchone()
+    conn.close()
+
+    if not proposal:
+        return "Proposal not found", 404
+
+    return render_template("thank_you.html", proposal=proposal)
 
 @app.route("/patch-users-columns")
 def patch_users_columns():
