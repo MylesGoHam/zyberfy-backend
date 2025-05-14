@@ -946,19 +946,20 @@ def log_event_route():
 
 @app.route("/thank-you")
 def thank_you():
-    pid = request.args.get("pid")
-    if not pid:
-        return "Unauthorized", 403
+    public_id = request.args.get("pid")
+    if not public_id:
+        return "Missing proposal ID", 400
 
     conn = get_db_connection()
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE public_id = ?", (pid,)
+        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
     ).fetchone()
     conn.close()
 
     if not proposal:
-        return "Invalid or missing proposal ID", 404
+        return "Proposal not found", 404
 
+    # ✅ This is now public — no login required
     return render_template("thank_you.html", proposal=proposal)
 
 @app.route("/patch-users-columns")
