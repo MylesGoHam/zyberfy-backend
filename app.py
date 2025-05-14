@@ -947,6 +947,8 @@ def log_event_route():
 @app.route("/thank-you")
 def thank_you():
     pid = request.args.get("pid")
+    print(f"[DEBUG] Received PID: {pid}")
+
     if not pid:
         return "Unauthorized", 403
 
@@ -954,6 +956,7 @@ def thank_you():
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
     conn.close()
 
+    print(f"[DEBUG] Proposal Found: {proposal is not None}")
     if proposal is None:
         return "Unauthorized", 403
 
