@@ -72,14 +72,10 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # Log analytics event
-        log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
-
-        # Send proposal email
         send_proposal_email(
-            to=email,
-            proposal=proposal_text,
-            from_name=settings["first_name"]
+            to_email=email,
+            subject="Your Custom Proposal from " + settings["first_name"],
+            content=proposal_text
         )
 
         # Optional SMS
