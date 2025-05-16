@@ -119,6 +119,7 @@ def restrict_routes():
         "/proposal/public", 
         "/proposal_view", 
         "/landing"
+        "/test-stripe-signup"
     }
 
     if request.path in PUBLIC_PATHS:
