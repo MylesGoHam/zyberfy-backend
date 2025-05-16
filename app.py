@@ -949,18 +949,18 @@ def log_event_route():
 
 @app.route("/thank-you")
 def thank_you():
-    # Just a static thank-you preview
-    fake_proposal = {
-        "lead_name": "John Doe",
-        "lead_email": "john@example.com",
-        "lead_company": "Empire Interiors",
-        "services": "Room Design",
-        "budget": "$1,000–$3,000",
-        "timeline": "July 4th",
-        "message": "Please help with 3 rooms",
-        "proposal_text": "Dear Mr. Doe,\n\nHere's your custom proposal preview..."
-    }
-    return render_template("thank_you.html", proposal=fake_proposal)
+    pid = request.args.get("pid")
+    if not pid:
+        return "Unauthorized", 403
+
+    conn = get_db_connection()
+    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
+    conn.close()
+
+    if proposal is None:
+        return "Unauthorized", 403
+
+    return render_template("thank_you.html", proposal=proposal)
 
 @app.context_processor
 def inject_user():
