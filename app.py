@@ -866,7 +866,9 @@ def proposal():
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
 
+    show_qr = False  # or True, depending on logic
     return render_template("dashboard_proposal.html", show_qr=show_qr)
+
 
 @app.route("/proposal_view")
 def proposal_view():
@@ -895,18 +897,17 @@ def proposal_view():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
     conn = get_db_connection()
-    proposal = conn.execute(
-        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+    user = conn.execute(
+        "SELECT * FROM users WHERE public_id = ?", (public_id,)
     ).fetchone()
     conn.close()
 
-    if not proposal:
+    if not user:
         return "Invalid proposal link.", 404
 
-    client_email = proposal["user_email"]
+    client_email = user["email"]
     show_qr = session.get("email") == client_email
 
-    # ✅ Only skip tracking if the current user IS the client
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
 
@@ -937,7 +938,7 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    return render_template("public_proposal.html", proposal=proposal)
+    return render_template("public_proposal.html", proposal=user)
 
 @app.route("/submit_offer", methods=["POST"])
 def submit_offer():
