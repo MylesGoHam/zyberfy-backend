@@ -267,9 +267,9 @@ def test_success():
 
     return "✅ Test user created and logged in. You can now visit the dashboard."
 
-@app.route("/test-signup")
-def test_signup():
-    test_email = "testlead@example.com"  # Use any test email
+@app.route("/test-stripe-signup")
+def test_stripe_signup():
+    test_email = "testlead@example.com"
     price_id = "price_1REQ6RKpgIhBPea4EMSakXdq"  # Starter plan
 
     try:
@@ -281,7 +281,7 @@ def test_signup():
                 "quantity": 1,
             }],
             mode="subscription",
-            success_url=url_for("test_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
+            success_url=url_for("test_stripe_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=url_for("index", _external=True),
         )
         return redirect(checkout_session.url)
@@ -289,8 +289,8 @@ def test_signup():
         return str(e), 400
 
 
-@app.route("/test-success")
-def test_success():
+@app.route("/test-stripe-success")
+def test_stripe_success():
     session_id = request.args.get("session_id")
     if not session_id:
         return "Missing session ID", 400
@@ -298,7 +298,6 @@ def test_success():
     session_obj = stripe.checkout.Session.retrieve(session_id)
     customer_email = session_obj.get("customer_email")
 
-    # Insert the user into the database
     conn = get_db_connection()
     conn.execute("""
         INSERT INTO users (email, password, name, plan_status)
@@ -307,7 +306,6 @@ def test_success():
     conn.commit()
     conn.close()
 
-    # Log the user in
     session["email"] = customer_email
     return redirect(url_for("dashboard"))
 
