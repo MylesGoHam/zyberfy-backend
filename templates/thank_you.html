@@ -4,14 +4,11 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
-  
-  <!-- Success banner -->
   <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded shadow text-sm mb-6">
     <strong>Thank you!</strong> Your proposal has been submitted.
     We'll review your request and follow up shortly. A copy of your custom proposal has been emailed to you.
   </div>
 
-  <!-- Lead Submission Summary -->
   <h2 class="text-xl font-semibold text-blue-600 mb-4">Proposal Summary</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
     <div><strong>Name:</strong> {{ proposal.lead_name }}</div>
@@ -23,7 +20,6 @@
     <div class="sm:col-span-2"><strong>Message:</strong> {{ proposal.message }}</div>
   </div>
 
-  <!-- Proposal Content -->
   {% if proposal.proposal_text %}
   <div class="mt-8">
     <h3 class="text-lg font-medium text-blue-600 mb-2">Generated Proposal</h3>
@@ -33,7 +29,6 @@
   </div>
   {% endif %}
 
-  <!-- Footer Actions -->
   <div class="mt-8 text-center">
     <a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded shadow text-sm">
       Return to Homepage
