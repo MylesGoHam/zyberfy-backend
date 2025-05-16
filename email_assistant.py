@@ -1,14 +1,14 @@
+# email_assistant.py
+
 import openai
 import uuid
 import os
 from datetime import datetime
 from dotenv import load_dotenv
 
-from models import get_db_connection
+from models import get_db_connection, get_user_automation, log_event
 from email_utils import send_proposal_email
-from sms_utils import send_sms_alert
-from models import log_event
-from models import get_user_automation
+from sms_utils import send_sms_alert  # Optional, still included
 
 # Load API keys
 load_dotenv()
@@ -18,13 +18,13 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         public_id = str(uuid.uuid4())
 
-        # Get automation settings
+        # Fetch automation settings for the client
         settings = get_user_automation(client_email)
         if not settings:
             print("[ERROR] No automation settings found.")
             return None
 
-        # Generate proposal using OpenAI
+        # Construct the prompt
         prompt = (
             f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
             f"Client: {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
@@ -34,6 +34,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             f"Generate a custom response from the client to the lead."
         )
 
+        # Generate the proposal using OpenAI
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
@@ -42,7 +43,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # Save proposal to database
+        # Save to database
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (
@@ -72,13 +73,17 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
+        # Log analytics event
+        log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
+
+        # Send proposal via email
         send_proposal_email(
             to_email=email,
             subject="Your Custom Proposal from " + settings["first_name"],
             content=proposal_text
         )
 
-        # Optional SMS
+        # Optional: Send SMS alert to client
         # sms_msg = f"New proposal from {name} for {services} just submitted."
         # send_sms_alert(settings["phone"], sms_msg, user_email=client_email)
 
