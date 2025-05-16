@@ -492,21 +492,23 @@ def automation():
         "timezone": row["timezone"] if row else ""
     }
 
-    # Generate test proposal preview
-    prompt = (
-        f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-        f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
-        f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
-        f"Pretend a lead has just inquired and you're writing the first follow-up."
-    )
+    # Generate test proposal only on GET
+    preview = ""
+    if request.method == "GET":
+        prompt = (
+            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
+            f"The sender is {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
+            f"Their website is {settings['website']}, and they can be reached at {settings['reply_to']} or {settings['phone']}.\n"
+            f"Pretend a lead has just inquired and you're writing the first follow-up."
+        )
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.7
-    )
-    preview = response["choices"][0]["message"]["content"].strip()
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        preview = response["choices"][0]["message"]["content"].strip()
 
     return render_template("automation.html", preview=preview, **settings)
 
