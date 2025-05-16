@@ -767,7 +767,7 @@ def proposal():
         public_id = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         if public_id:
-            return redirect(url_for("thank_you", pid=public_id))
+            return redirect(url_for("thank_you"))
         else:
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
