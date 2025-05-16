@@ -100,25 +100,28 @@ def restrict_routes():
         print("[DEBUG] Access granted to public proposal page")
         return
 
-    # Public paths (do not require login)
+    # Add this:
+    if request.path.startswith("/thank-you"):
+        print("[DEBUG] Access granted to thank-you page")
+        return
+
     PUBLIC_PATHS = {
-    "/", 
-    "/login", 
-    "/signup", 
-    "/test_proposal", 
-    "/proposal", 
-    "/proposal/", 
-    "/proposal/public", 
-    "/proposal_view", 
-    "/landing"
-}
+        "/", 
+        "/login", 
+        "/signup", 
+        "/test_proposal", 
+        "/proposal", 
+        "/proposal/", 
+        "/proposal/public", 
+        "/proposal_view", 
+        "/landing"
+    }
 
     if request.path in PUBLIC_PATHS:
         return
 
     if "email" not in session:
         return "Unauthorized", 403
-
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
