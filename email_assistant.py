@@ -24,17 +24,26 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             print("[ERROR] No automation settings found.")
             return None
 
-        # Construct the prompt
+        # Safe fallback values
+        tone = settings.get("tone", "friendly")
+        length = settings.get("length", "concise")
+        first_name = settings.get("first_name", "Your Name")
+        position = settings.get("position", "")
+        company_name = settings.get("company_name", "Your Company")
+        website = settings.get("website", "example.com")
+        reply_to = settings.get("reply_to", "contact@example.com")
+        phone = settings.get("phone", "123-456-7890")
+
+        # Build OpenAI prompt
         prompt = (
-            f"Write a {settings['length']} business proposal in a {settings['tone']} tone.\n"
-            f"Client: {settings['first_name']} ({settings['position']}) from {settings['company_name']}.\n"
-            f"Website: {settings['website']}, Contact: {settings['reply_to']} / {settings['phone']}.\n"
+            f"Write a {length} business proposal in a {tone} tone.\n"
+            f"Client: {first_name} ({position}) from {company_name}.\n"
+            f"Website: {website}, Contact: {reply_to} / {phone}.\n"
             f"Lead Info: {name} from {company}, wants: {services}, budget: {budget}, timeline: {timeline}.\n"
             f"Extra message from lead: {message}\n"
             f"Generate a custom response from the client to the lead."
         )
 
-        # Generate the proposal using OpenAI
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
@@ -43,7 +52,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # Save to database
+        # Save proposal to database
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (
@@ -73,19 +82,19 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # Log analytics event
+        # Log the generation in analytics
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
 
-        # Send proposal via email
+        # Email the proposal to the lead
         send_proposal_email(
             to_email=email,
-            subject="Your Custom Proposal from " + settings["first_name"],
+            subject=f"Your Custom Proposal from {first_name}",
             content=proposal_text
         )
 
-        # Optional: Send SMS alert to client
+        # Optional: SMS alert to client
         # sms_msg = f"New proposal from {name} for {services} just submitted."
-        # send_sms_alert(settings["phone"], sms_msg, user_email=client_email)
+        # send_sms_alert(phone, sms_msg, user_email=client_email)
 
         return public_id
 
