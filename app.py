@@ -218,35 +218,20 @@ def onboarding():
     return render_template("onboarding.html")
 
 # Step 1: Create a Stripe test checkout route for signup
-@app.route("/test-signup", methods=["GET"])
-def test_signup():
-    # Use a test email and price
-    session_email = "testuser+dummy@zyberfy.com"
+@app.route("/test-stripe-signup")
+def test_stripe_signup():
+    session["email"] = "testsignup@example.com"
 
-    # Simulate creating a Stripe checkout session
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': 'Zyberfy Elite (Test)',
-                    },
-                    'unit_amount': 100,  # $1.00 for test purposes
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('test_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('index', _external=True),
-            customer_email=session_email
-        )
+    # Simulate Stripe subscription
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO subscriptions (email, stripe_subscription_id, price_id)
+        VALUES (?, ?, ?)
+    """, ("testsignup@example.com", "sub_test_1234", "price_1RERprKpgIhBPea4U7zezbWd"))
+    conn.commit()
+    conn.close()
 
-        return redirect(checkout_session.url)
-    except Exception as e:
-        print(f"[ERROR] Stripe session failed: {e}")
-        return "Stripe error", 500
+    return redirect(url_for("dashboard"))
 
 # Step 2: Handle success and add test user
 @app.route("/test-success")
