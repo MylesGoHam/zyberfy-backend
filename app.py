@@ -950,17 +950,26 @@ def log_event_route():
 @app.route("/thank-you")
 def thank_you():
     pid = request.args.get("pid")
+
     if not pid:
         return "Unauthorized", 403
 
-    conn = get_db_connection()
-    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE public_id = ?",
+            (pid,)
+        ).fetchone()
+        conn.close()
 
-    if proposal is None:
-        return "Unauthorized", 403
+        if proposal is None:
+            return "Unauthorized", 403
 
-    return render_template("thank_you.html", proposal=proposal)
+        return render_template("thank_you.html", proposal=proposal)
+
+    except Exception as e:
+        print(f"[ERROR] thank_you route failed: {e}")
+        return "Server Error", 500
 
 @app.context_processor
 def inject_user():
