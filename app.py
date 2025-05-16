@@ -183,6 +183,36 @@ def login():
 
     return render_template("login.html")
 
+# --- Step 1: Route to show onboarding form (GET) and save settings (POST) ---
+
+@app.route("/onboarding", methods=["GET", "POST"])
+def onboarding():
+    if request.method == "POST":
+        email = request.form.get("email")
+        first_name = request.form.get("first_name")
+        position = request.form.get("position")
+        company_name = request.form.get("company_name")
+        website = request.form.get("website")
+        phone = request.form.get("phone")
+        tone = request.form.get("tone")
+        length = request.form.get("length")
+        reply_to = request.form.get("reply_to")
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT OR REPLACE INTO automation_settings (
+                user_email, first_name, position, company_name, website,
+                phone, tone, length, reply_to
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (email, first_name, position, company_name, website, phone, tone, length, reply_to))
+        conn.commit()
+        conn.close()
+
+        flash("Automation settings saved successfully.", "success")
+        return redirect(url_for("dashboard"))
+
+    return render_template("onboarding.html")
+
 
 @app.route("/logout")
 def logout():
