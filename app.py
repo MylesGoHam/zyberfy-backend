@@ -15,6 +15,10 @@ from datetime import datetime, timedelta
 import openai
 import stripe
 
+# Load environment variables before using them
+load_dotenv()
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+
 from models import (
     get_db_connection,
     create_users_table,
