@@ -213,6 +213,67 @@ def onboarding():
 
     return render_template("onboarding.html")
 
+# Step 1: Create a Stripe test checkout route for signup
+@app.route("/test-signup", methods=["GET"])
+def test_signup():
+    # Use a test email and price
+    session_email = "testuser+dummy@zyberfy.com"
+
+    # Simulate creating a Stripe checkout session
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'Zyberfy Elite (Test)',
+                    },
+                    'unit_amount': 100,  # $1.00 for test purposes
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('test_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('index', _external=True),
+            customer_email=session_email
+        )
+
+        return redirect(checkout_session.url)
+    except Exception as e:
+        print(f"[ERROR] Stripe session failed: {e}")
+        return "Stripe error", 500
+
+# Step 2: Handle success and add test user
+@app.route("/test-success")
+def test_success():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        return "Missing session ID", 400
+
+    # Fetch details from Stripe (optional)
+    session_data = stripe.checkout.Session.retrieve(session_id)
+
+    # Simulate user creation
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT OR IGNORE INTO users (email, password, first_name, plan_status)
+        VALUES (?, ?, ?, ?)
+    """, (session_data.customer_email, "dummy123", "Test User", "elite"))
+    conn.commit()
+    conn.close()
+
+    session["email"] = session_data.customer_email
+
+    return "✅ Test user created and logged in. You can now visit the dashboard."
+
+# Optional: Add /test-dashboard route to view if test user works
+@app.route("/test-dashboard")
+def test_dashboard():
+    if "email" not in session:
+        return redirect(url_for("login"))
+    return f"Welcome, {session['email']} (Test Mode)"
+
 
 @app.route("/logout")
 def logout():
