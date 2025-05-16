@@ -20,14 +20,15 @@
     <div class="sm:col-span-2"><strong>Message:</strong> {{ proposal.message }}</div>
   </div>
 
-  {% if proposal.proposal_text %}
+{% if proposal.proposal_text %}
   <div class="mt-8">
-    <h3 class="text-lg font-medium text-blue-600 mb-2">Generated Proposal</h3>
-    <div class="bg-gray-50 p-4 border rounded text-sm leading-relaxed whitespace-pre-line">
-      {{ proposal.proposal_text }}
-    </div>
+    <h3 class="text-lg font-medium text-blue-600 mb-2">Your Proposal Is On the Way</h3>
+    <p class="text-sm text-gray-700">
+      We’ve sent your custom proposal to <strong>{{ proposal.lead_email }}</strong>.
+      Please check your inbox. If you don’t see it within a few minutes, check your spam folder.
+    </p>
   </div>
-  {% endif %}
+{% endif %}
 
   <div class="mt-8 text-center">
     <a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded shadow text-sm">
