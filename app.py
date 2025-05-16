@@ -98,17 +98,6 @@ if ADMIN_EMAIL and ADMIN_PASSWORD:
 # ─── Authentication gating ──────────────────────────────────────────────────
 @app.before_request
 def restrict_routes():
-    print(f"[DEBUG] Incoming path: {request.path}")
-
-    if request.path.startswith("/proposal/"):
-        print("[DEBUG] Access granted to public proposal page")
-        return
-
-    # Add this:
-    if request.path.startswith("/thank-you"):
-        print("[DEBUG] Access granted to thank-you page")
-        return
-
     PUBLIC_PATHS = {
         "/", 
         "/login", 
@@ -118,12 +107,24 @@ def restrict_routes():
         "/proposal/", 
         "/proposal/public", 
         "/proposal_view", 
-        "/landing"
+        "/landing",
         "/test-stripe-signup"
     }
 
-    if request.path in PUBLIC_PATHS:
+    print(f"[DEBUG] PUBLIC_PATHS: {PUBLIC_PATHS}")
+    print(f"[DEBUG] Incoming path: {request.path}")
+
+    if request.path.startswith("/proposal/"):
+        print("[DEBUG] Access granted to public proposal page")
         return
+
+    if request.path.startswith("/thank-you"):
+        print("[DEBUG] Access granted to thank-you page")
+        return
+
+    for public_path in PUBLIC_PATHS:
+        if request.path.startswith(public_path):
+            return
 
     if "email" not in session:
         return "Unauthorized", 403
