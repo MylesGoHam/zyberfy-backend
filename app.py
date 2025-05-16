@@ -946,47 +946,7 @@ def log_event_route():
 
 @app.route("/thank-you")
 def thank_you():
-    pid = request.args.get("pid")
-    print(f"[DEBUG] Received pid: {pid}")
-
-    if not pid:
-        print("[ERROR] Missing PID in URL")
-        return "Unauthorized", 403
-
-    conn = get_db_connection()
-    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (pid,)).fetchone()
-    conn.close()
-
-    if proposal is None:
-        print("[ERROR] No proposal found for PID")
-        return "Unauthorized", 403
-
-    print("[SUCCESS] Proposal found and rendering page.")
-    return render_template("thank_you.html", proposal=proposal)
-
-@app.route("/patch-users-columns")
-def patch_users_columns():
-    conn = get_db_connection()
-    try:
-        for column in [
-            "company_name TEXT",
-            "position TEXT",
-            "website TEXT",
-            "phone TEXT",
-            "reply_to TEXT",
-            "timezone TEXT",
-            "logo TEXT"
-        ]:
-            try:
-                conn.execute(f"ALTER TABLE users ADD COLUMN {column};")
-            except sqlite3.OperationalError:
-                pass
-        conn.commit()
-        return "Users table successfully patched on Render."
-    except Exception as e:
-        return f"Error: {str(e)}"
-    finally:
-        conn.close()
+    return render_template("thank_you.html")
 
 @app.context_processor
 def inject_user():
