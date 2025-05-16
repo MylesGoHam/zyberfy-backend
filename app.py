@@ -267,12 +267,49 @@ def test_success():
 
     return "✅ Test user created and logged in. You can now visit the dashboard."
 
-# Optional: Add /test-dashboard route to view if test user works
-@app.route("/test-dashboard")
-def test_dashboard():
-    if "email" not in session:
-        return redirect(url_for("login"))
-    return f"Welcome, {session['email']} (Test Mode)"
+@app.route("/test-signup")
+def test_signup():
+    test_email = "testlead@example.com"  # Use any test email
+    price_id = "price_1REQ6RKpgIhBPea4EMSakXdq"  # Starter plan
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=test_email,
+            payment_method_types=["card"],
+            line_items=[{
+                "price": price_id,
+                "quantity": 1,
+            }],
+            mode="subscription",
+            success_url=url_for("test_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=url_for("index", _external=True),
+        )
+        return redirect(checkout_session.url)
+    except Exception as e:
+        return str(e), 400
+
+
+@app.route("/test-success")
+def test_success():
+    session_id = request.args.get("session_id")
+    if not session_id:
+        return "Missing session ID", 400
+
+    session_obj = stripe.checkout.Session.retrieve(session_id)
+    customer_email = session_obj.get("customer_email")
+
+    # Insert the user into the database
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO users (email, password, name, plan_status)
+        VALUES (?, ?, ?, ?)
+    """, (customer_email, "test123", "Test User", "starter"))
+    conn.commit()
+    conn.close()
+
+    # Log the user in
+    session["email"] = customer_email
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/logout")
