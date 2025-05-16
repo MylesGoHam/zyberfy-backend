@@ -220,16 +220,30 @@ def onboarding():
 # Step 1: Create a Stripe test checkout route for signup
 @app.route("/test-stripe-signup")
 def test_stripe_signup():
-    session["email"] = "testsignup@example.com"
+    email = "testsignup@example.com"
+    first_name = "Test"
+    plan_status = "starter"
+    price_id = "price_1RERprKpgIhBPea4U7zezbWd"
 
-    # Simulate Stripe subscription
     conn = get_db_connection()
+
+    # Insert test user if not exists
     conn.execute("""
-        INSERT INTO subscriptions (email, stripe_subscription_id, price_id)
+        INSERT OR IGNORE INTO users (email, password, first_name, plan_status)
+        VALUES (?, ?, ?, ?)
+    """, (email, "test1234", first_name, plan_status))
+
+    # Insert dummy subscription
+    conn.execute("""
+        INSERT OR IGNORE INTO subscriptions (email, plan, status)
         VALUES (?, ?, ?)
-    """, ("testsignup@example.com", "sub_test_1234", "price_1RERprKpgIhBPea4U7zezbWd"))
+    """, (email, "Starter", "active"))
+
     conn.commit()
     conn.close()
+
+    # Set session
+    session["email"] = email
 
     return redirect(url_for("dashboard"))
 
@@ -255,48 +269,6 @@ def test_success():
     session["email"] = session_data.customer_email
 
     return "✅ Test user created and logged in. You can now visit the dashboard."
-
-@app.route("/test-stripe-signup")
-def test_stripe_signup():
-    test_email = "testlead@example.com"
-    price_id = "price_1REQ6RKpgIhBPea4EMSakXdq"  # Starter plan
-
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=test_email,
-            payment_method_types=["card"],
-            line_items=[{
-                "price": price_id,
-                "quantity": 1,
-            }],
-            mode="subscription",
-            success_url=url_for("test_stripe_success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=url_for("index", _external=True),
-        )
-        return redirect(checkout_session.url)
-    except Exception as e:
-        return str(e), 400
-
-
-@app.route("/test-stripe-success")
-def test_stripe_success():
-    session_id = request.args.get("session_id")
-    if not session_id:
-        return "Missing session ID", 400
-
-    session_obj = stripe.checkout.Session.retrieve(session_id)
-    customer_email = session_obj.get("customer_email")
-
-    conn = get_db_connection()
-    conn.execute("""
-        INSERT INTO users (email, password, name, plan_status)
-        VALUES (?, ?, ?, ?)
-    """, (customer_email, "test123", "Test User", "starter"))
-    conn.commit()
-    conn.close()
-
-    session["email"] = customer_email
-    return redirect(url_for("dashboard"))
 
 
 @app.route("/logout")
