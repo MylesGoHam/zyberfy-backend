@@ -219,6 +219,44 @@ def onboarding():
 
     return render_template("onboarding.html")
 
+@app.route("/test_proposal", methods=["GET"])
+def test_proposal():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    # Fetch automation settings
+    settings = get_user_automation(session["email"])
+    if not settings:
+        return "No automation settings found", 404
+
+    # Use default fallbacks
+    tone = settings.get("tone", "friendly")
+    length = settings.get("length", "concise")
+    first_name = settings.get("first_name", "Your Name")
+    position = settings.get("position", "")
+    company_name = settings.get("company_name", "Your Company")
+    website = settings.get("website", "example.com")
+    phone = settings.get("phone", "123-456-7890")
+    reply_to = settings.get("reply_to", "contact@example.com")
+
+    # Prompt for GPT
+    prompt = (
+        f"Write a {length} business proposal in a {tone} tone.\n"
+        f"The sender is {first_name} ({position}) from {company_name}.\n"
+        f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
+        f"Pretend a lead has just inquired and you're writing the first follow-up."
+    )
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.7
+    )
+
+    preview = response["choices"][0]["message"]["content"].strip()
+    return render_template("test_proposal_output.html", output=preview)
+
 # Step 1: Create a Stripe test checkout route for signup
 @app.route("/test-stripe-signup")
 def test_stripe_signup():
