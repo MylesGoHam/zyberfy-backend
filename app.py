@@ -1100,7 +1100,7 @@ def settings():
     settings = dict(settings) if settings else {}
 
     conn.close()
-    return render_template("settings.html", user=settings)
+    return render_template("settings.html", settings=settings)
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
