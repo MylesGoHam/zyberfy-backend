@@ -224,13 +224,16 @@ def test_proposal():
     if "email" not in session:
         return redirect(url_for("login"))
 
-    # Fetch automation settings
-    settings = get_user_automation(session["email"])
-    if not settings:
-        return "No automation settings found", 404
+    user_email = session["email"]
 
-    # Pull fallback-safe values
-    tone = dict(settings).get("tone", "friendly")
+    # Fetch and convert settings to a dictionary
+    settings_row = get_user_automation(user_email)
+    if not settings_row:
+        return "No automation settings found", 404
+    settings = dict(settings_row)
+
+    # Extract settings with safe defaults
+    tone = settings.get("tone", "friendly")
     length = settings.get("length", "concise")
     first_name = settings.get("first_name", "Your Name")
     position = settings.get("position", "")
@@ -239,7 +242,7 @@ def test_proposal():
     phone = settings.get("phone", "123-456-7890")
     reply_to = settings.get("reply_to", "contact@example.com")
 
-    # Create GPT prompt
+    # Compose GPT prompt
     prompt = (
         f"Write a {length} business proposal in a {tone} tone.\n"
         f"The sender is {first_name} ({position}) from {company_name}.\n"
