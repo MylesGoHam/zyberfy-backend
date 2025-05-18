@@ -229,7 +229,7 @@ def test_proposal():
     if not settings:
         return "No automation settings found", 404
 
-    # Use default fallbacks
+    # Pull fallback-safe values
     tone = settings.get("tone", "friendly")
     length = settings.get("length", "concise")
     first_name = settings.get("first_name", "Your Name")
@@ -239,7 +239,7 @@ def test_proposal():
     phone = settings.get("phone", "123-456-7890")
     reply_to = settings.get("reply_to", "contact@example.com")
 
-    # Prompt for GPT
+    # Create GPT prompt
     prompt = (
         f"Write a {length} business proposal in a {tone} tone.\n"
         f"The sender is {first_name} ({position}) from {company_name}.\n"
