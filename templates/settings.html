@@ -45,7 +45,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">Website URL</label>
-          <input type="url" name="website" value="{{ settings.website }}" class="w-full border rounded-md px-3 py-2 text-sm" pattern="https?://.*\.[a-z]{2,}$" placeholder="https://yourcompany.com" required />
+          <input type="text" name="website" value="{{ user.website }}" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="yourcompany.com or https://yourcompany.com" />
         </div>
         <div>
           <label class="text-sm font-medium">Business Phone</label>
