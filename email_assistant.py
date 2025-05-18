@@ -22,7 +22,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         settings = get_user_automation(client_email)
         if not settings:
             print("[ERROR] No automation settings found.")
-            return None
+            return None, None
 
         # Safe fallback values
         tone = settings.get("tone", "friendly")
@@ -96,8 +96,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         # sms_msg = f"New proposal from {name} for {services} just submitted."
         # send_sms_alert(phone, sms_msg, user_email=client_email)
 
-        return public_id
+        return public_id, proposal_text
 
     except Exception as e:
         print(f"[ERROR] Failed to handle proposal: {e}")
-        return None
+        return None, None
