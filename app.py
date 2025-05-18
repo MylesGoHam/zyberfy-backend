@@ -1053,10 +1053,8 @@ def settings():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    email = session["email"]
 
     if request.method == "POST":
-        # Save settings form
         conn.execute("""
             INSERT INTO settings (email, first_name, company_name, position, website, phone, reply_to, timezone)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -1069,9 +1067,9 @@ def settings():
                 reply_to=excluded.reply_to,
                 timezone=excluded.timezone
         """, (
-            email,
-            request.form.get("first_name", "Your Name"),
-            request.form.get("company_name", "Your Company"),
+            session["email"],
+            request.form.get("first_name", ""),
+            request.form.get("company_name", ""),
             request.form.get("position", ""),
             request.form.get("website", ""),
             request.form.get("phone", ""),
@@ -1079,24 +1077,13 @@ def settings():
             request.form.get("timezone", "")
         ))
         conn.commit()
-        flash("Your settings have been saved ✅", "info")
+        flash("Settings updated successfully!", "info")
         return redirect(url_for("settings"))
 
-    # Load saved settings for GET
-    row = conn.execute("SELECT * FROM settings WHERE email = ?", (email,)).fetchone()
+    row = conn.execute("SELECT * FROM settings WHERE email = ?", (session["email"],)).fetchone()
     conn.close()
 
-    settings = {
-        "first_name": row["first_name"] if row else "Your Name",
-        "company_name": row["company_name"] if row else "Your Company",
-        "position": row["position"] if row else "",
-        "website": row["website"] if row else "",
-        "phone": row["phone"] if row else "",
-        "reply_to": row["reply_to"] if row else "",
-        "timezone": row["timezone"] if row else ""
-    }
-
-    return render_template("settings.html", **settings)
+    return render_template("settings.html", settings=row)
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
