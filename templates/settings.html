@@ -4,12 +4,10 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-10">
-  <!-- Back Button -->
   <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium block mb-4">
     &larr; Back to Dashboard
   </a>
 
-  <!-- Page Title -->
   <h2 class="text-2xl font-bold mb-6 text-blue-600">Your Settings</h2>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -24,55 +22,52 @@
 
   <form method="POST" action="{{ url_for('settings') }}" enctype="multipart/form-data" class="space-y-8">
 
-    <!-- Profile Info -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-semibold mb-4 text-blue-600">Profile Information</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">First Name</label>
-          <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+          <input type="text" name="first_name" value="{{ settings.first_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
         </div>
         <div>
           <label class="text-sm font-medium">Company Name</label>
-          <input type="text" name="company_name" value="{{ user.company_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+          <input type="text" name="company_name" value="{{ settings.company_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
         </div>
         <div>
           <label class="text-sm font-medium">Your Position</label>
-          <input type="text" name="position" value="{{ user.position }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+          <input type="text" name="position" value="{{ settings.position }}" class="w-full border rounded-md px-3 py-2 text-sm" />
         </div>
       </div>
     </div>
 
-    <!-- Business Info -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-semibold mb-4 text-blue-600">Business Details</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-sm font-medium">Website URL</label>
-          <input type="url" name="website" value="{{ user.website }}" class="w-full border rounded-md px-3 py-2 text-sm" pattern="https?://.*\.[a-z]{2,}$" placeholder="https://yourcompany.com" required />
+          <input type="url" name="website" value="{{ settings.website }}" class="w-full border rounded-md px-3 py-2 text-sm" pattern="https?://.*\.[a-z]{2,}$" placeholder="https://yourcompany.com" required />
         </div>
         <div>
           <label class="text-sm font-medium">Business Phone</label>
-          <input type="tel" name="phone" value="{{ user.phone }}" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="+1 (555) 123-4567" />
+          <input type="tel" name="phone" value="{{ settings.phone }}" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="+1 (555) 123-4567" />
         </div>
         <div>
           <label class="text-sm font-medium">Reply-To Email</label>
-          <input type="email" name="reply_to" value="{{ user.reply_to }}" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="you@yourcompany.com" />
+          <input type="email" name="reply_to" value="{{ settings.reply_to }}" class="w-full border rounded-md px-3 py-2 text-sm" placeholder="you@yourcompany.com" />
         </div>
         <div>
           <label class="text-sm font-medium">Timezone</label>
           <select name="timezone" class="w-full border rounded-md px-3 py-2 text-sm">
             <option value="">Select timezone</option>
-            <option value="PST" {% if user.timezone == 'PST' %}selected{% endif %}>PST (Pacific Time)</option>
-            <option value="MST" {% if user.timezone == 'MST' %}selected{% endif %}>MST (Mountain Time)</option>
-            <option value="CST" {% if user.timezone == 'CST' %}selected{% endif %}>CST (Central Time)</option>
-            <option value="EST" {% if user.timezone == 'EST' %}selected{% endif %}>EST (Eastern Time)</option>
+            <option value="PST" {% if settings.timezone == 'PST' %}selected{% endif %}>PST (Pacific Time)</option>
+            <option value="MST" {% if settings.timezone == 'MST' %}selected{% endif %}>MST (Mountain Time)</option>
+            <option value="CST" {% if settings.timezone == 'CST' %}selected{% endif %}>CST (Central Time)</option>
+            <option value="EST" {% if settings.timezone == 'EST' %}selected{% endif %}>EST (Eastern Time)</option>
           </select>
         </div>
       </div>
     </div>
 
-    <!-- Logo Upload -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-semibold mb-4 text-blue-600">Company Branding</h3>
       <div>
@@ -81,18 +76,16 @@
       </div>
     </div>
 
-    <!-- Business Preview -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-semibold mb-4 text-blue-600">Business Preview</h3>
       <div class="border rounded-md p-4 text-sm text-gray-700 bg-gray-50 space-y-1">
-        <p><strong>Name:</strong> {{ user.first_name }} from {{ user.company_name }}</p>
-        <p><strong>Position:</strong> {{ user.position }}</p>
-        <p><strong>Site:</strong> <a href="{{ user.website }}" class="text-blue-600 hover:underline">{{ user.website }}</a></p>
-        <p><strong>Contact:</strong> {{ user.phone }} | {{ user.reply_to }}</p>
+        <p><strong>Name:</strong> {{ settings.first_name }} from {{ settings.company_name }}</p>
+        <p><strong>Position:</strong> {{ settings.position }}</p>
+        <p><strong>Site:</strong> <a href="{{ settings.website }}" class="text-blue-600 hover:underline">{{ settings.website }}</a></p>
+        <p><strong>Contact:</strong> {{ settings.phone }} | {{ settings.reply_to }}</p>
       </div>
     </div>
 
-    <!-- Password Change -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
       <h3 class="text-xl font-semibold mb-4 text-blue-600">Change Password</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +100,6 @@
       </div>
     </div>
 
-    <!-- Save Button -->
     <div class="text-center">
       <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
         Save Changes
