@@ -1055,8 +1055,9 @@ def settings():
     conn = get_db_connection()
 
     if request.method == "POST":
+        # Save automation/business settings
         conn.execute("""
-            INSERT INTO settings (email, first_name, company_name, position, website, phone, reply_to, timezone)
+            INSERT INTO automation_settings (email, first_name, company_name, position, website, phone, reply_to, timezone)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 first_name=excluded.first_name,
@@ -1076,14 +1077,30 @@ def settings():
             request.form.get("reply_to", ""),
             request.form.get("timezone", "")
         ))
+
+        # Handle password change
+        new_pw = request.form.get("new_password")
+        confirm_pw = request.form.get("confirm_password")
+        if new_pw and new_pw == confirm_pw:
+            conn.execute("UPDATE users SET password = ? WHERE email = ?", (new_pw, session["email"]))
+
         conn.commit()
-        flash("Settings updated successfully!", "info")
+        conn.close()
+
+        flash("Settings updated successfully ✅", "info")
         return redirect(url_for("settings"))
 
-    row = conn.execute("SELECT * FROM settings WHERE email = ?", (session["email"],)).fetchone()
-    conn.close()
+    # Load automation settings
+    settings = conn.execute("""
+        SELECT first_name, company_name, position, website, phone, reply_to, timezone
+        FROM automation_settings WHERE email = ?
+    """, (session["email"],)).fetchone()
 
-    return render_template("settings.html", settings=row)
+    # Convert Row to dict for template
+    settings = dict(settings) if settings else {}
+
+    conn.close()
+    return render_template("settings.html", user=settings)
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
