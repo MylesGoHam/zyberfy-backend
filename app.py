@@ -842,7 +842,19 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session  # ✅ keep this
+    show_qr = "email" in session
+    client_email = session.get("email")
+
+    # Get the client's public_id
+    conn = get_db_connection()
+    row = conn.execute("SELECT public_id FROM users WHERE email = ?", (client_email,)).fetchone()
+    conn.close()
+
+    if not row:
+        flash("Client not found.", "error")
+        return redirect(url_for("login"))
+
+    public_id = row["public_id"]
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -853,23 +865,19 @@ def proposal():
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        client_email = session.get("email")
         if not client_email:
             flash("Submission failed. No client found.", "error")
             return redirect(url_for("proposal"))
 
-        public_id = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
-        if public_id:
+        if pid:
             return redirect(url_for("thank_you"))
         else:
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
 
-    # ❌ Remove this line:
-    # show_qr = False
-
-    return render_template("dashboard_proposal.html", show_qr=show_qr)
+    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id)
 
 
 @app.route("/proposal_view")
