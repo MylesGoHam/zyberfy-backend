@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto p-6">
+
 <!-- Top bar with logo, greeting, and dropdown -->
 <div class="flex items-center justify-between mb-6">
   <div class="flex flex-col">
@@ -24,6 +25,17 @@
     </div>
   </div>
 </div>
+
+<!-- ✅ Onboarding Notice -->
+{% if onboarding_incomplete %}
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
+  <p class="font-semibold">🎯 Almost there!</p>
+  <p class="text-sm mt-1">
+    Please complete your <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a>
+    and <a href="{{ url_for('automation') }}" class="underline text-yellow-700 hover:text-yellow-900">Automation</a> setup to activate your AI assistant.
+  </p>
+</div>
+{% endif %}
 
   <!-- Status Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -55,6 +67,16 @@
       {% endif %}
     </div>
   </div>
+
+  {% if not automation_complete %}
+<div class="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-6">
+  <p class="font-medium">Finish Setup</p>
+  <p class="text-sm">You haven’t completed your automation settings yet. To activate AI-generated proposals, finish setup now.</p>
+  <a href="/automation" class="inline-block mt-3 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow text-sm">
+    Complete Automation Setup
+  </a>
+</div>
+{% endif %}
 
   <!-- Proposal stats -->
   <div>
