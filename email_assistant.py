@@ -22,17 +22,26 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         settings = get_user_automation(client_email)
         if not settings:
             print("[ERROR] No automation settings found.")
-            return None, None
+            return None
 
-        # Safe fallback values
-        tone = settings.get("tone", "friendly")
-        length = settings.get("length", "concise")
-        first_name = settings.get("first_name", "Your Name")
-        position = settings.get("position", "")
-        company_name = settings.get("company_name", "Your Company")
-        website = settings.get("website", "example.com")
-        reply_to = settings.get("reply_to", "contact@example.com")
-        phone = settings.get("phone", "123-456-7890")
+        # Access with fallback defaults
+        tone         = settings["tone"]         if settings["tone"] else "friendly"
+        length       = settings["length"]       if settings["length"] else "concise"
+
+        # Now pull identity + contact from settings table (separately stored)
+        conn = get_db_connection()
+        row = conn.execute("""
+            SELECT first_name, company_name, position, website, phone, reply_to
+            FROM settings WHERE email = ?
+        """, (client_email,)).fetchone()
+        conn.close()
+
+        first_name   = row["first_name"]   if row and row["first_name"] else "Your Name"
+        position     = row["position"]     if row and row["position"] else ""
+        company_name = row["company_name"] if row and row["company_name"] else "Your Company"
+        website      = row["website"]      if row and row["website"] else "example.com"
+        reply_to     = row["reply_to"]     if row and row["reply_to"] else "contact@example.com"
+        phone        = row["phone"]        if row and row["phone"] else "123-456-7890"
 
         # Build OpenAI prompt
         prompt = (
@@ -96,8 +105,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         # sms_msg = f"New proposal from {name} for {services} just submitted."
         # send_sms_alert(phone, sms_msg, user_email=client_email)
 
-        return public_id, proposal_text
+        return public_id
 
     except Exception as e:
         print(f"[ERROR] Failed to handle proposal: {e}")
-        return None, None
+        return None
