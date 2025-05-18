@@ -451,24 +451,30 @@ def dashboard():
         (session["email"],)
     ).fetchone()
 
-    # Get automation status
+    # Get automation info
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
     ).fetchone()
     conn.close()
 
+    # Check if QR code exists
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
             generate_qr_code(user_row["public_id"])
 
+    # Save plan status in session
     session["plan_status"] = user_row["plan_status"]
+
+    # Show onboarding banner only if setup is incomplete
+    onboarding_incomplete = not user_row["first_name"] or not automation_row or not automation_row["tone"]
 
     return render_template(
         "dashboard.html",
-        user=user_row,  # ← pass user object
-        automation_complete=bool(automation_row)
+        user=user_row,
+        automation_complete=bool(automation_row),
+        onboarding_incomplete=onboarding_incomplete
     )
 
 
