@@ -842,7 +842,7 @@ def create_checkout_session():
     
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session  # Only show QR if client is logged in
+    show_qr = "email" in session  # ✅ keep this
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -866,7 +866,9 @@ def proposal():
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
 
-    show_qr = False  # or True, depending on logic
+    # ❌ Remove this line:
+    # show_qr = False
+
     return render_template("dashboard_proposal.html", show_qr=show_qr)
 
 
