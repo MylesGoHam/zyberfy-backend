@@ -230,7 +230,7 @@ def test_proposal():
         return "No automation settings found", 404
 
     # Pull fallback-safe values
-    tone = settings["tone"] if "tone" in settings.keys() else "friendly"
+    tone = dict(settings).get("tone", "friendly")
     length = settings.get("length", "concise")
     first_name = settings.get("first_name", "Your Name")
     position = settings.get("position", "")
