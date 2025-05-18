@@ -225,24 +225,23 @@ def test_proposal():
         return redirect(url_for("login"))
 
     user_email = session["email"]
+    settings = get_user_automation(user_email)
 
-    # Fetch and convert settings to a dictionary
-    settings_row = get_user_automation(user_email)
-    if not settings_row:
-        return "No automation settings found", 404
-    settings = dict(settings_row)
+    if not settings:
+        flash("No automation settings found.", "error")
+        return redirect(url_for("automation"))
 
-    # Extract settings with safe defaults
-    tone = settings.get("tone", "friendly")
-    length = settings.get("length", "concise")
-    first_name = settings.get("first_name", "Your Name")
-    position = settings.get("position", "")
-    company_name = settings.get("company_name", "Your Company")
-    website = settings.get("website", "example.com")
-    phone = settings.get("phone", "123-456-7890")
-    reply_to = settings.get("reply_to", "contact@example.com")
+    # Pull user data safely from settings Row object
+    tone = settings["tone"] or "friendly"
+    length = settings["length"] or "concise"
+    first_name = settings["first_name"] or "Your Name"
+    position = settings["position"] or ""
+    company_name = settings["company_name"] or "Your Company"
+    website = settings["website"] or "example.com"
+    phone = settings["phone"] or "123-456-7890"
+    reply_to = settings["reply_to"] or "contact@example.com"
 
-    # Compose GPT prompt
+    # Create prompt
     prompt = (
         f"Write a {length} business proposal in a {tone} tone.\n"
         f"The sender is {first_name} ({position}) from {company_name}.\n"
@@ -258,7 +257,16 @@ def test_proposal():
     )
 
     preview = response["choices"][0]["message"]["content"].strip()
-    return render_template("test_proposal_output.html", output=preview)
+
+    # Render back to the same automation page with preview
+    return render_template("automation.html", 
+        tone=tone,
+        length=length,
+        full_auto=settings["full_auto"],
+        accept_offers=settings["accept_offers"],
+        reject_offers=settings["reject_offers"],
+        preview=preview
+    )
 
 # Step 1: Create a Stripe test checkout route for signup
 @app.route("/test-stripe-signup")
