@@ -212,7 +212,7 @@ def admin_dashboard():
     conn.close()
 
     if not user or user["is_admin"] != 1:
-        return redirect(url_for("dashboard"))  # Block non-admins
+        return redirect(url_for("dashboard"))
 
     # Load admin stats
     conn = get_db_connection()
