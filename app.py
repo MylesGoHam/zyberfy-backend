@@ -240,7 +240,7 @@ def admin_dashboard():
     active_subscriptions = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
     conn.close()
 
-    return render_template("admin-dashboard.html", total_users=total_users, total_proposals=total_proposals, active_subscriptions=active_subscriptions)
+    return render_template("admin_dashboard.html", total_users=total_users, total_proposals=total_proposals, active_subscriptions=active_subscriptions)
     
     
 
