@@ -456,9 +456,10 @@ def dashboard():
 
     conn = get_db_connection()
 
-    # Get user and settings info
+    # Get user + settings info
     user_row = conn.execute("""
-        SELECT users.first_name, users.plan_status, users.public_id,
+        SELECT users.first_name AS user_first_name, users.plan_status, users.public_id,
+               settings.first_name AS settings_first_name,
                settings.company_name, settings.position, settings.website,
                settings.phone, settings.reply_to
         FROM users
@@ -474,27 +475,17 @@ def dashboard():
 
     conn.close()
 
-    # Generate QR code if needed
+    # Generate QR if needed
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
             generate_qr_code(user_row["public_id"])
 
-    # Store plan status in session
     session["plan_status"] = user_row["plan_status"]
 
-    # DEBUG: Print each field that controls onboarding banner
-    print("DEBUG: Banner Check Fields")
-    print("first_name:", user_row["first_name"])
-    print("company_name:", user_row["company_name"])
-    print("position:", user_row["position"])
-    print("website:", user_row["website"])
-    print("phone:", user_row["phone"])
-    print("reply_to:", user_row["reply_to"])
-
-    # Determine if banner should show
+    # Check if settings are fully filled out (from settings table!)
     onboarding_incomplete = any([
-        not (user_row["first_name"] or "").strip(),
+        not (user_row["settings_first_name"] or "").strip(),
         not (user_row["company_name"] or "").strip(),
         not (user_row["position"] or "").strip(),
         not (user_row["website"] or "").strip(),
