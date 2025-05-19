@@ -209,26 +209,22 @@ def admin_entrypoint():
 # Admin login route
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
-    error = None
     if request.method == "POST":
-        email = request.form["email"].strip().lower()
-        password = request.form["password"].strip()
+        email = request.form.get("email")
+        password = request.form.get("password")
 
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
 
-        if user and user["is_admin"] == 1:
-            if check_password_hash(user["password"], password):
-                session["email"] = user["email"]
-                session["is_admin"] = True
-                return redirect(url_for("admin_dashboard"))
-            else:
-                error = "Incorrect password."
+        if user and user["password"] == password and user["is_admin"]:
+            session["email"] = email
+            return redirect(url_for("admin_dashboard"))
         else:
-            error = "Access denied. Not an admin account."
+            flash("Invalid admin credentials", "error")
+            return redirect(url_for("admin_login"))
 
-    return render_template("admin_login.html", error=error)
+    return render_template("admin_login.html")
 
 
 # Admin dashboard (already exists)
