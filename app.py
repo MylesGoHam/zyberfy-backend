@@ -205,6 +205,45 @@ def login():
 @app.route("/admin")
 def admin_entrypoint():
     return redirect(url_for("admin_dashboard"))
+
+# Admin login route
+@app.route("/admin_login", methods=["GET", "POST"])
+def admin_login():
+    error = None
+    if request.method == "POST":
+        email = request.form["email"].strip().lower()
+        password = request.form["password"].strip()
+
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        conn.close()
+
+        if user and user["is_admin"] == 1:
+            if check_password_hash(user["password"], password):
+                session["email"] = user["email"]
+                session["is_admin"] = True
+                return redirect(url_for("admin_dashboard"))
+            else:
+                error = "Incorrect password."
+        else:
+            error = "Access denied. Not an admin account."
+
+    return render_template("admin_login.html", error=error)
+
+
+# Admin dashboard (already exists)
+@app.route("/admin_dashboard")
+def admin_dashboard():
+    if "email" not in session or not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    conn = get_db_connection()
+    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    total_proposals = conn.execute("SELECT COUNT(*) FROM proposals").fetchone()[0]
+    active_subscriptions = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
+    conn.close()
+
+    return render_template("admin-dashboard.html", total_users=total_users, total_proposals=total_proposals, active_subscriptions=active_subscriptions)
     
 @app.route("/admin_dashboard")
 def admin_dashboard():
