@@ -133,7 +133,17 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+  // Copy proposal link
+  document.getElementById('copyProposalBtn').addEventListener('click', () => {
+    const input = document.getElementById('proposalLink');
+    input.select();
+    document.execCommand('copy');
+    alert('Proposal link copied!');
+  });
+
+  // Chart logic
   const miniCtx = document.getElementById('miniChart').getContext('2d');
   const miniChart = new Chart(miniCtx, {
     type: 'line',
