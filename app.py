@@ -876,21 +876,24 @@ def create_checkout_session():
     except Exception as e:
         return jsonify(error=str(e)), 400
     
+# app.py (Add below your imports and helper functions)
+
 @app.route("/proposal", methods=["GET", "POST"])
 def proposal():
-    show_qr = "email" in session
-    client_email = session.get("email")
-
-    # Get the client's public_id
-    conn = get_db_connection()
-    row = conn.execute("SELECT public_id FROM users WHERE email = ?", (client_email,)).fetchone()
-    conn.close()
-
-    if not row:
-        flash("Client not found.", "error")
+    if "email" not in session:
         return redirect(url_for("login"))
 
-    public_id = row["public_id"]
+    user_email = session["email"]
+    show_qr = True
+
+    # Check if user is over proposal limit (3 for now)
+    conn = get_db_connection()
+    count = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (user_email,)).fetchone()[0]
+
+    if count >= 3:
+        conn.close()
+        flash("You've reached your free proposal limit. Upgrade to continue.", "error")
+        return redirect(url_for("dashboard"))
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -901,19 +904,17 @@ def proposal():
         timeline = request.form.get("timeline")
         message = request.form.get("message")
 
-        if not client_email:
-            flash("Submission failed. No client found.", "error")
-            return redirect(url_for("proposal"))
+        public_id = handle_new_proposal(name, email, company, services, budget, timeline, message, user_email)
+        conn.close()
 
-        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
-
-        if pid:
-            return redirect(url_for("thank_you"))
+        if public_id:
+            return redirect(url_for("thank_you", pid=public_id))
         else:
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
 
-    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id)
+    conn.close()
+    return render_template("dashboard_proposal.html", show_qr=show_qr)
 
 
 @app.route("/proposal_view")
