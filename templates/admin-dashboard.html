@@ -1,3 +1,4 @@
+<!-- templates/admin_dashboard.html -->
 {% extends "base.html" %}
 {% block title %}Admin Dashboard | Zyberfy{% endblock %}
 
@@ -6,19 +7,14 @@
   <h1 class="text-2xl font-bold mb-6 text-blue-600 text-center">Admin Dashboard</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <!-- Users -->
     <div class="bg-white p-4 rounded-lg shadow text-center">
       <h3 class="text-sm text-gray-500 font-medium">Total Users</h3>
       <p class="text-2xl font-bold text-blue-600">{{ total_users }}</p>
     </div>
-
-    <!-- Proposals -->
     <div class="bg-white p-4 rounded-lg shadow text-center">
       <h3 class="text-sm text-gray-500 font-medium">Total Proposals</h3>
       <p class="text-2xl font-bold text-blue-600">{{ total_proposals }}</p>
     </div>
-
-    <!-- Active Subscriptions -->
     <div class="bg-white p-4 rounded-lg shadow text-center">
       <h3 class="text-sm text-gray-500 font-medium">Active Subscriptions</h3>
       <p class="text-2xl font-bold text-green-600">{{ active_subscriptions }}</p>
