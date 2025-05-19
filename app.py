@@ -1053,21 +1053,25 @@ def settings():
     conn = get_db_connection()
 
     if request.method == "POST":
-        # Save automation/business settings
+        # Save automation/business settings (including last_name)
         conn.execute("""
-            INSERT INTO automation_settings (email, first_name, company_name, position, website, phone, reply_to, timezone)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO automation_settings (
+                email, first_name, last_name, company_name, position,
+                website, phone, reply_to, timezone
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
-                first_name=excluded.first_name,
-                company_name=excluded.company_name,
-                position=excluded.position,
-                website=excluded.website,
-                phone=excluded.phone,
-                reply_to=excluded.reply_to,
-                timezone=excluded.timezone
+                first_name = excluded.first_name,
+                last_name = excluded.last_name,
+                company_name = excluded.company_name,
+                position = excluded.position,
+                website = excluded.website,
+                phone = excluded.phone,
+                reply_to = excluded.reply_to,
+                timezone = excluded.timezone
         """, (
             session["email"],
             request.form.get("first_name", ""),
+            request.form.get("last_name", ""),
             request.form.get("company_name", ""),
             request.form.get("position", ""),
             request.form.get("website", ""),
@@ -1090,14 +1094,14 @@ def settings():
 
     # Load automation settings
     settings = conn.execute("""
-        SELECT first_name, company_name, position, website, phone, reply_to, timezone
+        SELECT first_name, last_name, company_name, position,
+               website, phone, reply_to, timezone
         FROM automation_settings WHERE email = ?
     """, (session["email"],)).fetchone()
 
-    # Convert Row to dict for template
     settings = dict(settings) if settings else {}
-
     conn.close()
+
     return render_template("settings.html", settings=settings)
 
 @app.route("/log_event", methods=["POST"])
