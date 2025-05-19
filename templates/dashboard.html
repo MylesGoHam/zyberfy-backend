@@ -33,6 +33,17 @@
 </div>
 {% endif %}
 
+<!-- Proposal Count Card -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="bg-white p-6 rounded-lg shadow text-center col-span-1 md:col-span-2">
+    <h3 class="text-sm text-gray-500 mb-1 font-medium tracking-wide">Total Proposals Used</h3>
+    <p class="text-2xl font-bold text-blue-600">
+      {{ proposal_count }} / 3
+    </p>
+    <p class="text-xs text-gray-500 mt-1">You can generate up to 3 proposals on your current plan.</p>
+  </div>
+</div>
+
 <!-- Status Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
   <div class="bg-white p-6 rounded-lg shadow text-center">
