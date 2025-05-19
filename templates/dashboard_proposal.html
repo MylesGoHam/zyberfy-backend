@@ -1,25 +1,19 @@
-{% extends "base.html" %}
-{% block title %}Proposal Submission | Zyberfy{% endblock %}
-
 {% block content %}
 <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
 
-  <!-- Back to Dashboard Link -->
   {% if show_qr %}
     <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">← Back to Dashboard</a>
   {% endif %}
 
-  <!-- Page Title -->
   <h1 class="text-2xl font-bold text-blue-600 mb-6">Proposal Submission Page</h1>
 
-  <!-- QR Section: Moved to top -->
   {% if show_qr %}
-  <div class="text-center mb-6">
-    <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
-    <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
-    <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
+  <div class="text-center mb-8">
+    <h3 class="text-lg font-semibold mb-2">Share This Proposal Page</h3>
+    <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto w-32 h-32 mb-2">
+    <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm block mb-2">Download QR Code</a>
 
-    <div class="mt-4">
+    <div class="mb-4">
       <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
       <div class="flex justify-center items-center gap-2 px-4">
         <input
@@ -39,12 +33,12 @@
     </div>
   </div>
 
-  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6 shadow text-sm">
+  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-8 shadow text-sm">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
     </svg>
     <div>
-      This is your live public proposal form. Share this link only with leads. Any submissions will trigger your automation and send a live proposal.
+      This is your personal proposal form page. When a lead fills it out, Zyberfy will automatically generate and send a proposal using your saved automation. Share it with serious leads only.
     </div>
   </div>
   {% endif %}
@@ -98,45 +92,4 @@
   </form>
 
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const btn = document.getElementById("copyBtn");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        const input = document.getElementById("proposalLink");
-        input.select();
-        document.execCommand("copy");
-        alert("Link copied to clipboard!");
-      });
-    }
-
-    const proposalId = {{ public_id | tojson | safe }};
-    const storageKey = "viewed_" + proposalId;
-
-    if (proposalId && typeof proposalId === "string") {
-      if (!sessionStorage.getItem(storageKey)) {
-        fetch("/track_event", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event_name: "pageview",
-            metadata: { public_id: proposalId, type: "lead_visit" }
-          })
-        }).then(() => {
-          sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview:", proposalId);
-        }).catch((err) => {
-          console.error("❌ Error sending pageview:", err);
-        });
-      } else {
-        console.log("ℹ️ Pageview already tracked for:", proposalId);
-      }
-    } else {
-      console.warn("⚠️ proposalId not defined.");
-    }
-  });
-</script>
 {% endblock %}
