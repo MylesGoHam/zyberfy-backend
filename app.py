@@ -475,32 +475,6 @@ def stripe_webhook():
 
 from pathlib import Path  # Make sure this import is at the top of your app.py
 
-@app.route("/admin_dashboard")
-def admin_dashboard():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    conn = get_db_connection()
-    user = conn.execute("SELECT is_admin FROM users WHERE email = ?", (session["email"],)).fetchone()
-
-    # Redirect if not admin
-    if not user or user["is_admin"] != 1:
-        conn.close()
-        flash("Access denied.", "error")
-        return redirect(url_for("dashboard"))
-
-    # Load admin metrics
-    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    total_proposals = conn.execute("SELECT COUNT(*) FROM proposals").fetchone()[0]
-    active_subscriptions = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
-    conn.close()
-
-    return render_template(
-        "admin_dashboard.html",
-        total_users=total_users,
-        total_proposals=total_proposals,
-        active_subscriptions=active_subscriptions
-    )
 
 
 @app.route("/dashboard")
