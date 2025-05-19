@@ -445,22 +445,31 @@ def dashboard():
 
     conn = get_db_connection()
 
-    # Get full user info (to validate settings completeness)
+    # Get user and settings info
     user_row = conn.execute("""
-    SELECT users.first_name, users.plan_status, users.public_id,
-           settings.company_name, settings.position
-    FROM users
-    LEFT JOIN settings ON users.email = settings.email
-    WHERE users.email = ?
+        SELECT 
+            users.first_name, 
+            users.plan_status, 
+            users.public_id,
+            settings.company_name,
+            settings.position,
+            settings.website,
+            settings.phone,
+            settings.reply_to,
+            settings.timezone
+        FROM users
+        LEFT JOIN settings ON users.email = settings.email
+        WHERE users.email = ?
     """, (session["email"],)).fetchone()
 
     # Get automation info
-    automation_row = conn.execute("""
-        SELECT tone FROM automation_settings WHERE email = ?
-    """, (session["email"],)).fetchone()
+    automation_row = conn.execute(
+        "SELECT tone FROM automation_settings WHERE email = ?",
+        (session["email"],)
+    ).fetchone()
     conn.close()
 
-    # Generate QR code if needed
+    # Generate QR if needed
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
@@ -469,26 +478,23 @@ def dashboard():
     # Save plan status in session
     session["plan_status"] = user_row["plan_status"]
 
-    # Determine if settings are incomplete
-    settings_incomplete = not all([
-        user_row["first_name"],
-        user_row["company_name"],
-        user_row["position"],
-        user_row["website"],
-        user_row["phone"],
-        user_row["reply_to"]
-    ])
-
-    # Determine if automation is incomplete
-    automation_incomplete = not automation_row or not automation_row["tone"]
-
-    # Combine flags for banner logic
-    onboarding_incomplete = settings_incomplete or automation_incomplete
+    # Onboarding check – if any of these are missing, banner stays
+    onboarding_incomplete = (
+        not user_row["first_name"]
+        or not user_row["company_name"]
+        or not user_row["position"]
+        or not user_row["website"]
+        or not user_row["phone"]
+        or not user_row["reply_to"]
+        or not user_row["timezone"]
+        or not automation_row
+        or not automation_row["tone"]
+    )
 
     return render_template(
         "dashboard.html",
         user=user_row,
-        automation_complete=not automation_incomplete,
+        automation_complete=bool(automation_row),
         onboarding_incomplete=onboarding_incomplete
     )
 
