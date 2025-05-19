@@ -973,6 +973,7 @@ def proposal():
 
     user_email = session["email"]
     show_qr = True
+    public_id = ""  # Default to empty string to avoid Jinja2 serialization error
 
     # Check if user is over proposal limit (3 for now)
     conn = get_db_connection()
@@ -1002,7 +1003,7 @@ def proposal():
             return redirect(url_for("proposal"))
 
     conn.close()
-    return render_template("dashboard_proposal.html", show_qr=show_qr)
+    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id)
 
 
 @app.route("/proposal_view")
