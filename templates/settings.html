@@ -22,24 +22,29 @@
 
   <form method="POST" action="{{ url_for('settings') }}" enctype="multipart/form-data" class="space-y-8">
 
-    <!-- Profile -->
-    <div class="bg-white border rounded-xl shadow-sm p-6">
-      <h3 class="text-xl font-semibold mb-4 text-blue-600">Profile Information</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium">First Name</label>
-          <input type="text" name="first_name" value="{{ settings.first_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Company Name</label>
-          <input type="text" name="company_name" value="{{ settings.company_name }}" class="w-full border rounded-md px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Your Position</label>
-          <input type="text" name="position" value="{{ settings.position }}" class="w-full border rounded-md px-3 py-2 text-sm" />
-        </div>
-      </div>
+<!-- Profile -->
+<div class="bg-white border rounded-xl shadow-sm p-6">
+  <h3 class="text-xl font-semibold mb-4 text-blue-600">Profile Information</h3>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+      <input type="text" name="first_name" value="{{ settings.first_name or '' }}" class="w-full border rounded-md px-3 py-2 text-sm" />
     </div>
+    <div>
+      <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+      <input type="text" name="last_name" value="{{ settings.last_name or '' }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+    </div>
+    <div>
+      <label class="text-sm font-medium">Company Name</label>
+      <input type="text" name="company_name" value="{{ settings.company_name or '' }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+    </div>
+    <div>
+      <label class="text-sm font-medium">Your Position</label>
+      <input type="text" name="position" value="{{ settings.position or '' }}" class="w-full border rounded-md px-3 py-2 text-sm" />
+    </div>
+  </div>
+</div>
 
     <!-- Business -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
