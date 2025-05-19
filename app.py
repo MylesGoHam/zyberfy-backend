@@ -203,20 +203,44 @@ def login():
 # --- Step 1: Route to show onboarding form (GET) and save settings (POST) ---
 
 @app.route("/admin")
-def admin_panel():
+def admin_redirect():
     if "email" not in session:
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    total_proposals = conn.execute("SELECT COUNT(*) FROM proposals").fetchone()[0]
-    active_subs = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
+    user = conn.execute("SELECT is_admin FROM users WHERE email = ?", (session["email"],)).fetchone()
     conn.close()
 
-    return render_template("admin_dashboard.html",
-                           total_users=total_users,
-                           total_proposals=total_proposals,
-                           active_subscriptions=active_subs)
+    if user and user["is_admin"]:
+        return redirect(url_for("admin_dashboard"))
+    else:
+        return redirect(url_for("dashboard"))
+    
+@app.route("/admin_dashboard")
+def admin_dashboard():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT is_admin FROM users WHERE email = ?", (session["email"],)).fetchone()
+
+    if not user or not user["is_admin"]:
+        conn.close()
+        return redirect(url_for("dashboard"))
+
+    # Example stats
+    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    total_proposals = conn.execute("SELECT COUNT(*) FROM proposals").fetchone()[0]
+    active_subscriptions = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
+    conn.close()
+
+    return render_template(
+        "admin_dashboard.html",
+        total_users=total_users,
+        total_proposals=total_proposals,
+        active_subscriptions=active_subscriptions
+    )
+    
 
 @app.route("/onboarding", methods=["GET", "POST"])
 def onboarding():
