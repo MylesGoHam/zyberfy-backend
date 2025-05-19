@@ -27,12 +27,8 @@
 
 <!-- Setup Checklist Banner -->
 {% if onboarding_incomplete %}
-<div class="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-4 rounded mb-6">
-  <p class="font-semibold mb-1">Complete your setup to activate Zyberfy:</p>
-  <ul class="list-disc list-inside text-sm">
-    {% if not user.first_name %}<li><a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Fill out your Settings</a></li>{% endif %}
-    {% if not automation_complete %}<li><a href="{{ url_for('automation') }}" class="underline text-yellow-700 hover:text-yellow-900">Complete your Automation</a></li>{% endif %}
-  </ul>
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
+  <p class="font-semibold">Complete your setup in <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a> to activate Zyberfy.</p>
 </div>
 {% endif %}
 
