@@ -151,6 +151,16 @@ def login():
             session["plan_status"] = user["plan_status"]
             session["user_id"]     = user["id"]
 
+            # Prepare safe fallback values
+            first_name   = user["first_name"] or ""
+            company_name = user["company_name"] if "company_name" in user.keys() else ""
+            position     = user["position"] if "position" in user.keys() else ""
+            website      = user["website"] if "website" in user.keys() else ""
+            phone        = user["phone"] if "phone" in user.keys() else ""
+            reply_to     = user["reply_to"] if "reply_to" in user.keys() else ""
+            timezone     = user["timezone"] if "timezone" in user.keys() else ""
+            logo         = user["logo"] if "logo" in user.keys() else None
+
             # Auto-create automation_settings if missing
             exists = conn.execute(
                 "SELECT 1 FROM automation_settings WHERE email = ?", (email,)
@@ -163,24 +173,25 @@ def login():
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    user["email"],
+                    email,
                     "friendly",
                     False,
                     True,
                     True,
                     "concise",
-                    user.get("first_name", ""),
-                    user.get("company_name", ""),
-                    user.get("position", ""),
-                    user.get("website", ""),
-                    user.get("phone", ""),
-                    user.get("reply_to", ""),
-                    user.get("timezone", ""),
-                    user.get("logo", None)
+                    first_name,
+                    company_name,
+                    position,
+                    website,
+                    phone,
+                    reply_to,
+                    timezone,
+                    logo
                 ))
                 conn.commit()
 
             conn.close()
+            print(f"[LOGIN] Success for {email}")
             return redirect(url_for("dashboard"))
 
         conn.close()
