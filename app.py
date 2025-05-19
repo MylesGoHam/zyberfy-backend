@@ -455,7 +455,7 @@ def dashboard():
         WHERE users.email = ?
     """, (session["email"],)).fetchone()
 
-    # Get automation info (used for the automation status card)
+    # Get automation info
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
@@ -472,15 +472,24 @@ def dashboard():
     # Store plan status in session
     session["plan_status"] = user_row["plan_status"]
 
-    # Only check settings-related fields (not automation) for onboarding banner
+    # DEBUG: Print each field that controls onboarding banner
+    print("DEBUG: Banner Check Fields")
+    print("first_name:", user_row["first_name"])
+    print("company_name:", user_row["company_name"])
+    print("position:", user_row["position"])
+    print("website:", user_row["website"])
+    print("phone:", user_row["phone"])
+    print("reply_to:", user_row["reply_to"])
+
+    # Determine if banner should show
     onboarding_incomplete = any([
-    not (user_row["first_name"] or "").strip(),
-    not (user_row["company_name"] or "").strip(),
-    not (user_row["position"] or "").strip(),
-    not (user_row["website"] or "").strip(),
-    not (user_row["phone"] or "").strip(),
-    not (user_row["reply_to"] or "").strip()
-   ])
+        not (user_row["first_name"] or "").strip(),
+        not (user_row["company_name"] or "").strip(),
+        not (user_row["position"] or "").strip(),
+        not (user_row["website"] or "").strip(),
+        not (user_row["phone"] or "").strip(),
+        not (user_row["reply_to"] or "").strip()
+    ])
 
     return render_template(
         "dashboard.html",
