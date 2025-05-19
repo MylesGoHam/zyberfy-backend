@@ -39,9 +39,9 @@ from sms_utils import send_sms_alert
 from flask import g
 
 # --- QR Code Generator Function ---
-def generate_qr_code(public_id):
+def generate_qr_code(public_id, base_url):
     try:
-        url = f"https://zyberfy.com/proposal/{public_id}"
+        url = f"{base_url}proposal/{public_id}"
         qr = qrcode.make(url)
         path = f"static/qr/proposal_{public_id}.png"
         qr.save(path)
