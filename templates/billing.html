@@ -2,23 +2,45 @@
 {% block title %}Billing | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto py-10 px-4">
-  <h1 class="text-2xl font-bold mb-6 text-center">Billing Information</h1>
+<div class="max-w-4xl mx-auto py-12 px-4">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Billing Overview</h1>
+    <p class="text-sm text-gray-500">Manage your subscription and view current billing details.</p>
+  </div>
 
-  <div class="bg-white shadow rounded-lg p-6">
-    <p class="text-sm text-gray-500 mb-2">Current Plan:</p>
-    <p class="text-xl font-semibold text-blue-600 mb-4">{{ plan_name }} Plan</p>
+  <div class="bg-white shadow-lg rounded-2xl p-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Plan Name -->
+      <div>
+        <p class="text-sm text-gray-500 mb-1">Current Plan</p>
+        <p class="text-xl font-bold text-blue-600">{{ plan_name }} Plan</p>
+      </div>
 
-    <p class="text-sm text-gray-500 mb-2">Status:</p>
-    <p class="text-lg font-medium text-green-600 mb-4">{{ status }}</p>
+      <!-- Status -->
+      <div>
+        <p class="text-sm text-gray-500 mb-1">Status</p>
+        {% if status == "active" %}
+          <p class="text-lg font-semibold text-green-600">Active</p>
+        {% else %}
+          <p class="text-lg font-semibold text-red-600 capitalize">{{ status }}</p>
+        {% endif %}
+      </div>
 
-    {% if created_at %}
-    <p class="text-sm text-gray-500 mb-2">Subscription Start Date:</p>
-    <p class="text-base text-gray-800">{{ created_at }}</p>
-    {% endif %}
+      <!-- Created At -->
+      {% if created_at %}
+      <div>
+        <p class="text-sm text-gray-500 mb-1">Subscription Start Date</p>
+        <p class="text-base text-gray-800">{{ created_at }}</p>
+      </div>
+      {% endif %}
 
-    <div class="mt-6 text-center">
-      <a href="{{ url_for('billing_portal') }}" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      <!-- (Optional) Renewal Info -->
+      {# Add more fields like renewal date or payment method later #}
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="{{ url_for('billing_portal') }}"
+         class="inline-block px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition duration-150 ease-in-out">
         Manage Subscription via Stripe
       </a>
     </div>
