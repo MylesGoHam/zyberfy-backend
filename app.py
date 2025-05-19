@@ -223,12 +223,12 @@ def admin_dashboard():
     active_subscriptions = conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'").fetchone()[0]
     conn.close()
 
-    conn = get_db_connection()
-    user = conn.execute("SELECT is_admin FROM users WHERE email = ?", (session["email"],)).fetchone()
-
-    if not user or not user["is_admin"]:
-        conn.close()
-        return redirect(url_for("dashboard"))
+    return render_template(
+        "admin-dashboard.html",
+        total_users=total_users,
+        total_proposals=total_proposals,
+        active_subscriptions=active_subscriptions
+    )
 
     # Example stats
     total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
