@@ -217,7 +217,7 @@ def admin_login():
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
 
-        if user and user["password"] == password and user.get("is_admin", 0):
+        if user and user["password"] == password and user["is_admin"] == 1:
             session["email"] = email
             session["is_admin"] = user["is_admin"]
             return redirect(url_for("admin_dashboard"))
