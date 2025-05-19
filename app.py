@@ -473,6 +473,13 @@ def dashboard():
         (session["email"],)
     ).fetchone()
 
+    # Get proposal count
+    proposal_count_row = conn.execute(
+        "SELECT COUNT(*) AS total FROM proposals WHERE user_email = ?",
+        (session["email"],)
+    ).fetchone()
+    proposal_count = proposal_count_row["total"] if proposal_count_row else 0
+
     conn.close()
 
     # Generate QR if needed
@@ -497,7 +504,8 @@ def dashboard():
         "dashboard.html",
         user=user_row,
         automation_complete=bool(automation_row),
-        onboarding_incomplete=onboarding_incomplete
+        onboarding_incomplete=onboarding_incomplete,
+        proposal_count=proposal_count
     )
 
 
@@ -756,6 +764,42 @@ def analytics_data():
             {"event_type": e["event_name"], "timestamp": e["timestamp"]} for e in recent_events
         ]
     })
+
+@app.route("/billing")
+def billing():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    user = conn.execute(
+        """
+        SELECT u.plan_status, s.stripe_subscription_id
+        FROM users u
+        LEFT JOIN subscriptions s ON u.email = s.email
+        WHERE u.email = ?
+        """,
+        (session["email"],)
+    ).fetchone()
+    conn.close()
+
+    plan_name = "Elite"
+    status = "Active" if user and user["stripe_subscription_id"] else "Inactive"
+    created_at = None
+
+    if user and user["stripe_subscription_id"]:
+        try:
+            sub = stripe.Subscription.retrieve(user["stripe_subscription_id"])
+            created_at = datetime.utcfromtimestamp(sub.created).strftime('%B %d, %Y')
+        except Exception as e:
+            print("[ERROR] Stripe fetch failed:", e)
+
+    return render_template(
+        "billing.html",
+        plan_name=plan_name,
+        status=status,
+        created_at=created_at
+    )
+
 
 @app.route("/export-analytics")
 def export_analytics():
