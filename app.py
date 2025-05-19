@@ -447,8 +447,10 @@ def dashboard():
 
     # Get full user info (to validate settings completeness)
     user_row = conn.execute("""
-        SELECT first_name, plan_status, public_id, company_name, position, website, phone, reply_to
-        FROM users WHERE email = ?
+    SELECT users.first_name, users.plan_status, users.public_id, settings.company_name
+    FROM users
+    LEFT JOIN settings ON users.email = settings.email
+    WHERE users.email = ?
     """, (session["email"],)).fetchone()
 
     # Get automation info
