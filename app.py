@@ -474,13 +474,13 @@ def dashboard():
 
     # Only check settings-related fields (not automation) for onboarding banner
     onboarding_incomplete = any([
-        not user_row["first_name"],
-        not user_row["company_name"],
-        not user_row["position"],
-        not user_row["website"],
-        not user_row["phone"],
-        not user_row["reply_to"]
-    ])
+    not (user_row["first_name"] or "").strip(),
+    not (user_row["company_name"] or "").strip(),
+    not (user_row["position"] or "").strip(),
+    not (user_row["website"] or "").strip(),
+    not (user_row["phone"] or "").strip(),
+    not (user_row["reply_to"] or "").strip()
+   ])
 
     return render_template(
         "dashboard.html",
