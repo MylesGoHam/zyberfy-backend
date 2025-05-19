@@ -14,11 +14,11 @@
   <!-- Heading -->
   <h1 class="text-2xl font-bold mb-6 text-center">Billing Information</h1>
 
-  <!-- Billing Box -->
-  <div class="bg-white shadow rounded-lg p-6 mb-6">
+  <!-- Primary Info Card -->
+  <div class="bg-white border border-gray-200 shadow-md rounded-xl p-6 mb-6">
     <div class="mb-4">
       <p class="text-sm text-gray-500">Current Plan:</p>
-      <p class="text-xl font-semibold text-blue-600">{{ plan_name }} Plan</p>
+      <p class="text-xl font-bold text-blue-600">{{ plan_name }} Plan</p>
     </div>
 
     <div class="mb-4">
@@ -34,16 +34,16 @@
     {% endif %}
 
     <div class="mt-6 text-center">
-      <a href="{{ url_for('billing_portal') }}" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      <a href="{{ url_for('billing_portal') }}" class="inline-block px-5 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition">
         Manage Subscription via Stripe
       </a>
     </div>
   </div>
 
-  <!-- Placeholder Section -->
-  <div class="bg-white shadow rounded-lg p-6 text-center text-gray-500">
-    <p class="text-sm font-semibold tracking-wide">Subscription Renews</p>
-    <p class="text-xs mt-1 text-gray-400">Coming soon — renewal date will appear here.</p>
+  <!-- Placeholder: Renewal Date -->
+  <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-4 text-center">
+    <p class="text-sm font-semibold text-gray-700 tracking-wide">Subscription Renews</p>
+    <p class="text-xs text-gray-400 mt-1">Coming soon — renewal date will appear here.</p>
   </div>
 
 </div>
