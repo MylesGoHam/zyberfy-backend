@@ -530,7 +530,7 @@ def dashboard():
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
-            generate_qr_code(user_row["public_id"])
+            generate_qr_code(user_row["public_id"], request.host_url)
 
     session["plan_status"] = user_row["plan_status"]
 
