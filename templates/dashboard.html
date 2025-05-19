@@ -34,24 +34,14 @@
 </div>
 {% endif %}
 
-
 <!-- Status Cards (Proposals Used, Plan Status, Automation) -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-  <!-- Proposals Used -->
   <div class="bg-white p-4 rounded-lg shadow text-center">
     <h3 class="text-sm text-gray-500 font-medium">Proposals Used</h3>
     <p class="text-lg font-bold text-blue-600">{{ proposal_count }} / 3</p>
     <p class="text-xs text-gray-400">Limit on current plan</p>
   </div>
 
-  <!-- New Proposal Button -->
-<div class="mb-8 text-center">
-  <a href="{{ url_for('dashboard_proposal') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
-    + New Proposal
-  </a>
-</div>
-
-  <!-- Plan Status -->
   <div class="bg-white p-4 rounded-lg shadow text-center">
     <h3 class="text-sm text-gray-500 font-medium">Plan Status</h3>
     <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
@@ -62,7 +52,6 @@
     </p>
   </div>
 
-  <!-- Automation Status -->
   <div class="bg-white p-4 rounded-lg shadow text-center">
     <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
     {% if automation_complete %}
@@ -81,6 +70,13 @@
       </p>
     {% endif %}
   </div>
+</div>
+
+<!-- New Proposal Button -->
+<div class="mb-6 text-center">
+  <a href="{{ url_for('dashboard_proposal') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+    + New Proposal
+  </a>
 </div>
 
 <!-- Proposal stats -->
