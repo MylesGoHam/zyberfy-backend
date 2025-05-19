@@ -447,49 +447,40 @@ def dashboard():
 
     # Get user and settings info
     user_row = conn.execute("""
-        SELECT 
-            users.first_name, 
-            users.plan_status, 
-            users.public_id,
-            settings.company_name,
-            settings.position,
-            settings.website,
-            settings.phone,
-            settings.reply_to,
-            settings.timezone
+        SELECT users.first_name, users.plan_status, users.public_id,
+               settings.company_name, settings.position, settings.website,
+               settings.phone, settings.reply_to
         FROM users
         LEFT JOIN settings ON users.email = settings.email
         WHERE users.email = ?
     """, (session["email"],)).fetchone()
 
-    # Get automation info
+    # Get automation info (used for the automation status card)
     automation_row = conn.execute(
         "SELECT tone FROM automation_settings WHERE email = ?",
         (session["email"],)
     ).fetchone()
+
     conn.close()
 
-    # Generate QR if needed
+    # Generate QR code if needed
     if user_row and user_row["public_id"]:
         qr_path = f"static/qr/proposal_{user_row['public_id']}.png"
         if not Path(qr_path).exists():
             generate_qr_code(user_row["public_id"])
 
-    # Save plan status in session
+    # Store plan status in session
     session["plan_status"] = user_row["plan_status"]
 
-    # Onboarding check – if any of these are missing, banner stays
-    onboarding_incomplete = (
-        not user_row["first_name"]
-        or not user_row["company_name"]
-        or not user_row["position"]
-        or not user_row["website"]
-        or not user_row["phone"]
-        or not user_row["reply_to"]
-        or not user_row["timezone"]
-        or not automation_row
-        or not automation_row["tone"]
-    )
+    # Only check settings-related fields (not automation) for onboarding banner
+    onboarding_incomplete = any([
+        not user_row["first_name"],
+        not user_row["company_name"],
+        not user_row["position"],
+        not user_row["website"],
+        not user_row["phone"],
+        not user_row["reply_to"]
+    ])
 
     return render_template(
         "dashboard.html",
