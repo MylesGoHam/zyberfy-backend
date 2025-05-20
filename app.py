@@ -642,7 +642,14 @@ def automation():
             conn.close()
             flash("Settings saved successfully.", "success")
 
-    settings = dict(get_user_automation(user_email))
+            row = get_user_automation(user_email)
+            settings = dict(row) if row else {
+          "tone": "",
+          "full_auto": False,
+          "accept_offers": False,
+          "reject_offers": False,
+          "length": "concise"
+            }
     return render_template("automation.html", preview=preview, **settings)
 
 @app.route("/automation-preview")
