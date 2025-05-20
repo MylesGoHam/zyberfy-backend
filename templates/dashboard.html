@@ -4,110 +4,106 @@
 {% block content %}
 <div class="max-w-6xl mx-auto p-6">
 
-<!-- Top bar with logo, greeting, and dropdown -->
-<div class="flex items-center justify-between mb-6 flex-wrap">
-  <div class="flex flex-col">
-    <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
-    <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
-  </div>
-  <div class="flex items-center gap-4 mt-4 md:mt-0">
-    <span class="text-lg font-bold text-gray-800">
-      Hi, {{ (user.settings_first_name or user.user_first_name or "User").split(' ')[0] }}!
-    </span>
-    <div class="relative">
-      <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
-      <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
-        <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
-        <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
-        <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">Preview Proposal</a>
-        <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-        <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
-        <a href="{{ url_for('billing') }}" class="block px-4 py-2 hover:bg-gray-100">Billing</a>
-        <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+  <!-- Top bar -->
+  <div class="flex items-center justify-between mb-6 flex-wrap">
+    <div class="flex flex-col">
+      <span class="text-3xl font-extrabold text-blue-600">Zyberfy</span>
+      <span class="text-base font-semibold text-black-900 ml-8 mt-1 tracking-tight">Dashboard</span>
+    </div>
+    <div class="flex items-center gap-4 mt-4 md:mt-0">
+      <span class="text-lg font-bold text-gray-800">
+        Hi, {{ (user.settings_first_name or user.user_first_name or "User").split(' ')[0] }}!
+      </span>
+      <div class="relative">
+        <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
+        <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+          <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
+          <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
+          <a href="{{ url_for('proposal') }}" class="block px-4 py-2 hover:bg-gray-100">Preview Proposal</a>
+          <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
+          <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+          <a href="{{ url_for('billing') }}" class="block px-4 py-2 hover:bg-gray-100">Billing</a>
+          <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Setup Checklist Banner -->
-{% if onboarding_incomplete %}
-<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
-  <p class="font-semibold">
-    Complete your setup in
-    <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a>
-    to activate Zyberfy.
-  </p>
-</div>
-{% endif %}
-
-<!-- Status Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-  <div class="bg-white p-4 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 font-medium">Proposals Used</h3>
-    <p class="text-lg font-bold text-blue-600">{{ proposal_count }} / 3</p>
-    <p class="text-xs text-gray-400">Limit on current plan</p>
-  </div>
-
-  <div class="bg-white p-4 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 font-medium">Plan Status</h3>
-    <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
-      Active
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-      </svg>
+  <!-- Checklist Banner -->
+  {% if onboarding_incomplete %}
+  <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
+    <p class="font-semibold">
+      Complete your setup in <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a> to activate Zyberfy.
     </p>
   </div>
+  {% endif %}
 
-  <div class="bg-white p-4 rounded-lg shadow text-center">
-    <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
-    {% if automation_complete %}
+  <!-- Status Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 font-medium">Proposals Used</h3>
+      <p class="text-lg font-bold text-blue-600">{{ proposal_count }} / 3</p>
+      <p class="text-xs text-gray-400">Limit on current plan</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 font-medium">Plan Status</h3>
       <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
-        Configured
+        Active
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
         </svg>
       </p>
-    {% else %}
-      <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
-        Not Configured
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </p>
-    {% endif %}
-  </div>
-</div>
-
-<!-- New Proposal Button -->
-<div class="mb-6 text-center">
-  <a href="{{ url_for('proposal') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
-    + New Proposal
-  </a>
-</div>
-
-<!-- Proposal stats -->
-<div>
-  <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
-      <p class="text-sm text-gray-500">Proposals Generated</p>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow text-center">
-      <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
-      <p class="text-sm text-gray-500">Proposals Sent</p>
+    <div class="bg-white p-4 rounded-lg shadow text-center">
+      <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
+      {% if automation_complete %}
+        <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
+          Configured
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </p>
+      {% else %}
+        <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
+          Not Configured
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </p>
+      {% endif %}
     </div>
   </div>
-  <div class="bg-white p-6 rounded-lg shadow">
-    <canvas id="miniChart" height="90"></canvas>
+
+  <!-- New Proposal -->
+  <div class="mb-6 text-center">
+    <a href="{{ url_for('proposal') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+      + New Proposal
+    </a>
   </div>
-</div>
+
+  <!-- Chart -->
+  <div>
+    <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-generated" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Generated</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow text-center">
+        <h2 id="stat-sent" class="text-3xl font-bold text-gray-800">0</h2>
+        <p class="text-sm text-gray-500">Proposals Sent</p>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+      <canvas id="miniChart" height="90"></canvas>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
   const miniCtx = document.getElementById('miniChart').getContext('2d');
   const miniChart = new Chart(miniCtx, {
