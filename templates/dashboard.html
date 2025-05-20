@@ -12,8 +12,8 @@
   </div>
   <div class="flex items-center gap-4 mt-4 md:mt-0">
     <span class="text-lg font-bold text-gray-800">
-  Hi, {{ (user.settings_first_name or user.user_first_name or "User").split(' ')[0] }}!
-</span>
+      Hi, {{ (user.settings_first_name or user.user_first_name or "User").split(' ')[0] }}!
+    </span>
     <div class="relative">
       <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
       <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
@@ -32,11 +32,15 @@
 <!-- Setup Checklist Banner -->
 {% if onboarding_incomplete %}
 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
-  <p class="font-semibold">Complete your setup in <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a> to activate Zyberfy.</p>
+  <p class="font-semibold">
+    Complete your setup in
+    <a href="{{ url_for('settings') }}" class="underline text-yellow-700 hover:text-yellow-900">Settings</a>
+    to activate Zyberfy.
+  </p>
 </div>
 {% endif %}
 
-<!-- Status Cards (Proposals Used, Plan Status, Automation) -->
+<!-- Status Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
   <div class="bg-white p-4 rounded-lg shadow text-center">
     <h3 class="text-sm text-gray-500 font-medium">Proposals Used</h3>
@@ -97,6 +101,7 @@
   <div class="bg-white p-6 rounded-lg shadow">
     <canvas id="miniChart" height="90"></canvas>
   </div>
+</div>
 </div>
 {% endblock %}
 
