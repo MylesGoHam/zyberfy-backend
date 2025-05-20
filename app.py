@@ -583,21 +583,22 @@ def automation():
     user_email = session["email"]
     preview = None
 
+    # Handle POST actions
     if request.method == "POST":
+        # Reset settings
         if "reset" in request.form:
-            # Handle reset request
             conn = sqlite3.connect("zyberfy.db")
             c = conn.cursor()
             c.execute("DELETE FROM automation_settings WHERE email = ?", (user_email,))
             conn.commit()
             conn.close()
-            flash("Your automation settings were reset successfully.", "success")
+            flash("Automation settings reset to default.")
             return redirect(url_for("automation"))
 
+        # Test Proposal Preview
         elif "test_preview" in request.form:
-            # Generate preview only
-            settings_row = get_user_automation(user_email)
-            settings = dict(settings_row)
+            row = get_user_automation(user_email)
+            settings = dict(row) if row else {}
 
             tone = settings.get("tone", "friendly")
             length = settings.get("length", "concise")
@@ -624,32 +625,40 @@ def automation():
 
             preview = response["choices"][0]["message"]["content"].strip()
 
+        # Save settings
         else:
-            # Save the form (unchanged logic)
             tone = request.form.get("tone", "")
+            length = request.form.get("length", "concise")
             full_auto = "full_auto" in request.form
             accept_offers = "accept_offers" in request.form
             reject_offers = "reject_offers" in request.form
-            length = request.form.get("length", "concise")
 
             conn = sqlite3.connect("zyberfy.db")
             c = conn.cursor()
             c.execute("""
-                INSERT OR REPLACE INTO automation_settings (email, tone, full_auto, accept_offers, reject_offers, length, first_name)
-                VALUES (?, ?, ?, ?, ?, ?, COALESCE((SELECT first_name FROM settings WHERE email = ?), ''))
-            """, (user_email, tone, full_auto, accept_offers, reject_offers, length, user_email))
+                INSERT INTO automation_settings (email, tone, length, full_auto, accept_offers, reject_offers)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET
+                    tone = excluded.tone,
+                    length = excluded.length,
+                    full_auto = excluded.full_auto,
+                    accept_offers = excluded.accept_offers,
+                    reject_offers = excluded.reject_offers
+            """, (user_email, tone, length, int(full_auto), int(accept_offers), int(reject_offers)))
             conn.commit()
             conn.close()
-            flash("Settings saved successfully.", "success")
+            flash("Settings saved successfully!")
 
-            row = get_user_automation(user_email)
-            settings = dict(row) if row else {
-          "tone": "",
-          "full_auto": False,
-          "accept_offers": False,
-          "reject_offers": False,
-          "length": "concise"
-            }
+    # GET logic (load settings or defaults)
+    row = get_user_automation(user_email)
+    settings = dict(row) if row else {
+        "tone": "",
+        "length": "concise",
+        "full_auto": False,
+        "accept_offers": False,
+        "reject_offers": False
+    }
+
     return render_template("automation.html", preview=preview, **settings)
 
 @app.route("/automation-preview")
