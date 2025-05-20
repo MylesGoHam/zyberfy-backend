@@ -585,14 +585,17 @@ def automation():
 
     if request.method == "POST":
         if "reset" in request.form:
-            # Clear automation settings
-            db = get_db()
-            db.execute("DELETE FROM automation_settings WHERE email = ?", (user_email,))
-            db.commit()
-            flash("Automation settings have been reset.", "success")
+            # Handle reset request
+            conn = sqlite3.connect("zyberfy.db")
+            c = conn.cursor()
+            c.execute("DELETE FROM automation_settings WHERE email = ?", (user_email,))
+            conn.commit()
+            conn.close()
+            flash("Your automation settings were reset successfully.", "success")
             return redirect(url_for("automation"))
 
         elif "test_preview" in request.form:
+            # Generate preview only
             settings_row = get_user_automation(user_email)
             settings = dict(settings_row)
 
@@ -618,28 +621,27 @@ def automation():
                 max_tokens=500,
                 temperature=0.7
             )
+
             preview = response["choices"][0]["message"]["content"].strip()
 
         else:
-            # Save updated settings
-            tone = request.form.get("tone", "").strip()
-            full_auto = bool(request.form.get("full_auto"))
-            accept_offers = bool(request.form.get("accept_offers"))
-            reject_offers = bool(request.form.get("reject_offers"))
+            # Save the form (unchanged logic)
+            tone = request.form.get("tone", "")
+            full_auto = "full_auto" in request.form
+            accept_offers = "accept_offers" in request.form
+            reject_offers = "reject_offers" in request.form
             length = request.form.get("length", "concise")
 
-            db = get_db()
-            db.execute(
-                """INSERT OR REPLACE INTO automation_settings
-                   (email, tone, full_auto, accept_offers, reject_offers, length)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (user_email, tone, int(full_auto), int(accept_offers), int(reject_offers), length)
-            )
-            db.commit()
-            flash("Automation settings updated successfully.", "success")
-            return redirect(url_for("automation"))
+            conn = sqlite3.connect("zyberfy.db")
+            c = conn.cursor()
+            c.execute("""
+                INSERT OR REPLACE INTO automation_settings (email, tone, full_auto, accept_offers, reject_offers, length, first_name)
+                VALUES (?, ?, ?, ?, ?, ?, COALESCE((SELECT first_name FROM settings WHERE email = ?), ''))
+            """, (user_email, tone, full_auto, accept_offers, reject_offers, length, user_email))
+            conn.commit()
+            conn.close()
+            flash("Settings saved successfully.", "success")
 
-    # Load current settings to populate form
     settings = dict(get_user_automation(user_email))
     return render_template("automation.html", preview=preview, **settings)
 
