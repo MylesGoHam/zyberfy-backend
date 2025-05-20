@@ -1,35 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zyberfy – AI Proposal Automation</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
-</head>
-<body class="bg-gray-50 text-gray-900">
+{% extends "base.html" %}
+{% block title %}Zyberfy – AI Proposal Automation{% endblock %}
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-sm sticky top-0 z-50" data-aos="fade-down">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center py-4">
-        <div class="text-2xl font-extrabold text-blue-600 tracking-tight">Zyberfy</div>
-        <div class="relative">
-          <button id="menu-toggle" class="text-xl focus:outline-none">☰</button>
-          <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
-            <a href="{{ url_for('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
-
+{% block content %}
 <!-- Hero Section -->
 <section class="text-center py-24 px-4 bg-white" data-aos="fade-up">
   <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight text-gray-900 mb-4">
@@ -46,40 +18,40 @@
   </div>
 </section>
 
-  <!-- Benefits Section -->
-  <section class="bg-white py-16 px-4">
-    <div class="max-w-5xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="100">
-        <h3 class="text-xl font-semibold mb-2">AI-Powered Proposals</h3>
-        <p class="text-gray-600">Generate stunning, brand-aligned proposals in seconds using cutting-edge automation.</p>
-      </div>
-      <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="200">
-        <h3 class="text-xl font-semibold mb-2">Save Hours Every Week</h3>
-        <p class="text-gray-600">Stop writing emails from scratch. Zyberfy handles it all while you focus on closing.</p>
-      </div>
-      <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="300">
-        <h3 class="text-xl font-semibold mb-2">Built for Premium Brands</h3>
-        <p class="text-gray-600">Perfect for high-ticket services, concierge businesses, and elite offers.</p>
-      </div>
+<!-- Benefits Section -->
+<section class="bg-white py-16 px-4">
+  <div class="max-w-5xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="100">
+      <h3 class="text-xl font-semibold mb-2">AI-Powered Proposals</h3>
+      <p class="text-gray-600">Generate stunning, brand-aligned proposals in seconds using cutting-edge automation.</p>
     </div>
-  </section>
+    <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="200">
+      <h3 class="text-xl font-semibold mb-2">Save Hours Every Week</h3>
+      <p class="text-gray-600">Stop writing emails from scratch. Zyberfy handles it all while you focus on closing.</p>
+    </div>
+    <div class="bg-gray-100 p-6 rounded-lg shadow-sm" data-aos="zoom-in-up" data-aos-delay="300">
+      <h3 class="text-xl font-semibold mb-2">Built for Premium Brands</h3>
+      <p class="text-gray-600">Perfect for high-ticket services, concierge businesses, and elite offers.</p>
+    </div>
+  </div>
+</section>
 
-  <!-- CTA Section -->
-  <section class="text-center py-20 px-4 bg-blue-50" data-aos="fade-up">
-    <h2 class="text-3xl font-bold mb-4">Ready to Automate Your Sales?</h2>
-    <p class="text-gray-700 mb-6">Join the next generation of entrepreneurs using Zyberfy to grow without lifting a finger.</p>
-    <a href="{{ url_for('login') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Get Started Now</a>
-  </section>
+<!-- CTA Section -->
+<section class="text-center py-20 px-4 bg-blue-50" data-aos="fade-up">
+  <h2 class="text-3xl font-bold mb-4">Ready to Automate Your Sales?</h2>
+  <p class="text-gray-700 mb-6">Join the next generation of entrepreneurs using Zyberfy to grow without lifting a finger.</p>
+  <a href="{{ url_for('login') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Get Started Now</a>
+</section>
+{% endblock %}
 
-  <!-- Scripts -->
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>
-    AOS.init({ duration: 800, easing: 'ease-out', once: true });
+{% block scripts %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 800, easing: 'ease-out', once: true });
 
-    document.getElementById("menu-toggle").addEventListener("click", function () {
-      const menu = document.getElementById("dropdown-menu");
-      menu.classList.toggle("hidden");
-    });
-  </script>
-</body>
-</html>
+  document.getElementById("menu-toggle").addEventListener("click", function () {
+    const menu = document.getElementById("dropdown-menu");
+    menu.classList.toggle("hidden");
+  });
+</script>
+{% endblock %}
