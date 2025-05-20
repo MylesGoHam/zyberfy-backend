@@ -1,93 +1,48 @@
-{% extends "base.html" %}
-{% block title %}Automation Settings | Zyberfy{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Zyberfy{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-{% block content %}
-<div class="max-w-4xl mx-auto px-4 py-10">
-  <!-- Back Link -->
-  <a href="{{ url_for('dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium block mb-4">
-    &larr; Back to Dashboard
-  </a>
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Page Title -->
-  <h2 class="text-2xl font-bold text-blue-600 mb-6">Automation Settings</h2>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Flash Message -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div id="success-banner" class="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6 shadow text-center flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  <!-- AOS (Animate on Scroll) -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <form method="POST" action="{{ url_for('automation') }}" class="space-y-10">
-    <!-- Tone -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Describe your tone or writing style</label>
-      <textarea name="tone" rows="3" class="w-full p-3 border rounded-lg text-sm" placeholder="Ex: Friendly, luxury concierge, direct, warm...">{{ tone }}</textarea>
-      <p class="text-xs text-gray-500 mt-1">How should the AI sound when writing proposals?</p>
-    </div>
+  {% block head %}{% endblock %}
+</head>
 
-    <!-- Toggles & Length -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="inline-flex items-center">
-          <input type="checkbox" name="full_auto" class="form-checkbox" {% if full_auto %}checked{% endif %}>
-          <span class="ml-2 text-sm">Enable Smart Follow-ups</span>
-        </label>
-      </div>
-      <div>
-        <label class="inline-flex items-center">
-          <input type="checkbox" name="accept_offers" class="form-checkbox" {% if accept_offers %}checked{% endif %}>
-          <span class="ml-2 text-sm">Auto Accept Offers</span>
-        </label>
-      </div>
-      <div>
-        <label class="inline-flex items-center">
-          <input type="checkbox" name="reject_offers" class="form-checkbox" {% if reject_offers %}checked{% endif %}>
-          <span class="ml-2 text-sm">Auto Reject Low Offers</span>
-        </label>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Proposal Length</label>
-        <select name="length" class="w-full border-gray-300 rounded-lg shadow-sm">
-          <option value="concise" {% if length == 'concise' %}selected{% endif %}>Concise</option>
-          <option value="detailed" {% if length == 'detailed' %}selected{% endif %}>Detailed</option>
-        </select>
-      </div>
-    </div>
+<body class="bg-gray-50 text-gray-900">
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      AOS.init({ duration: 600, easing: "ease-out", once: true });
+    });
+  </script>
 
-    <!-- Actions -->
-    <div class="flex items-center gap-4">
-      <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Save Settings</button>
-      <a href="/test_proposal" class="bg-gray-100 border text-sm px-5 py-2 rounded hover:bg-gray-200 transition">Test Proposal Output</a>
-    </div>
-  </form>
-
-  {% if preview %}
-  <div class="mt-12">
-    <h3 class="text-xl font-bold text-blue-600 mb-4">Live Preview</h3>
-    <div class="bg-white border border-blue-100 shadow rounded p-6">
-      <pre class="whitespace-pre-wrap text-gray-800 text-sm">{{ preview }}</pre>
-    </div>
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
   </div>
-  {% endif %}
-</div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-  setTimeout(() => {
-    const banner = document.getElementById("success-banner");
-    if (banner) {
-      banner.classList.add("opacity-0");
-      setTimeout(() => banner.remove(), 700);
-    }
-  }, 3000);
-</script>
-{% endblock %}
+  {% block scripts %}
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("copyBtn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const input = document.getElementById("proposalLink");
+          input.select();
+          document.execCommand("copy");
+          alert("Link copied to clipboard!");
+        });
+      }
+    });
+  </script>
+  {% endblock %}
+</body>
+</html>
