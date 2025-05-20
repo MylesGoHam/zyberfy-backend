@@ -85,8 +85,8 @@
   {% if show_qr %}
   <div class="mt-10 text-center">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
-    <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
-    <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
+    <img src="{{ url_for('static', filename='qr/proposal_' + public_id + '.png') }}" alt="QR Code" class="mx-auto mt-2 w-32 h-32">
+    <a href="{{ url_for('static', filename='qr/proposal_' + public_id + '.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
 
     <div class="mt-6">
       <h3 class="text-lg font-semibold mb-2">Copy Your Proposal Page Link</h3>
