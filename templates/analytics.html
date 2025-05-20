@@ -1,4 +1,3 @@
-<!-- templates/analytics.html -->
 {% extends "base.html" %}
 {% block title %}Analytics | Zyberfy{% endblock %}
 
@@ -13,25 +12,23 @@
   <h2 class="text-2xl font-bold text-blue-600 mb-6">Analytics</h2>
 
   <!-- Filters and Download -->
-<div class="flex items-center justify-between mb-3">
-  <h3 class="text-lg font-semibold text-blue-600">Recent Activity</h3>
-      <div>
-        <label for="range" class="mr-2 text-sm font-medium text-gray-600">Range:</label>
-        <select id="range" class="border rounded px-3 py-1 text-sm">
-          <option value="7">Last 7 Days</option>
-          <option value="30">Last 30 Days</option>
-          <option value="90">Last 90 Days</option>
-        </select>
-      </div>
-      <div>
-        <label for="eventType" class="mr-2 text-sm font-medium text-gray-600">Event:</label>
-        <select id="eventType" class="border rounded px-3 py-1 text-sm">
-          <option value="">All</option>
-          <option value="pageview">Pageview</option>
-          <option value="proposal_generated">Proposal Generated</option>
-          <option value="proposal_sent">Proposal Sent</option>
-        </select>
-      </div>
+  <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+    <div class="flex items-center gap-2">
+      <label for="range" class="text-sm font-medium text-gray-600">Range:</label>
+      <select id="range" class="border rounded px-3 py-1 text-sm">
+        <option value="7">Last 7 Days</option>
+        <option value="30">Last 30 Days</option>
+        <option value="90">Last 90 Days</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <label for="eventType" class="text-sm font-medium text-gray-600">Event:</label>
+      <select id="eventType" class="border rounded px-3 py-1 text-sm">
+        <option value="">All</option>
+        <option value="pageview">Pageview</option>
+        <option value="proposal_generated">Proposal Generated</option>
+        <option value="proposal_sent">Proposal Sent</option>
+      </select>
     </div>
     <button onclick="downloadCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm shadow">
       Download CSV
@@ -78,6 +75,7 @@
       </select>
     </div>
   </div>
+
   <div class="bg-white p-4 rounded-lg shadow overflow-y-auto max-h-96">
     <table class="w-full text-sm text-left">
       <thead class="bg-gray-100 text-gray-600">
@@ -129,37 +127,36 @@
 
     if (data.error) return;
 
-    // Update summary stats
+    // Update stats
     document.getElementById('stat-pageviews').textContent = data.pageviews;
     document.getElementById('stat-generated').textContent = data.generated;
     document.getElementById('stat-sent').textContent = data.sent;
     document.getElementById('stat-conversion').textContent = data.conversion_rate + '%';
 
-    // Update chart
     chart.data.labels = data.labels;
     chart.data.datasets[0].data = data.pv_data;
     chart.data.datasets[1].data = data.gen_data;
     chart.data.datasets[2].data = data.sent_data;
     chart.update();
 
-    // Update recent events
+    // Render table
+    const tbody = document.getElementById('analytics-tbody');
     const filterValue = document.getElementById("activityFilter").value;
     const sortValue = document.getElementById("activitySort").value;
-    let filteredEvents = [...data.recent_events];
+    let events = [...data.recent_events];
 
     if (filterValue) {
-      filteredEvents = filteredEvents.filter(e => e.event_type === filterValue);
+      events = events.filter(e => e.event_type === filterValue);
     }
-    filteredEvents.sort((a, b) => {
-      return sortValue === "asc"
-        ? new Date(a.timestamp) - new Date(b.timestamp)
-        : new Date(b.timestamp) - new Date(a.timestamp);
-    });
 
-    const tbody = document.getElementById('analytics-tbody');
-    tbody.innerHTML = filteredEvents.length === 0
+    events.sort((a, b) => sortValue === "asc"
+      ? new Date(a.timestamp) - new Date(b.timestamp)
+      : new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    tbody.innerHTML = events.length === 0
       ? `<tr><td colspan="2" class="py-4 text-center text-gray-400">No recent events found.</td></tr>`
-      : filteredEvents.map(e => `
+      : events.map(e => `
         <tr>
           <td class="py-2 px-4">${e.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
           <td class="py-2 px-4">${e.timestamp}</td>
@@ -173,13 +170,11 @@
     window.location.href = `/export-analytics?range=${range}&event_type=${eventType}`;
   }
 
-  // Bind events
   document.getElementById("range").addEventListener("change", refreshAnalytics);
   document.getElementById("eventType").addEventListener("change", refreshAnalytics);
   document.getElementById("activityFilter").addEventListener("change", refreshAnalytics);
   document.getElementById("activitySort").addEventListener("change", refreshAnalytics);
 
-  // Refresh on page load and every 10 seconds
   refreshAnalytics();
   setInterval(refreshAnalytics, 10000);
 </script>
