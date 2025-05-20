@@ -583,13 +583,19 @@ def automation():
     user_email = session["email"]
     preview = None
 
-    # Safely fetch settings
-    row = get_user_automation(user_email)
-    settings = dict(row) if row else {}
-
     if request.method == "POST":
-        if "test_preview" in request.form:
-            # Only generate preview
+        if "reset" in request.form:
+            # Clear automation settings
+            db = get_db()
+            db.execute("DELETE FROM automation_settings WHERE email = ?", (user_email,))
+            db.commit()
+            flash("Automation settings have been reset.", "success")
+            return redirect(url_for("automation"))
+
+        elif "test_preview" in request.form:
+            settings_row = get_user_automation(user_email)
+            settings = dict(settings_row)
+
             tone = settings.get("tone", "friendly")
             length = settings.get("length", "concise")
             first_name = settings.get("first_name", "Your Name")
@@ -612,13 +618,29 @@ def automation():
                 max_tokens=500,
                 temperature=0.7
             )
-
             preview = response["choices"][0]["message"]["content"].strip()
 
         else:
-            # Handle save logic here
-            pass
+            # Save updated settings
+            tone = request.form.get("tone", "").strip()
+            full_auto = bool(request.form.get("full_auto"))
+            accept_offers = bool(request.form.get("accept_offers"))
+            reject_offers = bool(request.form.get("reject_offers"))
+            length = request.form.get("length", "concise")
 
+            db = get_db()
+            db.execute(
+                """INSERT OR REPLACE INTO automation_settings
+                   (email, tone, full_auto, accept_offers, reject_offers, length)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (user_email, tone, int(full_auto), int(accept_offers), int(reject_offers), length)
+            )
+            db.commit()
+            flash("Automation settings updated successfully.", "success")
+            return redirect(url_for("automation"))
+
+    # Load current settings to populate form
+    settings = dict(get_user_automation(user_email))
     return render_template("automation.html", preview=preview, **settings)
 
 @app.route("/automation-preview")
