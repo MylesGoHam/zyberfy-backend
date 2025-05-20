@@ -75,6 +75,13 @@ create_analytics_events_table()
 create_proposals_table()
 
 # Add stripe_customer_id column if missing
+import os
+
+# Auto-delete old DB on Render if REDEPLOY_FORCE_DB is set
+if os.getenv("REDEPLOY_FORCE_DB") == "1" and os.path.exists("zyberfy.db"):
+    os.remove("zyberfy.db")
+    print("✅ Deleted stale zyberfy.db for fresh deployment.")
+
 conn = get_db_connection()
 try:
     conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
