@@ -7,12 +7,12 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center py-4">
       <div class="text-2xl font-extrabold text-blue-600 tracking-tight">Zyberfy</div>
-      <div class="relative">
-        <button id="menu-toggle" class="text-2xl px-2 rounded-full hover:bg-gray-100 focus:outline-none">
-          &#x22EE;
-        </button>
-        <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-          <a href="{{ url_for('login') }}" class="block px-4 py-2 text-sm hover:bg-gray-100">Login</a>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <button id="menu-toggle" class="text-2xl focus:outline-none">☰</button>
+          <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+            <a href="{{ url_for('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
+          </div>
         </div>
       </div>
     </div>
