@@ -583,12 +583,13 @@ def automation():
     user_email = session["email"]
     preview = None
 
+    # Safely fetch settings
+    row = get_user_automation(user_email)
+    settings = dict(row) if row else {}
+
     if request.method == "POST":
         if "test_preview" in request.form:
-            # Only generate preview, don’t save settings
-            settings_row = get_user_automation(user_email)
-            settings = dict(settings_row)
-
+            # Only generate preview
             tone = settings.get("tone", "friendly")
             length = settings.get("length", "concise")
             first_name = settings.get("first_name", "Your Name")
@@ -615,11 +616,9 @@ def automation():
             preview = response["choices"][0]["message"]["content"].strip()
 
         else:
-            # Save logic here (unchanged)
+            # Handle save logic here
             pass
 
-    # Load values to render form (whether GET or POST)
-    settings = dict(get_user_automation(user_email))
     return render_template("automation.html", preview=preview, **settings)
 
 @app.route("/automation-preview")
