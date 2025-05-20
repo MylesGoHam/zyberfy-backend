@@ -1,15 +1,7 @@
-<!-- templates/landing.html -->
 {% extends "base.html" %}
 {% block title %}Zyberfy – Proposal Automation{% endblock %}
 
 {% block content %}
-<!-- AOS Animation Init -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    AOS.init();
-  });
-</script>
-
 <div class="bg-white">
   <!-- Demo Video Section -->
   <div class="max-w-5xl mx-auto px-4 py-16 text-center" data-aos="fade-up">
@@ -24,7 +16,9 @@
   <div class="bg-gray-50 py-16">
     <div class="max-w-6xl mx-auto px-4 text-center">
       <h2 class="text-3xl font-bold text-gray-900 mb-6" data-aos="fade-up">Built for High-End Service Businesses</h2>
-      <p class="text-gray-600 mb-12 text-lg" data-aos="fade-up" data-aos-delay="100">Zyberfy is the fastest way to turn leads into paying clients—hands-free.</p>
+      <p class="text-gray-600 mb-12 text-lg" data-aos="fade-up" data-aos-delay="100">
+        Zyberfy is the fastest way to turn leads into paying clients—hands-free.
+      </p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
         <div class="bg-white p-6 rounded-xl shadow border" data-aos="fade-up" data-aos-delay="200">
@@ -52,3 +46,12 @@
     </a>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    AOS.init({ duration: 700, easing: "ease-out", once: true });
+  });
+</script>
+{% endblock %}
