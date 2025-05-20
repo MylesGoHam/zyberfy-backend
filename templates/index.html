@@ -2,6 +2,25 @@
 {% block title %}Zyberfy – AI Proposal Automation{% endblock %}
 
 {% block content %}
+<!-- Navbar -->
+<nav class="bg-white shadow-sm sticky top-0 z-50" data-aos="fade-down">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center py-4">
+      <!-- Logo -->
+      <div class="text-2xl font-extrabold text-blue-600 tracking-tight">
+        Zyberfy
+      </div>
+      <!-- Dropdown Menu -->
+      <div class="relative">
+        <button id="menu-toggle" class="text-xl focus:outline-none">☰</button>
+        <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+          <a href="{{ url_for('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
 <!-- Hero Section -->
 <section class="text-center py-24 px-4 bg-white" data-aos="fade-up">
   <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight text-gray-900 mb-4">
@@ -49,9 +68,14 @@
 <script>
   AOS.init({ duration: 800, easing: 'ease-out', once: true });
 
-  document.getElementById("menu-toggle").addEventListener("click", function () {
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("menu-toggle");
     const menu = document.getElementById("dropdown-menu");
-    menu.classList.toggle("hidden");
+    if (toggle && menu) {
+      toggle.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+      });
+    }
   });
 </script>
 {% endblock %}
