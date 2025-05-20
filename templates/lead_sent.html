@@ -3,15 +3,15 @@
 {% block title %}Proposal Sent!{% endblock %}
 
 {% block content %}
-  <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow text-center">
-    <h1 class="text-2xl font-bold mb-4">✅ Proposal Sent</h1>
-    <p class="mb-6">
-      Your proposal has been emailed to <strong>{{ prospect_email }}</strong>.
-      They should see it in their inbox momentarily.
-    </p>
-    <a href="{{ url_for('dashboard') }}"
-       class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-      Back to Dashboard
-    </a>
-  </div>
+<div class="max-w-md mx-auto bg-white p-8 mt-20 rounded-xl shadow text-center">
+  <h1 class="text-2xl font-bold text-green-600 mb-4">✅ Proposal Sent</h1>
+  <p class="mb-6 text-gray-700">
+    Your proposal has been emailed to <strong>{{ prospect_email or "your lead" }}</strong>.
+    They should see it in their inbox shortly.
+  </p>
+  <a href="{{ url_for('dashboard') }}"
+     class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+    Back to Dashboard
+  </a>
+</div>
 {% endblock %}
