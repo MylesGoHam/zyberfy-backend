@@ -1,72 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Choose Your Plan | Zyberfy</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 font-sans">
+{% extends "base.html" %}
+{% block title %}Choose Your Plan | Zyberfy{% endblock %}
 
-  <div class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
-    <div class="text-center mb-10">
-      <h1 class="text-4xl font-bold text-gray-900">Choose Your Plan</h1>
-      <p class="mt-2 text-gray-500 text-sm">Unlock full access to automation, analytics, and unlimited proposals.</p>
-    </div>
-
-    <div class="bg-white shadow-2xl rounded-2xl p-8 border border-gray-200 max-w-2xl w-full">
-      <h2 class="text-xl font-semibold text-gray-800 mb-1">Elite Subscription</h2>
-      <p class="text-gray-600 mb-4">Full access to every feature — built for high-performance businesses.</p>
-      
-      <div class="text-5xl font-extrabold text-gray-900 mb-6">$1297<span class="text-base font-medium text-gray-500">/mo</span></div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm text-gray-700">
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Unlimited AI Proposals
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Fully Automated Email Follow-ups
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Proposal Offer Acceptance & Rejection
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Personalized AI Voice Tuning
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Smart Analytics Dashboard
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> QR & Link Sharing for Proposals
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> Priority Support + White Glove Setup
-        </div>
-        <div class="flex items-start gap-2">
-          <span class="text-green-600 font-bold">✓</span> White-Labeled Branding (Optional)
-        </div>
-      </div>
-
-      <form action="/create-checkout-session" method="POST" class="space-y-4">
-        <div class="flex items-center">
-          <input id="terms" name="terms" type="checkbox" required
-                 class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-          <label for="terms" class="ml-2 block text-sm text-gray-700">
-            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 underline">Terms of Service</a>
-          </label>
-        </div>
-
-        <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200">
-          Subscribe
-        </button>
-      </form>
-
-      <p class="text-center text-xs text-gray-400 mt-6">
-        You’ll be redirected to secure checkout via Stripe.
-      </p>
-    </div>
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+  <div class="text-center mb-10">
+    <h1 class="text-4xl font-bold text-gray-900">Choose Your Plan</h1>
+    <p class="mt-2 text-gray-500 text-sm">Unlock full access to automation, analytics, and unlimited proposals.</p>
   </div>
 
-</body>
-</html>
+  <div class="bg-white shadow-2xl rounded-2xl p-8 border border-gray-200 max-w-2xl w-full">
+    <h2 class="text-xl font-semibold text-gray-800 mb-1">Elite Subscription</h2>
+    <p class="text-gray-600 mb-4">Full access to every feature — built for high-performance businesses.</p>
+
+    <div class="text-5xl font-extrabold text-gray-900 mb-6">$1297<span class="text-base font-medium text-gray-500">/mo</span></div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm text-gray-700">
+      {% for feature in [
+        "Unlimited AI Proposals",
+        "Fully Automated Email Follow-ups",
+        "Proposal Offer Acceptance & Rejection",
+        "Personalized AI Voice Tuning",
+        "Smart Analytics Dashboard",
+        "QR & Link Sharing for Proposals",
+        "Priority Support + White Glove Setup",
+        "White-Labeled Branding (Optional)"
+      ] %}
+        <div class="flex items-start gap-2">
+          <span class="text-green-600 font-bold">✓</span> {{ feature }}
+        </div>
+      {% endfor %}
+    </div>
+
+    <form action="/create-checkout-session" method="POST" class="space-y-4">
+      <div class="flex items-center">
+        <input id="terms" name="terms" type="checkbox" required
+               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+        <label for="terms" class="ml-2 block text-sm text-gray-700">
+          I agree to the <a href="#" class="text-blue-600 hover:text-blue-500 underline">Terms of Service</a>
+        </label>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200">
+        Subscribe
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-gray-400 mt-6">
+      You’ll be redirected to secure checkout via Stripe.
+    </p>
+  </div>
+</div>
+{% endblock %}
