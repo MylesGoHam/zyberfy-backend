@@ -10,7 +10,6 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@zyberfy.com")
 
 def send_proposal_email(to_email, subject, content, cc_client=False, client_email=None):
-    # Move .replace() to a separate line
     formatted_html = content.replace('\n', '<br>')
 
     html_body = f"""

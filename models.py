@@ -147,4 +147,3 @@ def log_event(event_name, user_email=None, metadata=None):
         (event_name, user_email, json.dumps(metadata or {}), datetime.utcnow().isoformat())
     )
     conn.commit()
-    conn.close()
