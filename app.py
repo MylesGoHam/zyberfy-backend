@@ -1269,25 +1269,21 @@ def settings():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        hashed_password = hash_password(password)  # use your hashing logic
-
-        # ✅ Generate unique public ID
+        email = request.form["email"]
+        password = request.form["password"]  # Add your hashing logic here
         public_id = str(uuid.uuid4())[:8]
 
-        # 🔐 Insert into users table with public_id
         conn = get_db_connection()
         conn.execute(
             "INSERT INTO users (email, password, public_id) VALUES (?, ?, ?)",
-            (email, hashed_password, public_id)
+            (email, password, public_id)
         )
         conn.commit()
         conn.close()
 
-        flash("Signup successful! Please log in.")
+        flash("Account created! You can now log in.", "success")
         return redirect(url_for("login"))
-
+    
     return render_template("signup.html")
 
 @app.route("/log_event", methods=["POST"])
