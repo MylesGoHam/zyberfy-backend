@@ -576,6 +576,34 @@ def dashboard():
     except Exception as e:
         return f"<pre>🔥 DASHBOARD ERROR: {e}</pre>", 500
 
+@app.route("/dashboard_proposal", methods=["GET", "POST"])
+def dashboard_proposal():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT public_id FROM users WHERE email = ?", (session["email"],)).fetchone()
+    conn.close()
+
+    if not user:
+        return "User not found", 404
+
+    public_id = user["public_id"]
+
+    # ✅ Save public_id in session if not already
+    session["public_id"] = public_id
+
+    # ✅ Generate QR code if it doesn't already exist
+    if public_id:
+        qr_path = f"static/qr/proposal_{public_id}.png"
+        if not Path(qr_path).exists():
+            generate_qr_code(public_id, request.host_url)
+
+    return render_template(
+        "dashboard_proposal.html",
+        public_id=public_id,
+        show_qr=True
+    )
 
 @app.route("/automation", methods=["GET", "POST"])
 def automation():
