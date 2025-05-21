@@ -43,6 +43,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 from pathlib import Path
 
+import uuid
+
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
     try:
@@ -1263,6 +1265,30 @@ def settings():
     conn.close()
 
     return render_template("settings.html", settings=settings)
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        hashed_password = hash_password(password)  # use your hashing logic
+
+        # ✅ Generate unique public ID
+        public_id = str(uuid.uuid4())[:8]
+
+        # 🔐 Insert into users table with public_id
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO users (email, password, public_id) VALUES (?, ?, ?)",
+            (email, hashed_password, public_id)
+        )
+        conn.commit()
+        conn.close()
+
+        flash("Signup successful! Please log in.")
+        return redirect(url_for("login"))
+
+    return render_template("signup.html")
 
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
