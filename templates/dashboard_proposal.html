@@ -13,9 +13,12 @@
   {% if show_qr %}
   <div class="text-center space-y-4">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
-    <img src="{{ url_for('static', filename='proposal_qr.png') }}" alt="QR Code" class="mx-auto w-32 h-32">
-    <a href="{{ url_for('static', filename='proposal_qr.png') }}" download class="text-blue-500 text-sm">Download QR Code</a>
 
+    <!-- ✅ Dynamic QR Code -->
+    <img src="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}" alt="QR Code" class="mx-auto w-32 h-32">
+    <a href="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
+
+    <!-- ✅ Copyable Proposal URL -->
     <div>
       <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
       <div class="flex justify-center items-center gap-2 px-4">
@@ -23,7 +26,7 @@
           id="proposalLink"
           type="text"
           readonly
-          value="{{ request.host_url }}proposal/{{ public_id }}"
+          value="{{ request.host_url }}proposal/{{ user.public_id }}"
           class="border px-3 py-2 rounded w-2/3 text-sm"
         />
         <button
@@ -36,6 +39,7 @@
     </div>
   </div>
 
+  <!-- ℹ️ Info box -->
   <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6 shadow text-sm">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
@@ -46,6 +50,7 @@
   </div>
   {% endif %}
 
+  <!-- ✅ Form -->
   <form method="POST" class="space-y-4">
     <div>
       <label for="name" class="block font-medium text-gray-700 mb-1">Your Name</label>
@@ -92,7 +97,6 @@
       Submit Proposal
     </button>
   </form>
-
 </div>
 {% endblock %}
 
@@ -107,31 +111,6 @@
         document.execCommand("copy");
         alert("Link copied to clipboard!");
       });
-    }
-
-    const proposalId = {{ public_id | tojson | safe }};
-    const storageKey = "viewed_" + proposalId;
-
-    if (proposalId && typeof proposalId === "string") {
-      if (!sessionStorage.getItem(storageKey)) {
-        fetch("/track_event", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event_name: "pageview",
-            metadata: { public_id: proposalId, type: "lead_visit" }
-          })
-        }).then(() => {
-          sessionStorage.setItem(storageKey, "true");
-          console.log("✅ Tracked pageview:", proposalId);
-        }).catch((err) => {
-          console.error("❌ Error sending pageview:", err);
-        });
-      } else {
-        console.log("ℹ️ Pageview already tracked for:", proposalId);
-      }
-    } else {
-      console.warn("⚠️ proposalId not defined.");
     }
   });
 </script>
