@@ -5,20 +5,25 @@
 <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md space-y-8">
 
   {% if show_qr %}
-    <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">← Back to Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">&larr; Back to Dashboard</a>
   {% endif %}
 
   <h1 class="text-2xl font-bold text-blue-600">Proposal Submission Page</h1>
 
-  {% if show_qr %}
+  {% if user.public_id %}
   <div class="text-center space-y-4">
     <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
 
-    <!-- ✅ Dynamic QR Code -->
-    <img src="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}" alt="QR Code" class="mx-auto w-32 h-32">
-    <a href="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}" download class="text-blue-500 text-sm mt-2 block">Download QR Code</a>
+    <img src="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}"
+         alt="QR Code"
+         class="mx-auto w-36 h-36 rounded border border-gray-200 shadow" />
 
-    <!-- ✅ Copyable Proposal URL -->
+    <a href="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}"
+       download
+       class="text-blue-500 text-sm mt-2 block hover:underline">
+       Download QR Code
+    </a>
+
     <div>
       <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
       <div class="flex justify-center items-center gap-2 px-4">
@@ -36,16 +41,16 @@
           Copy
         </button>
       </div>
+      <p id="copySuccess" class="text-green-600 text-sm mt-2 hidden">✅ Link copied to clipboard!</p>
     </div>
   </div>
 
-  <!-- ℹ️ Info box -->
-  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-6 shadow text-sm">
+  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded shadow text-sm mt-6">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
     </svg>
     <div>
-      <strong>You don't have to fill out anything</strong>
+      <strong>You don’t have to fill out anything.</strong> This is what leads will see.
     </div>
   </div>
   {% endif %}
@@ -104,12 +109,15 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const btn = document.getElementById("copyBtn");
-    if (btn) {
+    const input = document.getElementById("proposalLink");
+    const success = document.getElementById("copySuccess");
+
+    if (btn && input && success) {
       btn.addEventListener("click", function () {
-        const input = document.getElementById("proposalLink");
         input.select();
         document.execCommand("copy");
-        alert("Link copied to clipboard!");
+        success.classList.remove("hidden");
+        setTimeout(() => success.classList.add("hidden"), 3000);
       });
     }
   });
