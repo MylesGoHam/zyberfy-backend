@@ -1322,6 +1322,16 @@ def signup():
     
     return render_template("signup.html")
 
+@app.route('/sms-handler', methods=['POST'])
+def sms_handler():
+    data = request.json
+    sender = data.get("from")
+    message = data.get("message")
+    timestamp = data.get("timestamp")
+
+    print(f"[SMS] {timestamp} - From {sender}: {message}")
+    return jsonify({"status": "received"}), 200
+
 @app.route("/log_event", methods=["POST"])
 def log_event_route():
     if "email" not in session:
