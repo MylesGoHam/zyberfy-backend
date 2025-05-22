@@ -1230,10 +1230,14 @@ def generate_qr():
     public_id = row["public_id"]
     link = f"{request.host_url}proposal/{public_id}"
 
+    # Save to user-specific QR path
+    filename = f"proposal_{public_id}.png"
+    qr_path = os.path.join("static", "qr", filename)
+    os.makedirs("static/qr", exist_ok=True)
+
     # Generate QR
     img = qrcode.make(link)
-    path = os.path.join("static", "proposal_qr.png")
-    img.save(path)
+    img.save(qr_path)
 
     flash("QR code generated successfully!", "success")
     return redirect(url_for("proposal"))
