@@ -1064,10 +1064,14 @@ def proposal():
 
     user_email = session["email"]
     show_qr = True
-    public_id = ""  # Default to empty string to avoid Jinja2 serialization error
 
-    # Check if user is over proposal limit (3 for now)
     conn = get_db_connection()
+
+    # 🔍 Get user's public_id for sharing
+    user_row = conn.execute("SELECT public_id FROM users WHERE email = ?", (user_email,)).fetchone()
+    public_id = user_row["public_id"] if user_row else ""
+
+    # ✅ Check free proposal limit
     count = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (user_email,)).fetchone()[0]
 
     if count >= 3:
@@ -1076,19 +1080,19 @@ def proposal():
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        company = request.form.get("company")
+        name     = request.form.get("name")
+        email    = request.form.get("email")
+        company  = request.form.get("company")
         services = request.form.get("services")
-        budget = request.form.get("budget")
+        budget   = request.form.get("budget")
         timeline = request.form.get("timeline")
-        message = request.form.get("message")
+        message  = request.form.get("message")
 
-        public_id = handle_new_proposal(name, email, company, services, budget, timeline, message, user_email)
+        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, user_email)
         conn.close()
 
-        if public_id:
-            return redirect(url_for("thank_you", pid=public_id))
+        if pid:
+            return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Something went wrong while sending the proposal.", "error")
             return redirect(url_for("proposal"))
@@ -1174,7 +1178,7 @@ def public_proposal(public_id):
             return redirect(url_for("public_proposal", public_id=public_id))
 
     # ✅ Render with full context
-    return render_template("public_proposal.html", proposal=user, public_id=public_id, show_qr=show_qr)
+    return render_template("public_proposal.html", user=user, public_id=public_id, show_qr=show_qr) 
 
 @app.route("/submit_offer", methods=["POST"])
 def submit_offer():
