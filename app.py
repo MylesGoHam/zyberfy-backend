@@ -1098,7 +1098,7 @@ def proposal():
             return redirect(url_for("proposal"))
 
     conn.close()
-    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id)
+    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id, user=user)
 
 
 @app.route("/proposal_view")
