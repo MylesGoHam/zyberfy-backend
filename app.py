@@ -1134,6 +1134,9 @@ def public_proposal(public_id):
     if not user:
         return "Invalid proposal link.", 404
 
+    public_link = f"https://zyberfy.com/proposal/{public_id}"
+    return render_template("public_proposal.html", user=user, public_link=public_link)
+
     client_email = user["email"]
     show_qr = session.get("email") == client_email
     is_client = session.get("email") == client_email
