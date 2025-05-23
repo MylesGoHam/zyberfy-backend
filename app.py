@@ -1067,11 +1067,11 @@ def proposal():
 
     conn = get_db_connection()
 
-    # 🔍 Get user's public_id for sharing
-    user_row = conn.execute("SELECT public_id FROM users WHERE email = ?", (user_email,)).fetchone()
-    public_id = user_row["public_id"] if user_row else ""
+    # ✅ Get full user for public_id and template use
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (user_email,)).fetchone()
+    public_id = user["public_id"] if user else ""
 
-    # ✅ Check free proposal limit
+    # ✅ Free proposal limit check
     count = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (user_email,)).fetchone()[0]
 
     if count >= 3:
@@ -1079,6 +1079,7 @@ def proposal():
         flash("You've reached your free proposal limit. Upgrade to continue.", "error")
         return redirect(url_for("dashboard"))
 
+    # ✅ Form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1127,6 +1128,7 @@ def proposal_view():
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
+    import os, qrcode
     conn = get_db_connection()
     user = conn.execute("SELECT * FROM users WHERE public_id = ?", (public_id,)).fetchone()
     conn.close()
@@ -1139,7 +1141,7 @@ def public_proposal(public_id):
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
 
-    # ✅ Track views
+    # ✅ Track views once per session
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
@@ -1151,8 +1153,7 @@ def public_proposal(public_id):
     else:
         print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
-    # ✅ Auto-generate QR code
-    import os, qrcode
+    # ✅ Auto-generate QR code if missing
     qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
         url = f"https://zyberfy.com/proposal/{public_id}"
