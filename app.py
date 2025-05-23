@@ -1134,15 +1134,12 @@ def public_proposal(public_id):
     if not user:
         return "Invalid proposal link.", 404
 
-    public_link = f"https://zyberfy.com/proposal/{public_id}"
-    return render_template("public_proposal.html", user=user, public_link=public_link)
-
     client_email = user["email"]
     show_qr = session.get("email") == client_email
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
 
-    # Log pageview if not client
+    # ✅ Track views
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
@@ -1154,7 +1151,7 @@ def public_proposal(public_id):
     else:
         print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
-    # ✅ Auto-generate QR if missing
+    # ✅ Auto-generate QR code
     import os, qrcode
     qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
@@ -1163,7 +1160,7 @@ def public_proposal(public_id):
         img.save(qr_path)
         print(f"[QR] Created QR for {url}")
 
-    # ✅ Handle form submit
+    # ✅ Handle form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1180,8 +1177,15 @@ def public_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("public_proposal", public_id=public_id))
 
-    # ✅ Render with full context
-    return render_template("public_proposal.html", user=user, public_id=public_id, show_qr=show_qr) 
+    # ✅ Final render
+    public_link = f"https://zyberfy.com/proposal/{public_id}"
+    return render_template(
+        "public_proposal.html",
+        user=user,
+        public_id=public_id,
+        show_qr=show_qr,
+        public_link=public_link
+    )
 
 @app.route("/submit_offer", methods=["POST"])
 def submit_offer():
