@@ -1065,8 +1065,6 @@ def proposal():
         return redirect(url_for("login"))
 
     user_email = session["email"]
-    show_qr = True
-
     conn = get_db_connection()
 
     # ✅ Get full user for public_id and template use
@@ -1081,7 +1079,7 @@ def proposal():
         flash("You've reached your free proposal limit. Upgrade to continue.", "error")
         return redirect(url_for("dashboard"))
 
-    # ✅ Form submission
+    # ✅ Handle form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1095,7 +1093,7 @@ def proposal():
         conn.close()
 
         if pid:
-            # ✅ Fetch newly created proposal
+            # ✅ Refetch the proposal to get its data
             conn = get_db_connection()
             proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
             conn.close()
@@ -1115,7 +1113,7 @@ def proposal():
             return redirect(url_for("proposal"))
 
     conn.close()
-    return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id, user=user)
+    return render_template("dashboard_proposal.html", show_qr=True, public_id=public_id, user=user)
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
