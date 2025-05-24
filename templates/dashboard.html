@@ -57,19 +57,19 @@
     <div class="bg-white p-4 rounded-lg shadow text-center">
       <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
       {% if automation_complete %}
-        <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
-          Configured
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-        </p>
+      <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
+        Configured
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </p>
       {% else %}
-        <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
-          Not Configured
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </p>
+      <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
+        Not Configured
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </p>
       {% endif %}
     </div>
   </div>
@@ -111,20 +111,8 @@
     data: {
       labels: [],
       datasets: [
-        {
-          label: 'Generated',
-          data: [],
-          borderColor: 'rgba(255, 159, 64, 1)',
-          fill: false,
-          borderWidth: 2
-        },
-        {
-          label: 'Sent',
-          data: [],
-          borderColor: 'rgba(75, 192, 192, 1)',
-          fill: false,
-          borderWidth: 2
-        }
+        { label: 'Generated', data: [], borderColor: 'rgba(255, 159, 64, 1)', fill: false, borderWidth: 2 },
+        { label: 'Sent', data: [], borderColor: 'rgba(75, 192, 192, 1)', fill: false, borderWidth: 2 }
       ]
     },
     options: {
@@ -149,8 +137,7 @@
   setInterval(refreshMiniAnalytics, 10000);
 
   document.getElementById('menu-toggle').addEventListener('click', () => {
-    const menu = document.getElementById('dropdown-menu');
-    menu.classList.toggle('hidden');
+    document.getElementById('dropdown-menu').classList.toggle('hidden');
   });
 </script>
 {% endblock %}
