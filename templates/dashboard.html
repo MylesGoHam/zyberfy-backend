@@ -81,6 +81,40 @@
     </a>
   </div>
 
+  <!-- Proposal Table -->
+<div class="mt-12">
+  <h3 class="text-xl font-semibold mb-4">Your Proposals</h3>
+  <div class="overflow-x-auto rounded-lg shadow">
+    <table class="min-w-full bg-white border border-gray-200">
+      <thead class="bg-gray-100 text-sm text-gray-600">
+        <tr>
+          <th class="px-6 py-3 text-left font-medium">Lead</th>
+          <th class="px-6 py-3 text-left font-medium">Email</th>
+          <th class="px-6 py-3 text-left font-medium">Status</th>
+          <th class="px-6 py-3 text-left font-medium">Date</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm divide-y divide-gray-200">
+        {% for proposal in proposals %}
+        <tr onclick="window.location.href='/proposal_view/{{ proposal.id }}'" class="cursor-pointer hover:bg-gray-50 transition">
+          <td class="px-6 py-4">{{ proposal.lead_name }}</td>
+          <td class="px-6 py-4">{{ proposal.lead_email }}</td>
+          <td class="px-6 py-4 capitalize">
+            <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold 
+              {% if proposal.status == 'approved' %}bg-green-100 text-green-700
+              {% elif proposal.status == 'declined' %}bg-red-100 text-red-700
+              {% else %}bg-gray-100 text-gray-700{% endif %}">
+              {{ proposal.status or "pending" }}
+            </span>
+          </td>
+          <td class="px-6 py-4">{{ proposal.timestamp or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
   <!-- Chart -->
   <div>
     <h3 class="text-xl font-semibold mb-4">Proposal Activity (Last 7 Days)</h3>
