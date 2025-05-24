@@ -1321,10 +1321,13 @@ def settings():
     user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
     if user:
         settings["notifications_enabled"] = user["notifications_enabled"]
+    else:
+        settings["notifications_enabled"] = 1  # Default to ON if not set
 
     conn.close()
     return render_template("settings.html", settings=settings)
-
+    
+    
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
