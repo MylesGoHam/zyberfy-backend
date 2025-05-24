@@ -1265,7 +1265,7 @@ def settings():
     conn = get_db_connection()
 
     if request.method == "POST":
-        # Save automation/business settings (including last_name)
+        # ✅ Save automation/business settings
         conn.execute("""
             INSERT INTO automation_settings (
                 email, first_name, last_name, company_name, position,
@@ -1292,7 +1292,11 @@ def settings():
             request.form.get("timezone", "")
         ))
 
-        # Handle password change
+        # ✅ Save notification preference
+        notifications_enabled = request.form.get("notifications_enabled") == "on"
+        conn.execute("UPDATE users SET notifications_enabled = ? WHERE email = ?", (int(notifications_enabled), session["email"]))
+
+        # ✅ Handle password change
         new_pw = request.form.get("new_password")
         confirm_pw = request.form.get("confirm_password")
         if new_pw and new_pw == confirm_pw:
@@ -1304,7 +1308,7 @@ def settings():
         flash("Settings updated successfully ✅", "info")
         return redirect(url_for("settings"))
 
-    # Load automation settings
+    # ✅ Load automation settings
     settings = conn.execute("""
         SELECT first_name, last_name, company_name, position,
                website, phone, reply_to, timezone
@@ -1312,8 +1316,13 @@ def settings():
     """, (session["email"],)).fetchone()
 
     settings = dict(settings) if settings else {}
-    conn.close()
 
+    # ✅ Load notification preference from users table
+    user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
+    if user:
+        settings["notifications_enabled"] = user["notifications_enabled"]
+
+    conn.close()
     return render_template("settings.html", settings=settings)
 
 @app.route("/signup", methods=["GET", "POST"])
