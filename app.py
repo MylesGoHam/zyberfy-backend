@@ -1104,29 +1104,32 @@ def proposal():
     return render_template("dashboard_proposal.html", show_qr=show_qr, public_id=public_id, user=user)
 
 
-@app.route("/proposal_view")
-def proposal_view():
-    form_id = request.args.get("form_id")
-    if not form_id:
-        return "Missing form ID", 400
-
+@app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
+def proposal_view(pid):
     conn = get_db_connection()
-    proposal = conn.execute(
-        "SELECT * FROM proposals WHERE public_id = ?", (form_id,)
-    ).fetchone()
-    conn.close()
+    proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
 
     if not proposal:
         return "Proposal not found", 404
 
-    # Log the lead pageview for the client
-    log_event(
-        event_name="pageview",
-        user_email=proposal["user_email"],
-        metadata={"form_id": form_id}
-    )
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action in ["approved", "declined"]:
+            conn.execute("UPDATE proposals SET status = ? WHERE id = ?", (action, pid))
+            conn.commit()
+            conn.close()
 
-    return render_template("public_proposal.html", proposal=proposal)
+            log_event(
+                event_name=f"proposal_{action}",
+                user_email=proposal["client_email"],
+                metadata={"proposal_id": pid}
+            )
+
+            flash(f"Proposal {action.capitalize()}!", "success")
+            return redirect(url_for("proposal_view", pid=pid))
+
+    conn.close()
+    return render_template("proposal_receipt.html", proposal=proposal)
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def public_proposal(public_id):
