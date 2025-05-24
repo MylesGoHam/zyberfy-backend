@@ -1,5 +1,6 @@
 import os
 import requests
+from models import log_event  # make sure this import is at the top
 
 def send_onesignal_notification(title, message, public_id=None):
     headers = {
@@ -11,12 +12,20 @@ def send_onesignal_notification(title, message, public_id=None):
         "app_id": os.getenv("ONESIGNAL_APP_ID"),
         "included_segments": ["All"],
         "headings": {"en": title},
-        "contents": {"en": message},
+        "contents": {"en": message}
     }
-
-    # 🧠 Add link if public_id is present
-    if public_id:
-        payload["url"] = f"https://zyberfy.com/proposal_view/{public_id}"
 
     response = requests.post("https://onesignal.com/api/v1/notifications", json=payload, headers=headers)
     print("[OneSignal] Status:", response.status_code, response.json())
+
+    # ✅ Log push event
+    if public_id:
+        log_event(
+            event_name="push_sent",
+            user_email=None,
+            metadata={
+                "public_id": public_id,
+                "title": title,
+                "message": message
+            }
+        )
