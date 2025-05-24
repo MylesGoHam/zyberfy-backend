@@ -14,9 +14,19 @@
   <!-- AOS (Animate on Scroll) -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "3468e9c9-2c34-49b6-9332-42c172558fc7",
+    });
+  });
+</script>
   {% block head %}{% endblock %}
 </head>
+
+
 
 <body class="bg-gray-50 text-gray-900">
   <script>
