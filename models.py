@@ -25,7 +25,7 @@ def add_stripe_column_if_missing():
 
 def create_users_table():
     conn = get_db_connection()
-    conn.execute("""
+    conn.execute(""" 
       CREATE TABLE IF NOT EXISTS users (
         id                    INTEGER PRIMARY KEY AUTOINCREMENT,
         email                 TEXT UNIQUE,
@@ -147,3 +147,18 @@ def log_event(event_name, user_email=None, metadata=None):
         (event_name, user_email, json.dumps(metadata or {}), datetime.utcnow().isoformat())
     )
     conn.commit()
+
+import re
+import random
+import string
+
+def generate_slugified_id(base_text, length=6):
+    """Generate a URL-safe slug combined with a random suffix."""
+    # Step 1: Create slug from text (lowercase, hyphenated)
+    slug = re.sub(r'[^a-zA-Z0-9\s-]', '', base_text.lower()).strip()
+    slug = re.sub(r'[\s]+', '-', slug)
+
+    # Step 2: Add random suffix
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+    return f"{slug}-{suffix}"
