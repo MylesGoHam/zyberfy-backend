@@ -152,13 +152,12 @@ import re
 import random
 import string
 
-def generate_slugified_id(base_text, length=6):
-    """Generate a URL-safe slug combined with a random suffix."""
-    # Step 1: Create slug from text (lowercase, hyphenated)
-    slug = re.sub(r'[^a-zA-Z0-9\s-]', '', base_text.lower()).strip()
-    slug = re.sub(r'[\s]+', '-', slug)
+def slugify(text):
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9]+', '-', text)
+    return text.strip('-')
 
-    # Step 2: Add random suffix
-    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
-
+def generate_slugified_id(base_text):
+    slug = slugify(base_text)
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"{slug}-{suffix}"
