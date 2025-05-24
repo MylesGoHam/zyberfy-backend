@@ -1327,7 +1327,7 @@ def settings():
     conn.close()
     return render_template("settings.html", settings=settings)
     
-    
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
