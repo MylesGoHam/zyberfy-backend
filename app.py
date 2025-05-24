@@ -1180,9 +1180,10 @@ def public_proposal(public_id):
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
         if pid:
             send_onesignal_notification(
-                title="New Proposal Submitted",
-                message=f"{name} just submitted a proposal to {client_email}."
-            )
+            title="New Proposal Submitted",
+            message=f"{name} just submitted a proposal to {client_email}.",
+            public_id=pid
+)
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
