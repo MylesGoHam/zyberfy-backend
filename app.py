@@ -1182,7 +1182,8 @@ def public_proposal(public_id):
             send_onesignal_notification(
             title="New Proposal Submitted",
             message=f"{name} just submitted a proposal to {client_email}.",
-            public_id=pid
+            public_id=public_id,
+            proposal_id=pid 
 )
             return redirect(url_for("thank_you", pid=pid))
         else:
