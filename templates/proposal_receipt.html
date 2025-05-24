@@ -2,8 +2,8 @@
 {% block title %}Proposal Receipt | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto p-6 bg-white shadow rounded-xl mt-10">
-  <h1 class="text-2xl font-bold text-blue-600 mb-4">Proposal Receipt</h1>
+<div class="max-w-3xl mx-auto p-6 sm:p-8 bg-white shadow rounded-xl mt-10">
+  <h1 class="text-2xl sm:text-3xl font-bold text-blue-600 text-center mb-6">Proposal Receipt</h1>
 
   <div class="space-y-4 text-sm text-gray-800">
     <div><strong>Name:</strong> {{ proposal.lead_name }}</div>
@@ -23,20 +23,28 @@
     </div>
   </div>
 
-  <div class="mt-6 space-x-4">
-    <form method="POST" style="display:inline;">
+  <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+    <form method="POST" class="w-full sm:w-auto">
       <input type="hidden" name="action" value="approved">
-      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Approve</button>
+      <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition">
+        Approve
+      </button>
     </form>
 
-    <form method="POST" style="display:inline;">
+    <form method="POST" class="w-full sm:w-auto">
       <input type="hidden" name="action" value="declined">
-      <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Decline</button>
+      <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition">
+        Decline
+      </button>
     </form>
 
-    <button onclick="window.print()" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Print</button>
+    <button onclick="window.print()" class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-sm font-semibold rounded-lg transition">
+      Print
+    </button>
 
-    <button onclick="copyProposal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Copy</button>
+    <button onclick="copyProposal()" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold rounded-lg transition">
+      Copy
+    </button>
   </div>
 </div>
 {% endblock %}
