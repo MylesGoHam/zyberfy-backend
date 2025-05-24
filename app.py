@@ -47,6 +47,30 @@ import uuid
 import requests
 from notifications import send_onesignal_notification
 
+from models import get_db_connection, generate_slugified_id
+
+def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
+    conn = get_db_connection()
+
+    # 🧠 Generate public_id from name/company/services
+    base_slug = name or company or services or "client"
+    public_id = generate_slugified_id(base_slug)
+
+    conn.execute("""
+        INSERT INTO proposals (
+            public_id, user_email, lead_name, lead_email, lead_company,
+            services, budget, timeline, message
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        public_id, user_email, name, email, company,
+        services, budget, timeline, message
+    ))
+    conn.commit()
+
+    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.close()
+    return pid
+
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
     try:
@@ -595,11 +619,14 @@ def dashboard_proposal():
     # ✅ Save public_id in session if not already
     session["public_id"] = public_id
 
-    # ✅ Generate QR code if it doesn't already exist
+    # ✅ Generate QR code for /proposal/<public_id> if missing
     if public_id:
         qr_path = f"static/qr/proposal_{public_id}.png"
         if not Path(qr_path).exists():
-            generate_qr_code(public_id, request.host_url)
+            full_url = f"{request.host_url}proposal/{public_id}"
+            qr = qrcode.make(full_url)
+            qr.save(qr_path)
+            print(f"[QR] Created: {qr_path}")
 
     return render_template(
         "dashboard_proposal.html",
