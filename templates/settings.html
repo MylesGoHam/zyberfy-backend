@@ -22,21 +22,21 @@
   <form method="POST" action="{{ url_for('settings') }}" enctype="multipart/form-data" class="space-y-8">
 
     <!-- Notifications -->
-<div class="bg-white border rounded-xl shadow-sm p-6">
-  <h3 class="text-xl font-semibold mb-4 text-blue-600">Notifications</h3>
-  <div class="flex items-center gap-3">
-    <input
-      type="checkbox"
-      id="notifications_enabled"
-      name="notifications_enabled"
-      {% if settings.notifications_enabled %}checked{% endif %}
-      class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-    >
-    <label for="notifications_enabled" class="text-sm text-gray-700">
-      Enable push notifications for new proposals and activity
-    </label>
-  </div>
-</div>
+    <div class="bg-white border rounded-xl shadow-sm p-6">
+      <h3 class="text-xl font-semibold mb-4 text-blue-600">Notifications</h3>
+      <div class="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="notifications_enabled"
+          name="notifications_enabled"
+          {% if settings.notifications_enabled %}checked{% endif %}
+          class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+        >
+        <label for="notifications_enabled" class="text-sm text-gray-700">
+          Enable push notifications for new proposals and activity
+        </label>
+      </div>
+    </div>
 
     <!-- Profile -->
     <div class="bg-white border rounded-xl shadow-sm p-6">
