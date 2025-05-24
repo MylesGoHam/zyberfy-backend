@@ -1095,6 +1095,20 @@ def proposal():
         conn.close()
 
         if pid:
+            # ✅ Fetch newly created proposal
+            conn = get_db_connection()
+            proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
+            conn.close()
+
+            # ✅ Send push notification
+            send_onesignal_notification(
+                title="You Got a New Proposal!",
+                message="Zyberfy responded with a proposal. Tap to view.",
+                public_id=proposal["public_id"],
+                proposal_id=proposal["id"],
+                user_email=proposal["user_email"]
+            )
+
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Something went wrong while sending the proposal.", "error")
