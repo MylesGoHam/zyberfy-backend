@@ -1126,13 +1126,20 @@ def proposal_view(pid):
     if not proposal:
         return "Proposal not found", 404
 
+    # ✅ Log receipt view
+    log_event(
+        event_name="proposal_viewed",
+        user_email=proposal["client_email"],
+        metadata={"proposal_id": pid}
+    )
+
     if request.method == "POST":
         action = request.form.get("action")
         if action in ["approved", "declined"]:
             conn.execute("UPDATE proposals SET status = ? WHERE id = ?", (action, pid))
             conn.commit()
-            conn.close()
 
+            # ✅ Log approval or decline
             log_event(
                 event_name=f"proposal_{action}",
                 user_email=proposal["client_email"],
