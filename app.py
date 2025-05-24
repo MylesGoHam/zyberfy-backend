@@ -44,6 +44,8 @@ logging.basicConfig(level=logging.DEBUG)
 from pathlib import Path
 
 import uuid
+import requests
+from notifications import send_onesignal_notification
 
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
@@ -1173,6 +1175,10 @@ def public_proposal(public_id):
 
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
         if pid:
+            send_onesignal_notification(
+                title="New Proposal Submitted",
+                message=f"{name} just submitted a proposal to {client_email}."
+            )
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
