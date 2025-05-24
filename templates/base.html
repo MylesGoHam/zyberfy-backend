@@ -14,19 +14,20 @@
   <!-- AOS (Animate on Scroll) -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "3468e9c9-2c34-49b6-9332-42c172558fc7",
+
+  <!-- OneSignal Push Notifications -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "3468e9c9-2c34-49b6-9332-42c172558fc7",
+      });
     });
-  });
-</script>
+  </script>
+
   {% block head %}{% endblock %}
 </head>
-
-
 
 <body class="bg-gray-50 text-gray-900">
   <script>
@@ -43,12 +44,15 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const btn = document.getElementById("copyBtn");
-      if (btn) {
+      const input = document.getElementById("proposalLink");
+      const success = document.getElementById("copySuccess");
+
+      if (btn && input && success) {
         btn.addEventListener("click", () => {
-          const input = document.getElementById("proposalLink");
           input.select();
           document.execCommand("copy");
-          alert("Link copied to clipboard!");
+          success.classList.remove("hidden");
+          setTimeout(() => success.classList.add("hidden"), 3000);
         });
       }
     });
