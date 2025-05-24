@@ -103,6 +103,17 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  OneSignalDeferred.push(async function(OneSignal) {
+    const isClient = "{{ session.get('email') | default('', true) }}" !== "";
+    if (isClient) {
+      const subscribed = await OneSignal.isPushNotificationsEnabled();
+      if (!subscribed) {
+        await OneSignal.showSlidedownPrompt();
+      }
+    }
+  });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const miniCtx = document.getElementById('miniChart').getContext('2d');
