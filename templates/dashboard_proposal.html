@@ -4,58 +4,56 @@
 {% block content %}
 <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md space-y-8">
 
-  {% if show_qr %}
+  {% if show_qr and public_id %}
     <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">&larr; Back to Dashboard</a>
-  {% endif %}
 
-  <h1 class="text-2xl font-bold text-blue-600">Proposal Submission Page</h1>
+    <h1 class="text-2xl font-bold text-blue-600">Proposal Submission Page</h1>
 
-  {% if user.public_id %}
-  <div class="text-center space-y-4">
-    <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
+    <div class="text-center space-y-4">
+      <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
 
-    <img src="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}"
-         alt="QR Code"
-         class="mx-auto w-36 h-36 rounded border border-gray-200 shadow" />
+      <img src="{{ url_for('static', filename='qr/proposal_' ~ public_id ~ '.png') }}"
+           alt="QR Code"
+           class="mx-auto w-36 h-36 rounded border border-gray-200 shadow" />
 
-    <a href="{{ url_for('static', filename='qr/proposal_' + user.public_id + '.png') }}"
-       download
-       class="text-blue-500 text-sm mt-2 block hover:underline">
-       Download QR Code
-    </a>
+      <a href="{{ url_for('static', filename='qr/proposal_' ~ public_id ~ '.png') }}"
+         download
+         class="text-blue-500 text-sm mt-2 block hover:underline">
+         Download QR Code
+      </a>
 
-    <div>
-      <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
-      <div class="flex justify-center items-center gap-2 px-4">
-        <input
-          id="proposalLink"
-          type="text"
-          readonly
-          value="https://zyberfy.com/proposal/{{ user.public_id }}"
-          class="border px-3 py-2 rounded w-2/3 text-sm"
-        />
-        <button
-          id="copyBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm transition"
-        >
-          Copy
-        </button>
+      <div>
+        <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
+        <div class="flex justify-center items-center gap-2 px-4">
+          <input
+            id="proposalLink"
+            type="text"
+            readonly
+            value="https://zyberfy.com/public_proposal/{{ public_id }}"
+            class="border px-3 py-2 rounded w-2/3 text-sm"
+          />
+          <button
+            id="copyBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm transition"
+          >
+            Copy
+          </button>
+        </div>
+        <p id="copySuccess" class="text-green-600 text-sm mt-2 hidden">✅ Link copied to clipboard!</p>
       </div>
-      <p id="copySuccess" class="text-green-600 text-sm mt-2 hidden">✅ Link copied to clipboard!</p>
-    </div>
-  </div>
 
-  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded shadow text-sm mt-6">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
-    </svg>
-    <div>
-      <strong>You don’t have to fill out anything.</strong> This is what leads will see.
+      <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded shadow text-sm mt-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
+        </svg>
+        <div>
+          <strong>You don’t have to fill out anything.</strong> This is what leads will see.
+        </div>
+      </div>
     </div>
-  </div>
   {% endif %}
 
-  <!-- ✅ Form -->
+  <!-- ✅ Proposal Form -->
   <form method="POST" class="space-y-4">
     <div>
       <label for="name" class="block font-medium text-gray-700 mb-1">Your Name</label>
