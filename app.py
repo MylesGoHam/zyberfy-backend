@@ -1018,17 +1018,20 @@ def lead_proposal(public_id):
         message  = request.form.get("message")
 
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+        
         if pid:
+            log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
+            log_event("sent_proposal", user_email=client_email, metadata={"proposal_id": pid})
             send_onesignal_notification(
             title="New Proposal Submitted",
             message=f"{name} just submitted a proposal to {client_email}.",
             public_id=public_id,
             proposal_id=pid 
-)
+        )
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
-            return redirect(url_for("_proposal", public_id=public_id))
+            return redirect(url_for("lead_proposal", public_id=public_id))
 
     # ✅ Final render
     return render_template(
