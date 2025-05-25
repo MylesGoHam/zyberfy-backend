@@ -96,9 +96,11 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
         # Email the proposal to the lead
         send_proposal_email(
-            to_email=email,
-            subject=f"Your Custom Proposal from {first_name}",
-            content=proposal_text
+          to_email=email,
+          subject="Your Proposal Has Been Received",
+          content=proposal_text,  # ✅ fixed here
+          cc_client=True,
+          client_email=client_email
         )
 
         # Optional: SMS alert to client
