@@ -1264,10 +1264,15 @@ def terms():
 
 @app.route("/test-log")
 def test_log_route():
-    from models import log_event
+    import os
+    from models import log_event, get_db_connection
+
+    db_path = os.path.abspath("zyberfy.db")
+    print(f"[DEBUG] Writing to DB path: {db_path}")
+
     try:
         log_event("pageview", user_email="client@test.com", metadata={"public_id": "test-client-001", "source": "test_log"})
-        return "Log success"
+        return f"Log success — DB: {db_path}"
     except Exception as e:
         return f"Log failed: {e}"
 
