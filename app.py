@@ -1025,7 +1025,7 @@ def lead_proposal(public_id):
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
-            return redirect(url_for("public_proposal", public_id=public_id))
+            return redirect(url_for("lead_proposal", public_id=public_id))
 
     # ✅ Final render
     return render_template(
