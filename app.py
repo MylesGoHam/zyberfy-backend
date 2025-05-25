@@ -1021,9 +1021,10 @@ def lead_proposal(public_id):
 
     # ✅ Generate QR code if missing
     if not os.path.exists(qr_path):
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-        print(f"[QR] Created QR for {full_link}")
+       os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+       img = qrcode.make(full_link)
+       img.save(qr_path)
+       print(f"[QR] Created QR for {full_link}")
 
     # ✅ Handle lead submission
     if request.method == "POST":
