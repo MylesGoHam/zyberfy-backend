@@ -71,6 +71,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     conn.close()
     return pid
 
+from models import create_analytics_events_table
+
+create_analytics_events_table()
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
     try:
