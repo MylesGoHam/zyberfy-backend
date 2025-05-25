@@ -1014,10 +1014,9 @@ def lead_proposal(public_id):
         log_event(
             event_name="pageview",  # ← this name must match the analytics lookup
             user_email=client_email,
-            metadata={"public_id": public_id, "source": "lead_proposal"}
+            metadata={"public_id": public_id, "source": "manual_test"}
         )
-    else:
-        print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
+        print(f"[DEBUG] Forced manual pageview log for: {client_email} / {public_id}")
 
     # ✅ Generate QR code if missing
     if not os.path.exists(qr_path):
