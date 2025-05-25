@@ -49,6 +49,8 @@ from notifications import send_onesignal_notification
 
 from models import get_db_connection, generate_slugified_id
 
+
+
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
     conn = get_db_connection()
 
@@ -73,7 +75,6 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
 from models import create_analytics_events_table
 
-create_analytics_events_table()
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
     try:
@@ -982,26 +983,24 @@ def lead_proposal(public_id):
         return "Invalid proposal link.", 404
 
     client_email = user["email"]
-    show_qr = session.get("email") == client_email
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
+    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log view once per session
+    # ✅ Log pageview (only once per session and only by non-client)
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
-        event_name="lead_pageview",
-        user_email=client_email,
-        metadata={"public_id": public_id, "source": "lead_proposal"}
-    )
-        
+            event_name="pageview",
+            user_email=client_email,
+            metadata={"public_id": public_id, "source": "lead_proposal"}
+        )
     else:
         print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
-    # ✅ Generate QR if missing
-    qr_path = f"static/qr/proposal_{public_id}.png"
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    # ✅ Generate QR code if it doesn't exist
     if not os.path.exists(qr_path):
         img = qrcode.make(full_link)
         img.save(qr_path)
@@ -1018,16 +1017,16 @@ def lead_proposal(public_id):
         message  = request.form.get("message")
 
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
-        
+
         if pid:
             log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
             log_event("sent_proposal", user_email=client_email, metadata={"proposal_id": pid})
             send_onesignal_notification(
-            title="New Proposal Submitted",
-            message=f"{name} just submitted a proposal to {client_email}.",
-            public_id=public_id,
-            proposal_id=pid 
-        )
+                title="New Proposal Submitted",
+                message=f"{name} just submitted a proposal to {client_email}.",
+                public_id=public_id,
+                proposal_id=pid 
+            )
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
