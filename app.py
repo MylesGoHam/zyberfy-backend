@@ -960,7 +960,7 @@ def proposal():
 
     # ✅ Render lead-facing proposal page
     return render_template(
-        "lead_proposal.html",
+        "client_proposal.html",
         user=user,
         public_id=public_id,
         show_qr=True,
