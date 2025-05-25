@@ -1032,7 +1032,7 @@ def public_proposal(public_id):
         "lead_proposal.html",
         user=user,
         public_id=public_id,
-        show_qr=show_qr,
+        show_qr=False,
         public_link=full_link
     )
 
