@@ -242,7 +242,7 @@ def analytics():
         GROUP BY event_name
     """, (user_email, since)).fetchall()
     stats = {row["event_name"]: row["cnt"] for row in totals}
-    pageviews = stats.get("pageview", 0) + stats.get("lead_proposal_view", 0)
+    pageviews = stats.get("pageview", 0)
     generated = stats.get("generated_proposal", 0)
     sent = stats.get("sent_proposal", 0)
     conversion_rate = (sent / generated * 100) if generated else 0
