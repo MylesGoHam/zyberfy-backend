@@ -969,7 +969,7 @@ def proposal():
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
-def public_proposal(public_id):
+def lead_proposal(public_id):
     import os, qrcode
 
     conn = get_db_connection()
