@@ -1011,20 +1011,19 @@ def lead_proposal(public_id):
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
-        import sys; sys.stdout.flush()
         log_event(
-            event_name="pageview",  # ← this name must match the analytics lookup
+            event_name="pageview",
             user_email=client_email,
-            metadata={"public_id": public_id, "source": "manual_test"}
+            metadata={"public_id": public_id, "source": "lead_proposal"}
         )
-        print(f"[DEBUG] Forced manual pageview log for: {client_email} / {public_id}")
+        import sys; sys.stdout.flush()
 
     # ✅ Generate QR code if missing
     if not os.path.exists(qr_path):
-       os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-       img = qrcode.make(full_link)
-       img.save(qr_path)
-       print(f"[QR] Created QR for {full_link}")
+        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+        img = qrcode.make(full_link)
+        img.save(qr_path)
+        print(f"[QR] Created QR for {full_link}")
 
     # ✅ Handle lead submission
     if request.method == "POST":
