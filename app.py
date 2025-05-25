@@ -122,6 +122,8 @@ STRIPE_WEBHOOK_SECRET    = os.getenv("STRIPE_WEBHOOK_SECRET")
 # ─── Flask setup ────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+app.debug = True
+app.config["PROPAGATE_EXCEPTIONS"] = True
 
 # ─── Database init + migration ───────────────────────────────────────────────
 create_users_table()
