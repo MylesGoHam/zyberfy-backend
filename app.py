@@ -1029,7 +1029,7 @@ def public_proposal(public_id):
 
     # ✅ Final render
     return render_template(
-        "public_proposal.html",
+        "lead_proposal.html",
         user=user,
         public_id=public_id,
         show_qr=show_qr,
