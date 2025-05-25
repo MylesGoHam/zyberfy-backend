@@ -1005,25 +1005,25 @@ def lead_proposal(public_id):
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview (only once per session and only by non-client)
+    # ✅ Log proper 'pageview' event so it shows in analytics
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
-            event_name="pageview",
+            event_name="pageview",  # ← this name must match the analytics lookup
             user_email=client_email,
             metadata={"public_id": public_id, "source": "lead_proposal"}
         )
     else:
         print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
-    # ✅ Generate QR code if it doesn't exist
+    # ✅ Generate QR code if missing
     if not os.path.exists(qr_path):
         img = qrcode.make(full_link)
         img.save(qr_path)
         print(f"[QR] Created QR for {full_link}")
 
-    # ✅ Handle form submit
+    # ✅ Handle lead submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1049,7 +1049,7 @@ def lead_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Final render
+    # ✅ Render proposal page
     return render_template(
         "lead_proposal.html",
         user=user,
