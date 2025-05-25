@@ -940,46 +940,32 @@ def proposal():
     user_email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Get full user row to show template data (like logo, etc.)
+    # ✅ Get user row
     user = conn.execute("SELECT * FROM users WHERE email = ?", (user_email,)).fetchone()
 
-    # ✅ On GET — use latest proposal's public_id (if any)
+    # ✅ Use latest proposal's public_id (or fallback to user's)
     proposal_row = conn.execute("""
         SELECT public_id FROM proposals 
         WHERE user_email = ? ORDER BY created_at DESC LIMIT 1
     """, (user_email,)).fetchone()
     public_id = proposal_row["public_id"] if proposal_row else user["public_id"]
 
-    if request.method == "POST":
-        name     = request.form.get("name")
-        email    = request.form.get("email")
-        company  = request.form.get("company")
-        services = request.form.get("services")
-        budget   = request.form.get("budget")
-        timeline = request.form.get("timeline")
-        message  = request.form.get("message")
-
-        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, user_email)
-        conn.close()
-
-        if pid:
-            # ✅ Grab new proposal's public_id
-            conn = get_db_connection()
-            row = conn.execute("SELECT public_id FROM proposals WHERE id = ?", (pid,)).fetchone()
-            public_id = row["public_id"] if row else "client-" + uuid.uuid4().hex[:6]
-            conn.close()
-
-            # ✅ Generate new QR code
+    # ✅ Generate QR if needed
+    if public_id:
+        qr_path = f"static/qr/proposal_{public_id}.png"
+        if not os.path.exists(qr_path):
             generate_qr_code(public_id, request.host_url)
 
-            return redirect(url_for("thank_you", pid=pid))
-        else:
-            flash("Error creating proposal", "error")
-            return redirect(url_for("proposal"))
-
     conn.close()
-    return render_template("client_proposal.html", show_qr=True, public_id=public_id, user=user)
 
+    # ✅ Render lead-facing proposal page
+    return render_template(
+        "lead_proposal.html",
+        user=user,
+        public_id=public_id,
+        show_qr=True,
+        public_link=f"{request.host_url}proposal/{public_id}"
+    )
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
