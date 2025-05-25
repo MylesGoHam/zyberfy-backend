@@ -992,7 +992,8 @@ def proposal():
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def lead_proposal(public_id):
-    import os, qrcode, sys
+    import os, qrcode
+    from flask import make_response
 
     conn = get_db_connection()
     user = conn.execute("SELECT * FROM users WHERE public_id = ?", (public_id,)).fetchone()
@@ -1007,20 +1008,17 @@ def lead_proposal(public_id):
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log proper 'pageview' event so it shows in analytics
-    if not is_client and not session.get(viewed_key):
-        session[viewed_key] = True
-        print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
-        sys.stdout.flush()
-        try:
-            log_event(
-                event_name="pageview",
-                user_email=client_email,
-                metadata={"public_id": public_id, "source": "lead_proposal"}
-            )
-        except Exception as e:
-            print(f"[ERROR] Failed to log pageview: {e}")
-
+    # ✅ Log pageview once per browser (cookie-based, not session)
+    has_viewed = request.cookies.get(viewed_key)
+    if not is_client and not has_viewed:
+        log_event(
+            event_name="pageview",
+            user_email=client_email,
+            metadata={"public_id": public_id, "source": "lead_proposal"}
+        )
+        print(f"[PAGEVIEW] Logged for public_id: {public_id}")
+        import sys; sys.stdout.flush()
+    
     # ✅ Generate QR code if missing
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
@@ -1054,14 +1052,17 @@ def lead_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Render proposal page
-    return render_template(
+    # ✅ Render and set cookie
+    resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
         public_id=public_id,
         show_qr=False,
         public_link=full_link
-    )
+    ))
+    if not is_client and not has_viewed:
+        resp.set_cookie(viewed_key, "1", max_age=86400 * 30)  # 30 days
+    return resp
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
