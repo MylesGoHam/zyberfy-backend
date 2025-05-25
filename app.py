@@ -1096,19 +1096,16 @@ def proposal():
     user_email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Get full user for public_id and template use
+    # ✅ Get full user row to show template data (like logo, etc.)
     user = conn.execute("SELECT * FROM users WHERE email = ?", (user_email,)).fetchone()
-    public_id = user["public_id"] if user else ""
 
-    # ✅ Free proposal limit check
-    count = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (user_email,)).fetchone()[0]
+    # ✅ On GET — use latest proposal's public_id (if any)
+    proposal_row = conn.execute("""
+        SELECT public_id FROM proposals 
+        WHERE user_email = ? ORDER BY created_at DESC LIMIT 1
+    """, (user_email,)).fetchone()
+    public_id = proposal_row["public_id"] if proposal_row else user["public_id"]
 
-    if count >= 3:
-        conn.close()
-        flash("You've reached your free proposal limit. Upgrade to continue.", "error")
-        return redirect(url_for("dashboard"))
-
-    # ✅ Handle form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1122,33 +1119,21 @@ def proposal():
         conn.close()
 
         if pid:
-            # ✅ Refetch the proposal to get its data
+            # ✅ Grab new proposal's public_id
             conn = get_db_connection()
-            proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
+            row = conn.execute("SELECT public_id FROM proposals WHERE id = ?", (pid,)).fetchone()
+            public_id = row["public_id"] if row else "client-" + uuid.uuid4().hex[:6]
             conn.close()
 
-            # ✅ Send push notification
-            send_onesignal_notification(
-                title="You Got a New Proposal!",
-                message="Zyberfy responded with a proposal. Tap to view.",
-                public_id=proposal["public_id"],
-                proposal_id=proposal["id"],
-                user_email=proposal["user_email"]
-            )
+            # ✅ Generate new QR code
+            generate_qr_code(public_id, request.host_url)
 
             return redirect(url_for("thank_you", pid=pid))
         else:
-            flash("Something went wrong while sending the proposal.", "error")
+            flash("Error creating proposal", "error")
             return redirect(url_for("proposal"))
 
     conn.close()
-
-    # ✅ Generate QR if missing
-    if public_id:
-        qr_path = f"static/qr/proposal_{public_id}.png"
-        if not os.path.exists(qr_path):
-            generate_qr_code(public_id, request.host_url)
-
     return render_template("dashboard_proposal.html", show_qr=True, public_id=public_id, user=user)
 
 
