@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = os.getenv("SENDER_EMAIL", "noreply@zyberfy.com")
+FROM_EMAIL = os.getenv("SENDER_EMAIL", "noreply@zyberfy.com")  # ✅ updated here
 
 def send_proposal_email(to_email, subject, content, cc_client=False, client_email=None):
     formatted_html = content.replace('\n', '<br>')
