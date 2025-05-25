@@ -181,6 +181,7 @@ def home():
 def admin_entrypoint():
     return redirect(url_for("admin_dashboard"))
 
+
 @app.route("/admin_dashboard")
 def admin_dashboard():
     if "email" not in session or not session.get("is_admin"):
@@ -977,7 +978,7 @@ def proposal():
             return redirect(url_for("proposal"))
 
     conn.close()
-    return render_template("dashboard_proposal.html", show_qr=True, public_id=public_id, user=user)
+    return render_template("client_proposal.html", show_qr=True, public_id=public_id, user=user)
 
 
 
