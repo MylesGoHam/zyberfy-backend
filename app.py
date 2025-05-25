@@ -989,10 +989,11 @@ def lead_proposal(public_id):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
         log_event(
-            event_name="pageview",
-            user_email=client_email,
-            metadata={"public_id": public_id, "source": "public_proposal"}
-        )
+        event_name="lead_pageview",
+        user_email=client_email,
+        metadata={"public_id": public_id, "source": "lead_proposal"}
+    )
+        
     else:
         print(f"[TRACK] Pageview skipped — already viewed or by client: {public_id}")
 
@@ -1025,7 +1026,7 @@ def lead_proposal(public_id):
             return redirect(url_for("thank_you", pid=pid))
         else:
             flash("Failed to send proposal. Try again.", "error")
-            return redirect(url_for("lead_proposal", public_id=public_id))
+            return redirect(url_for("_proposal", public_id=public_id))
 
     # ✅ Final render
     return render_template(
