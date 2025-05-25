@@ -1263,6 +1263,14 @@ def subscribe():
 def terms():
     return render_template("terms.html")
 
+@app.route("/test-log")
+def test_log():
+    log_event(
+        event_name="pageview",
+        user_email="client@test.com",
+        metadata={"public_id": "test-client-001", "source": "lead_proposal"}
+    )
+    return "✅ Test log recorded for lead_proposal."
 
 
 @app.route("/test-stripe-signup")
