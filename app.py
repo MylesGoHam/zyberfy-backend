@@ -1263,13 +1263,13 @@ def terms():
     return render_template("terms.html")
 
 @app.route("/test-log")
-def test_log():
-    log_event(
-        event_name="pageview",
-        user_email="client@test.com",
-        metadata={"public_id": "test-client-001", "source": "lead_proposal"}
-    )
-    return "✅ Test log recorded for lead_proposal."
+def test_log_route():
+    from models import log_event
+    try:
+        log_event("pageview", user_email="client@test.com", metadata={"public_id": "test-client-001", "source": "test_log"})
+        return "Log success"
+    except Exception as e:
+        return f"Log failed: {e}"
 
 
 @app.route("/test-stripe-signup")
