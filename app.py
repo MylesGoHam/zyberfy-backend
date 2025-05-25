@@ -1140,6 +1140,13 @@ def proposal():
             return redirect(url_for("proposal"))
 
     conn.close()
+
+    # ✅ Generate QR if missing
+    if public_id:
+        qr_path = f"static/qr/proposal_{public_id}.png"
+        if not os.path.exists(qr_path):
+            generate_qr_code(public_id, request.host_url)
+
     return render_template("dashboard_proposal.html", show_qr=True, public_id=public_id, user=user)
 
 
