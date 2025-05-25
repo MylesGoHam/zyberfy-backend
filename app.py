@@ -76,11 +76,13 @@ def generate_qr_code(public_id, base_url):
     try:
         url = f"{base_url}proposal/{public_id}"
         qr = qrcode.make(url)
-        path = f"static/qr/proposal_{public_id}.png"
-        qr.save(path)
-        print(f"[QR] Saved QR to {path}")
+        output_path = os.path.join("static", "qr")
+        os.makedirs(output_path, exist_ok=True)
+        full_path = os.path.join(output_path, f"proposal_{public_id}.png")
+        qr.save(full_path)
+        print(f"[QR] Saved QR to {full_path}")
     except Exception as e:
-        print(f"[ERROR] QR generation failed: {e}")
+        print(f"[QR ERROR] Failed to generate QR: {e}")
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
