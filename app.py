@@ -1050,11 +1050,13 @@ def proposal_view(pid):
     if not proposal:
         return "Proposal not found", 404
 
-    # ✅ Log receipt view
+    client_email = proposal["user_email"]  # renamed for clarity
+
+    # ✅ Log receipt view (analytics pageview)
     log_event(
-        event_name="proposal_viewed",
-        user_email=proposal["client_email"],
-        metadata={"proposal_id": pid}
+        event_name="pageview",
+        user_email=client_email,
+        metadata={"proposal_id": pid, "source": "proposal_view"}
     )
 
     if request.method == "POST":
@@ -1066,7 +1068,7 @@ def proposal_view(pid):
             # ✅ Log approval or decline
             log_event(
                 event_name=f"proposal_{action}",
-                user_email=proposal["client_email"],
+                user_email=client_email,
                 metadata={"proposal_id": pid}
             )
 
