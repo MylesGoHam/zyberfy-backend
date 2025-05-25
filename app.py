@@ -1011,6 +1011,7 @@ def lead_proposal(public_id):
     if not is_client and not session.get(viewed_key):
         session[viewed_key] = True
         print(f"[TRACK] Logging pageview for client: {client_email} from public_id: {public_id}")
+        import sys; sys.stdout.flush()
         log_event(
             event_name="pageview",  # ← this name must match the analytics lookup
             user_email=client_email,
