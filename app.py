@@ -1056,7 +1056,7 @@ def lead_proposal(public_id):
             flash("Failed to send proposal. Try again.", "error")
             return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Render page and set cookie
+    # ✅ Render proposal form and set pageview cookie
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
