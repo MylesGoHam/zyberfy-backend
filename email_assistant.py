@@ -18,17 +18,29 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         public_id = str(uuid.uuid4())
 
-        # Fetch automation settings for the client
+        # ✅ Check if client has exceeded proposal limit
+        conn = get_db_connection()
+        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+        conn.close()
+
+        proposal_count = count_row["count"]
+        PROPOSAL_LIMIT = 3  # Temporary free plan limit
+
+        if proposal_count >= PROPOSAL_LIMIT:
+            print(f"[LIMIT] Client {client_email} reached proposal cap.")
+            return "LIMIT_REACHED"
+
+        # ✅ Fetch automation settings for the client
         settings = get_user_automation(client_email)
         if not settings:
             print("[ERROR] No automation settings found.")
             return None
 
-        # Access with fallback defaults
+        # ✅ Access with fallback defaults
         tone         = settings["tone"]         if settings["tone"] else "friendly"
         length       = settings["length"]       if settings["length"] else "concise"
 
-        # Now pull identity + contact from settings table (separately stored)
+        # ✅ Pull identity + contact info from settings table
         conn = get_db_connection()
         row = conn.execute("""
             SELECT first_name, company_name, position, website, phone, reply_to
@@ -43,7 +55,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         reply_to     = row["reply_to"]     if row and row["reply_to"] else "contact@example.com"
         phone        = row["phone"]        if row and row["phone"] else "123-456-7890"
 
-        # Build OpenAI prompt
+        # ✅ Build OpenAI prompt
         prompt = (
             f"Write a {length} business proposal in a {tone} tone.\n"
             f"Client: {first_name} ({position}) from {company_name}.\n"
@@ -61,7 +73,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # Save proposal to database
+        # ✅ Save proposal to database
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (
@@ -91,19 +103,19 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # Log the generation in analytics
+        # ✅ Log the generation in analytics
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
 
-        # Email the proposal to the lead
+        # ✅ Email the proposal to the lead
         send_proposal_email(
-          to_email=email,
-          subject="Your Proposal Has Been Received",
-          content=proposal_text,  # ✅ fixed here
-          cc_client=True,
-          client_email=client_email
+            to_email=email,
+            subject="Your Proposal Has Been Received",
+            content=proposal_text,
+            cc_client=True,
+            client_email=client_email
         )
 
-        # Optional: SMS alert to client
+        # ✅ Optional SMS alert
         # sms_msg = f"New proposal from {name} for {services} just submitted."
         # send_sms_alert(phone, sms_msg, user_email=client_email)
 
