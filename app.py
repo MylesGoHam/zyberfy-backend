@@ -599,29 +599,29 @@ def billing_portal():
     return redirect(portal.url, code=303)
 
 @app.route("/client_proposal/<public_id>")
-def client_proposal_preview(public_id):
+def client_proposal(public_id):
     conn = get_db_connection()
 
-    # Look up user by public_id
+    # Fetch user by public_id
     user = conn.execute("SELECT * FROM users WHERE public_id = ?", (public_id,)).fetchone()
-    if not user:
-        conn.close()
-        return "Invalid link.", 404
-
-    # Fetch latest proposal (if any)
-    proposal = conn.execute("""
-        SELECT * FROM proposals
-        WHERE public_id = ?
-        ORDER BY timestamp DESC
-        LIMIT 1
-    """, (public_id,)).fetchone()
     conn.close()
 
-    # Build full proposal link and QR path
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"/static/qr/proposal_{public_id}.png"
+    if not user:
+        return "Invalid user link", 404
 
-    return render_template("client_proposal.html", proposal=proposal, public_id=public_id, public_link=full_link, qr_path=qr_path)
+    qr_path = f"static/qr/proposal_{public_id}.png"
+    full_link = f"https://zyberfy.com/proposal/{public_id}"
+
+    # ✅ Ensure QR exists
+    if not os.path.exists(qr_path):
+        generate_qr_code(public_id, request.host_url)
+
+    return render_template(
+        "client_proposal.html",
+        public_id=public_id,
+        user=user,
+        public_link=full_link
+    )
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
