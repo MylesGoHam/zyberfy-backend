@@ -1364,22 +1364,6 @@ def test_proposal():
     )
 
 
-@app.route("/thank_you")
-def thank_you():
-    pid = request.args.get("pid")
-    if not pid:
-        return "Missing proposal ID", 400
-
-    conn = get_db_connection()
-    proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
-    conn.close()
-
-    if not proposal:
-        return "Proposal not found", 404
-
-    return render_template("thank_you.html", proposal=proposal)
-
-
 @app.route("/track_event", methods=["POST"])
 def track_event():
     try:
