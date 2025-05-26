@@ -1,5 +1,5 @@
 # email_assistant.py
-
+from slugify import slugify
 import openai
 import uuid
 import os
@@ -10,16 +10,15 @@ from models import get_db_connection, get_user_automation, log_event
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert  # Optional, still included
 
-from slugify import slugify  # Add this if not already imported
+
+# Load API keys
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_public_id(full_name):
     slug = slugify(full_name)
     short_id = str(uuid.uuid4())[:6]
     return f"{slug}-{short_id}"
-
-# Load API keys
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
