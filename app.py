@@ -990,25 +990,31 @@ def proposal():
     )
 
 
-@app.route("/proposal/<public_id>", methods=["GET", "POST"])
+@app.route("/proposal/<public_id>", methods=["GET"])
 def lead_proposal(public_id):
     import os, qrcode
     from flask import make_response
 
     conn = get_db_connection()
-    user = conn.execute("SELECT * FROM users WHERE public_id = ?", (public_id,)).fetchone()
-    conn.close()
 
-    if not user:
+    # 🔍 1. Look up proposal by public_id
+    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+
+    if not proposal:
+        conn.close()
         return "Invalid proposal link.", 404
 
-    client_email = user["email"]
+    # 🔍 2. Get the client user from proposal
+    client_email = proposal["user_email"]
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
+    conn.close()
+
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview once per browser (cookie-based)
+    # ✅ Log pageview (cookie-based)
     has_viewed = request.cookies.get(viewed_key)
     if not is_client and not has_viewed:
         log_event(
@@ -1026,43 +1032,14 @@ def lead_proposal(public_id):
         img.save(qr_path)
         print(f"[QR] Created QR for {full_link}")
 
-    # ✅ Handle lead submission
-    if request.method == "POST":
-        name     = request.form.get("name")
-        email    = request.form.get("email")
-        company  = request.form.get("company")
-        services = request.form.get("services")
-        budget   = request.form.get("budget")
-        timeline = request.form.get("timeline")
-        message  = request.form.get("message")
-
-        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
-
-        if pid == "LIMIT_REACHED":
-            print(f"[BLOCKED] Proposal rejected: {client_email} reached limit.")
-            return redirect(url_for("memberships"))
-
-        if pid:
-            log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
-            log_event("sent_proposal", user_email=client_email, metadata={"proposal_id": pid})
-            send_onesignal_notification(
-                title="New Proposal Submitted",
-                message=f"{name} just submitted a proposal to {client_email}.",
-                public_id=public_id,
-                proposal_id=pid 
-            )
-            return redirect(url_for("thank_you", pid=pid))
-        else:
-            flash("Failed to send proposal. Try again.", "error")
-            return redirect(url_for("lead_proposal", public_id=public_id))
-
-    # ✅ Render proposal form and set pageview cookie
+    # ✅ Render thank-you/proposal page
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
         public_id=public_id,
         show_qr=False,
-        public_link=full_link
+        public_link=full_link,
+        proposal=proposal  # 👈 added this for receipt display
     ))
     if not is_client and not has_viewed:
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
@@ -1485,4 +1462,3 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0",
             port=int(os.getenv("PORT", 5001)),
             debug=True)
-
