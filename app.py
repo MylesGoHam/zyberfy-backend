@@ -94,16 +94,25 @@ conn.close()
 
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
+    import os
+    import qrcode
+
     try:
-        url = f"{base_url}proposal/{public_id}"
-        qr = qrcode.make(url)
+        # Ensure no double slashes in final URL
+        full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
+
+        # Path to save QR image
         output_path = os.path.join("static", "qr")
         os.makedirs(output_path, exist_ok=True)
         full_path = os.path.join(output_path, f"proposal_{public_id}.png")
+
+        # Generate and save QR
+        qr = qrcode.make(full_url)
         qr.save(full_path)
-        print(f"[QR] Saved QR to {full_path}")
+        print(f"[QR] ✅ Saved to {full_path} for {full_url}")
+
     except Exception as e:
-        print(f"[QR ERROR] Failed to generate QR: {e}")
+        print(f"[QR ERROR] ❌ Failed for {public_id}: {e}")
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
