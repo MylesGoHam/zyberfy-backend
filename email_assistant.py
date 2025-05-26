@@ -10,7 +10,6 @@ from models import get_db_connection, get_user_automation, log_event
 from email_utils import send_proposal_email
 from sms_utils import send_sms_alert  # Optional, still included
 
-
 # Load API keys
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -79,7 +78,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # ✅ Save proposal to database
+        # ✅ Save proposal to database with timestamp
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO proposals (
@@ -92,8 +91,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
                 budget,
                 timeline,
                 message,
-                proposal_text
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                proposal_text,
+                timestamp
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             public_id,
             client_email,
@@ -104,7 +104,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             budget,
             timeline,
             message,
-            proposal_text
+            proposal_text,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 🕒 add timestamp
         ))
         conn.commit()
         conn.close()
