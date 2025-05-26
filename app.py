@@ -620,6 +620,7 @@ def dashboard():
             return redirect(url_for("login"))
 
         conn = get_db_connection()
+        conn.row_factory = sqlite3.Row  # ✅ This fixes dictionary-style access
 
         user_row = conn.execute("""
             SELECT users.first_name AS user_first_name, users.plan_status, users.public_id,
@@ -675,7 +676,7 @@ def dashboard():
             automation_complete=bool(automation_row),
             onboarding_incomplete=onboarding_incomplete,
             proposal_count=proposal_count,
-            proposals=proposals  # ✅ Fix included
+            proposals=proposals
         )
 
     except Exception as e:
