@@ -993,7 +993,7 @@ def proposal():
 @app.route("/proposal/<public_id>", methods=["GET"])
 def lead_proposal(public_id):
     import os, qrcode
-    from flask import make_response
+    from flask import make_response, request
 
     conn = get_db_connection()
 
@@ -1032,14 +1032,18 @@ def lead_proposal(public_id):
         img.save(qr_path)
         print(f"[QR] Created QR for {full_link}")
 
-    # ✅ Render thank-you/proposal page
+    # ✅ Handle thank-you display trigger
+    submitted = request.args.get("submitted") == "1"
+
+    # ✅ Render page
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
         public_id=public_id,
         show_qr=False,
         public_link=full_link,
-        proposal=proposal  # 👈 added this for receipt display
+        proposal=proposal,
+        submitted=submitted  # 👈 add thank-you state
     ))
     if not is_client and not has_viewed:
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
