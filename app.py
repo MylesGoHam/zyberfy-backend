@@ -954,43 +954,7 @@ def ping():
     return "pong"
 
 
-@app.route("/proposal", methods=["GET", "POST"])
-def proposal():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    user_email = session["email"]
-    conn = get_db_connection()
-
-    # ✅ Get user row
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (user_email,)).fetchone()
-
-    # ✅ Use latest proposal's public_id (or fallback to user's)
-    proposal_row = conn.execute("""
-        SELECT public_id FROM proposals 
-        WHERE user_email = ? ORDER BY created_at DESC LIMIT 1
-    """, (user_email,)).fetchone()
-    public_id = proposal_row["public_id"] if proposal_row else user["public_id"]
-
-    # ✅ Generate QR if needed
-    if public_id:
-        qr_path = f"static/qr/proposal_{public_id}.png"
-        if not os.path.exists(qr_path):
-            generate_qr_code(public_id, request.host_url)
-
-    conn.close()
-
-    # ✅ Render lead-facing proposal page
-    return render_template(
-        "client_proposal.html",
-        user=user,
-        public_id=public_id,
-        show_qr=True,
-        public_link=f"{request.host_url}proposal/{public_id}"
-    )
-
-
-@app.route("/proposal/<public_id>", methods=["GET"])
+@app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def lead_proposal(public_id):
     import os, qrcode
     from flask import make_response, request
@@ -1032,10 +996,38 @@ def lead_proposal(public_id):
         img.save(qr_path)
         print(f"[QR] Created QR for {full_link}")
 
-    # ✅ Handle thank-you display trigger
-    submitted = request.args.get("submitted") == "1"
+    # ✅ Handle lead submission
+    if request.method == "POST":
+        name     = request.form.get("name")
+        email    = request.form.get("email")
+        company  = request.form.get("company")
+        services = request.form.get("services")
+        budget   = request.form.get("budget")
+        timeline = request.form.get("timeline")
+        message  = request.form.get("message")
 
-    # ✅ Render page
+        pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
+
+        if pid == "LIMIT_REACHED":
+            print(f"[BLOCKED] Proposal rejected: {client_email} reached limit.")
+            return redirect(url_for("memberships"))
+
+        if pid:
+            log_event("generated_proposal", user_email=client_email, metadata={"public_id": pid})
+            log_event("sent_proposal", user_email=client_email, metadata={"proposal_id": pid})
+            send_onesignal_notification(
+                title="New Proposal Submitted",
+                message=f"{name} just submitted a proposal to {client_email}.",
+                public_id=pid,
+                proposal_id=proposal["id"]
+            )
+            return redirect(url_for("lead_proposal", public_id=pid, submitted=1))
+        else:
+            flash("Failed to send proposal. Try again.", "error")
+            return redirect(url_for("lead_proposal", public_id=public_id))
+
+    # ✅ Render proposal form or thank-you
+    submitted = request.args.get("submitted") == "1"
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
@@ -1043,7 +1035,7 @@ def lead_proposal(public_id):
         show_qr=False,
         public_link=full_link,
         proposal=proposal,
-        submitted=submitted  # 👈 add thank-you state
+        submitted=submitted
     ))
     if not is_client and not has_viewed:
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
