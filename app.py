@@ -995,23 +995,24 @@ def lead_proposal(public_id):
 
     conn = get_db_connection()
 
-    # 🔍 Lookup proposal
+    # 🔍 Look up proposal by public_id (new format: company-slug-random)
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
-
     if not proposal:
         conn.close()
         return "Invalid or expired proposal link.", 404
 
+    # 🔍 Identify the client who owns this proposal
     client_email = proposal["user_email"]
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
 
+    # 🔒 Session check
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview once (cookie-based)
+    # ✅ Log pageview once if lead
     has_viewed = request.cookies.get(viewed_key)
     if not is_client and not has_viewed:
         log_event(
@@ -1026,7 +1027,7 @@ def lead_proposal(public_id):
         img = qrcode.make(full_link)
         img.save(qr_path)
 
-    # ✅ If POST, this is a new submission
+    # ✅ Handle form submission (new lead)
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1053,9 +1054,8 @@ def lead_proposal(public_id):
             flash("Error submitting proposal. Try again.", "error")
             return redirect(url_for("lead_proposal", public_id=public_id))
 
+    # ✅ Render lead form or thank you
     submitted = request.args.get("submitted") == "1"
-
-    # ✅ Show the lead form or confirmation
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
@@ -1067,6 +1067,7 @@ def lead_proposal(public_id):
     ))
     if not is_client and not has_viewed:
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
+
     return resp
 
 
