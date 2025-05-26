@@ -97,7 +97,7 @@
     <tbody class="text-sm divide-y divide-gray-200">
   {% for proposal in proposals %}
     <tr 
-      onclick="window.location.href='{{ url_for('proposal_view', pid=proposal.id) }}'" 
+      onclick="window.location.href='{{ url_for('lead_proposal', public_id=user['public_id']) }}'" 
       class="hover:bg-gray-100 cursor-pointer"
     >
       <td class="px-4 py-2">{{ proposal.lead_name }}</td>
