@@ -1,38 +1,49 @@
-from slugify import slugify
-import random
-import string
-
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
+    import secrets
+    from slugify import slugify
+
     try:
         conn = get_db_connection()
 
-        # ✅ Check proposal limit
+        # ✅ Check if client hit proposal limit
         count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
         if count_row["count"] >= 3:
             conn.close()
-            print(f"[LIMIT] Client {client_email} reached proposal cap.")
             return "LIMIT_REACHED"
 
-        # ✅ Fetch automation + identity
+        # ✅ Fetch client automation settings
         settings = get_user_automation(client_email)
-        user_row = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
-        settings_row = conn.execute("SELECT * FROM settings WHERE email = ?", (client_email,)).fetchone()
-
-        if not (settings and user_row and settings_row):
+        if not settings:
             conn.close()
-            print("[ERROR] Missing automation or user/settings.")
             return None
 
-        # 🔨 Generate unique public_id from business name
-        base_slug = slugify(settings_row["company_name"] or "client")
-        rand_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-        proposal_public_id = f"{base_slug}-{rand_suffix}"
+        tone = settings.get("tone", "friendly")
+        length = settings.get("length", "concise")
 
-        # ✅ Generate proposal
+        # ✅ Pull client user/settings data
+        user_row = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
+        settings_row = conn.execute("SELECT * FROM settings WHERE email = ?", (client_email,)).fetchone()
+        if not user_row or not settings_row:
+            conn.close()
+            return None
+
+        first_name   = settings_row["first_name"] or "Client"
+        position     = settings_row["position"] or ""
+        company_name = settings_row["company_name"] or "company"
+        website      = settings_row["website"] or "example.com"
+        reply_to     = settings_row["reply_to"] or "contact@example.com"
+        phone        = settings_row["phone"] or "123-456-7890"
+
+        # ✅ Generate unique public_id from company name + random 6-char slug
+        base_slug = slugify(company_name)
+        suffix = secrets.token_hex(3)[:6]
+        public_id = f"{base_slug}-{suffix}"
+
+        # ✅ Compose prompt
         prompt = (
-            f"Write a {settings.get('length', 'concise')} business proposal in a {settings.get('tone', 'friendly')} tone.\n"
-            f"Client: {settings_row['first_name']} ({settings_row['position']}) from {settings_row['company_name']}.\n"
-            f"Website: {settings_row['website']}, Contact: {settings_row['reply_to']} / {settings_row['phone']}.\n"
+            f"Write a {length} business proposal in a {tone} tone.\n"
+            f"Client: {first_name} ({position}) from {company_name}.\n"
+            f"Website: {website}, Contact: {reply_to} / {phone}.\n"
             f"Lead Info: {name} from {company}, wants: {services}, budget: {budget}, timeline: {timeline}.\n"
             f"Extra message from lead: {message}\n"
             f"Generate a custom response from the client to the lead."
@@ -46,7 +57,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # ✅ Insert new proposal
+        # ✅ Save to database
         conn.execute("""
             INSERT INTO proposals (
                 public_id,
@@ -61,7 +72,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
                 proposal_text
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            proposal_public_id,
+            public_id,
             client_email,
             name,
             email,
@@ -75,8 +86,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # ✅ Notifications + email
-        log_event("generated_proposal", user_email=client_email, metadata={"public_id": proposal_public_id})
+        # ✅ Log + send email
+        log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
+
         send_proposal_email(
             to_email=email,
             subject="Your Proposal Has Been Received",
@@ -85,7 +97,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             client_email=client_email
         )
 
-        return proposal_public_id
+        return public_id
 
     except Exception as e:
         print(f"[ERROR] Failed to handle proposal: {e}")
