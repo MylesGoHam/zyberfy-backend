@@ -970,14 +970,13 @@ def lead_proposal(public_id):
 
     conn = get_db_connection()
 
-    # 🔍 1. Look up proposal by public_id
+    # 🔍 Lookup proposal
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
 
     if not proposal:
         conn.close()
-        return "Invalid proposal link.", 404
+        return "Invalid or expired proposal link.", 404
 
-    # 🔍 2. Get the client user from proposal
     client_email = proposal["user_email"]
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
@@ -987,7 +986,7 @@ def lead_proposal(public_id):
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview (cookie-based)
+    # ✅ Log pageview once (cookie-based)
     has_viewed = request.cookies.get(viewed_key)
     if not is_client and not has_viewed:
         log_event(
@@ -995,17 +994,14 @@ def lead_proposal(public_id):
             user_email=client_email,
             metadata={"public_id": public_id, "source": "lead_proposal"}
         )
-        print(f"[PAGEVIEW] Logged for public_id: {public_id}")
-        import sys; sys.stdout.flush()
 
-    # ✅ Generate QR code if missing
+    # ✅ Generate QR if missing
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         img = qrcode.make(full_link)
         img.save(qr_path)
-        print(f"[QR] Created QR for {full_link}")
 
-    # ✅ Handle lead submission
+    # ✅ If POST, this is a new submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1018,12 +1014,9 @@ def lead_proposal(public_id):
         pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         if pid == "LIMIT_REACHED":
-            print(f"[BLOCKED] Proposal rejected: {client_email} reached limit.")
             return redirect(url_for("memberships"))
 
         if pid:
-            log_event("generated_proposal", user_email=client_email, metadata={"public_id": pid})
-            log_event("sent_proposal", user_email=client_email, metadata={"proposal_id": pid})
             send_onesignal_notification(
                 title="New Proposal Submitted",
                 message=f"{name} just submitted a proposal to {client_email}.",
@@ -1032,19 +1025,20 @@ def lead_proposal(public_id):
             )
             return redirect(url_for("lead_proposal", public_id=pid, submitted=1))
         else:
-            flash("Failed to send proposal. Try again.", "error")
+            flash("Error submitting proposal. Try again.", "error")
             return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Render proposal form or thank-you
     submitted = request.args.get("submitted") == "1"
+
+    # ✅ Show the lead form or confirmation
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
-        public_id=public_id,
-        show_qr=False,
-        public_link=full_link,
         proposal=proposal,
-        submitted=submitted
+        submitted=submitted,
+        public_id=public_id,
+        public_link=full_link,
+        show_qr=False
     ))
     if not is_client and not has_viewed:
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
