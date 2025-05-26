@@ -1048,15 +1048,16 @@ def proposal_view(pid):
     proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
 
     if not proposal:
+        conn.close()
         return "Proposal not found", 404
 
-    client_email = proposal["user_email"]  # renamed for clarity
+    client_email = proposal["user_email"]
 
-    # ✅ Log receipt view (analytics pageview)
+    # ✅ Log dashboard view
     log_event(
         event_name="pageview",
         user_email=client_email,
-        metadata={"proposal_id": pid, "source": "proposal_view"}
+        metadata={"proposal_id": pid, "source": "client_dashboard"}
     )
 
     if request.method == "POST":
@@ -1065,7 +1066,6 @@ def proposal_view(pid):
             conn.execute("UPDATE proposals SET status = ? WHERE id = ?", (action, pid))
             conn.commit()
 
-            # ✅ Log approval or decline
             log_event(
                 event_name=f"proposal_{action}",
                 user_email=client_email,
