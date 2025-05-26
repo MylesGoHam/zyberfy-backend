@@ -1,5 +1,9 @@
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
+        import uuid
+        from slugify import slugify
+        from utils import generate_qr_code
+
         conn = get_db_connection()
 
         # ✅ Check if client has exceeded proposal limit
@@ -24,19 +28,21 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         # ✅ Pull client identity and contact info
         user_row = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
         settings_row = conn.execute("SELECT * FROM settings WHERE email = ?", (client_email,)).fetchone()
-        conn.close()
-
         if not user_row or not settings_row:
+            conn.close()
             print("[ERROR] Missing user/settings data.")
             return None
 
-        public_id    = user_row["public_id"]
+        base_id      = user_row["public_id"]
         first_name   = settings_row["first_name"] or "Your Name"
         position     = settings_row["position"] or ""
         company_name = settings_row["company_name"] or "Your Company"
         website      = settings_row["website"] or "example.com"
         reply_to     = settings_row["reply_to"] or "contact@example.com"
         phone        = settings_row["phone"] or "123-456-7890"
+
+        # ✅ Generate unique public_id for this proposal
+        public_id = f"{base_id}-{str(uuid.uuid4())[:8]}"
 
         # ✅ Build OpenAI prompt
         prompt = (
@@ -56,8 +62,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # ✅ Save proposal
-        conn = get_db_connection()
+        # ✅ Save to database
         conn.execute("""
             INSERT INTO proposals (
                 public_id,
@@ -84,11 +89,12 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             proposal_text
         ))
         conn.commit()
-        conn.close()
 
-        # ✅ Log + email
+        # ✅ Create a QR code
+        generate_qr_code(public_id, base_url="https://zyberfy.com/")
+
+        # ✅ Log + send email
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
-
         send_proposal_email(
             to_email=email,
             subject="Your Proposal Has Been Received",
