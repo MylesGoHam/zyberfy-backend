@@ -53,6 +53,8 @@ from models import get_db_connection, generate_slugified_id
 
 from models import handle_new_proposal
 
+from flask_login import login_required
+
 
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
