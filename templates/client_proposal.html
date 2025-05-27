@@ -46,25 +46,26 @@
     This is your public proposal link. When a lead submits the form, the AI will automatically respond and send the proposal.
   </div>
 
-<!-- 🔒 Proposal Form (Disabled) -->
-<div class="flex justify-center mt-10">
-  <form method="POST" class="space-y-4 w-full max-w-md">
-  <input type="text" name="name" placeholder="Your Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <input type="email" name="email" placeholder="Your Email" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <input type="text" name="company" placeholder="Company Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <input type="text" name="services" placeholder="Services Needed" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <input type="text" name="budget" placeholder="Estimated Budget" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <input type="text" name="timeline" placeholder="Timeline" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
-  <textarea name="message" placeholder="Tell us more..." rows="4" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500"></textarea>
+  <!-- 🔒 Proposal Form (Disabled Preview) -->
+  <div class="flex justify-center mt-10">
+    <form method="POST" class="space-y-4 w-full max-w-md">
+      <input type="text" name="name" placeholder="Your Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <input type="email" name="email" placeholder="Your Email" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <input type="text" name="company" placeholder="Company Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <input type="text" name="services" placeholder="Services Needed" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <input type="text" name="budget" placeholder="Estimated Budget" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <input type="text" name="timeline" placeholder="Timeline" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+      <textarea name="message" placeholder="Tell us more..." rows="4" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500"></textarea>
 
-  <div class="flex justify-center">
-    <button type="submit" disabled class="bg-blue-500 text-white px-6 py-2 rounded opacity-50 cursor-not-allowed">
-      Submit Proposal
-    </button>
-   </form>
-</div>
+      <div class="flex justify-center">
+        <button type="submit" disabled class="bg-blue-500 text-white px-6 py-2 rounded opacity-50 cursor-not-allowed">
+          Submit Proposal
+        </button>
+      </div>
+    </form>
+  </div>
   {% else %}
-  <p class="text-center text-gray-500">No proposals yet. Generate one from the dashboard to view your live link.</p>
+    <p class="text-center text-gray-500">No proposals yet. Generate one from the dashboard to view your live link.</p>
   {% endif %}
 </div>
 {% endblock %}
