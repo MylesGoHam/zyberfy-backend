@@ -1,5 +1,10 @@
 import sqlite3
 import os
+import json
+import re
+import random
+import string
+from datetime import datetime
 
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
@@ -14,7 +19,6 @@ def get_db_connection():
     return conn
 
 def add_stripe_column_if_missing():
-    """Run once at startup to ALTER the users table if needed."""
     conn = get_db_connection()
     try:
         conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
@@ -27,12 +31,12 @@ def create_users_table():
     conn = get_db_connection()
     conn.execute(""" 
       CREATE TABLE IF NOT EXISTS users (
-        id                    INTEGER PRIMARY KEY AUTOINCREMENT,
-        email                 TEXT UNIQUE,
-        password              TEXT,
-        first_name            TEXT,
-        plan_status           TEXT,
-        stripe_customer_id    TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE,
+        password TEXT,
+        first_name TEXT,
+        plan_status TEXT,
+        stripe_customer_id TEXT
       )
     """)
     conn.commit()
@@ -65,10 +69,10 @@ def create_subscriptions_table():
     conn = get_db_connection()
     conn.execute("""
       CREATE TABLE IF NOT EXISTS subscriptions (
-        id       INTEGER PRIMARY KEY AUTOINCREMENT,
-        email    TEXT NOT NULL,
-        plan     TEXT NOT NULL,
-        status   TEXT NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        plan TEXT NOT NULL,
+        status TEXT NOT NULL,
         FOREIGN KEY(email) REFERENCES users(email)
       );
     """)
@@ -136,9 +140,6 @@ def create_proposals_table():
     conn.commit()
     conn.close()
 
-import json
-from datetime import datetime
-
 def log_event(event_name, user_email=None, metadata=None):
     print(f"[LOG EVENT] {event_name=} {user_email=} {metadata=}")
     conn = get_db_connection()
@@ -147,10 +148,7 @@ def log_event(event_name, user_email=None, metadata=None):
         (event_name, user_email, json.dumps(metadata or {}), datetime.utcnow().isoformat())
     )
     conn.commit()
-
-import re
-import random
-import string
+    conn.close()
 
 def slugify(text):
     text = text.lower()
@@ -166,23 +164,20 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         conn = get_db_connection()
 
-        # ✅ Fetch client’s automation settings to access company name
         settings = get_user_automation(client_email)
         if not settings:
             conn.close()
             return None
 
         company_name = settings["company_name"] or "client"
-        base_slug = company_name  # ✅ Always use client business
+        base_slug = company_name
         public_id = generate_slugified_id(base_slug)
 
-        # Optional: cap proposals per client
-        count_row = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
         if count_row["count"] >= 3:
             conn.close()
             return "LIMIT_REACHED"
 
-        # Save proposal
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
