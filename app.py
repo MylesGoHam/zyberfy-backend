@@ -606,35 +606,18 @@ def client_proposal():
     user_email = session.get("email")
     conn = get_db_connection()
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
+        "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
         (user_email,)
     ).fetchone()
     conn.close()
-    return render_template("client_proposal.html", proposal=proposal)
 
-@app.route("/create-checkout-session", methods=["POST"])
-def create_checkout_session():
-    if "email" not in session:
-        return redirect("/login")
+    if not proposal:
+        return render_template("client_proposal.html", public_id=None, public_link=None)
 
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=session["email"],
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price": os.getenv("SECRET_BUNDLE_PRICE_ID"),
-                    "quantity": 1,
-                }
-            ],
-            mode="subscription",
-            success_url=url_for("dashboard", _external=True),
-            cancel_url=url_for("memberships", _external=True),
-        )
-        return redirect(checkout_session.url, code=303)
+    public_id = proposal["public_id"]
+    public_link = f"https://zyberfy.com/proposal/{public_id}"
 
-    except Exception as e:
-        return jsonify(error=str(e)), 400
+    return render_template("client_proposal.html", public_id=public_id, public_link=public_link)
     
 @app.route("/dashboard")
 def dashboard():
