@@ -55,6 +55,13 @@ from models import handle_new_proposal
 
 from flask_login import login_required
 
+from flask_login import LoginManager, UserMixin, login_user, current_user
+
+app = Flask(__name__)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login" 
+
 
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
@@ -95,6 +102,21 @@ conn.execute("""
 """)
 conn.commit()
 conn.close()
+
+@login_manager.user_loader
+def load_user(user_id):
+    from models import get_db_connection
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    if user:
+        class User(UserMixin):
+            def __init__(self, user_row):
+                self.id = user_row["id"]
+                self.email = user_row["email"]
+        return User(user)
+    return None
+
 
 # --- QR Code Generator Function ---
 def generate_qr_code(public_id, base_url):
