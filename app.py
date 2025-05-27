@@ -9,6 +9,7 @@ import qrcode
 from pathlib import Path
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from pathlib import Path
 
 # ─── Flask & Extensions ──────────────────────────────────────────────────────
 from flask import (
@@ -909,6 +910,7 @@ def ping():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def lead_proposal(public_id):
     from flask import make_response
+    from pathlib import Path
 
     conn = get_db_connection()
 
@@ -925,25 +927,18 @@ def lead_proposal(public_id):
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
 
-    # Setup variables
+    # Setup
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
-
-    # ✅ Log pageview (only for leads, not client)
-    if not is_client and not request.cookies.get(viewed_key):
-        log_event(
-            event_name="pageview",
-            user_email=client_email,
-            metadata={"public_id": public_id, "source": "lead_proposal"}
-        )
+    qr_path = Path(f"static/qr/proposal_{public_id}.png")
 
     # ✅ Auto-generate QR code if missing
-    if not os.path.exists(qr_path):
-        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        qr_img = qrcode.make(full_link)
-        qr_img.save(qr_path)
+    if not qr_path.exists():
+        qr_path.parent.mkdir(parents=True, exist_ok=True)
+        img = qrcode.make(full_link)
+        img.save(qr_path)
+        print(f"[QR] Generated for {public_id} at {qr_path}")
 
     # ✅ Handle form submission
     if request.method == "POST":
