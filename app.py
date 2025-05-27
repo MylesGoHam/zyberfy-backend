@@ -1015,22 +1015,24 @@ def lead_proposal(public_id):
 
 @app.route('/proposalpage')
 def proposalpage():
-    print("✅ Public access to /proposalpage")
+    if "email" not in session:
+        return redirect(url_for("login"))
 
+    user_email = session["email"]
     conn = get_db_connection()
+
     proposal = conn.execute(
-        'SELECT * FROM proposals ORDER BY id DESC LIMIT 1'
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        (user_email,)
     ).fetchone()
     conn.close()
 
     if proposal:
-        public_id = proposal['public_id']
+        public_id = proposal["public_id"]
         public_link = f"https://zyberfy.com/proposal/{public_id}"
-        print("🔗 Found proposal:", public_id)
-        return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
+        return render_template("client_proposal.html", public_id=public_id, public_link=public_link)
     else:
-        print("🕳️ No proposals found.")
-        return render_template('client_proposal.html', public_id="", public_link="")
+        return render_template("client_proposal.html", public_id="", public_link="")
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
