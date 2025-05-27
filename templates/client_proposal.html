@@ -45,6 +45,22 @@
   <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800 shadow mt-4">
     This is your public proposal link. When a lead submits the form, the AI will automatically respond and send the proposal.
   </div>
+
+  <!-- 🔒 Locked Proposal Form (Disabled) -->
+  <form method="POST" class="mt-10 space-y-4">
+    <input type="text" name="name" placeholder="Your Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <input type="email" name="email" placeholder="Your Email" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <input type="text" name="company" placeholder="Company Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <input type="text" name="services" placeholder="Services Needed" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <input type="text" name="budget" placeholder="Estimated Budget" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <input type="text" name="timeline" placeholder="Timeline" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
+    <textarea name="message" placeholder="Tell us more..." rows="4" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500"></textarea>
+
+    <button type="submit" disabled class="bg-blue-500 text-white px-6 py-2 rounded opacity-50 cursor-not-allowed">
+      Submit Proposal
+    </button>
+    <p class="text-sm text-center text-gray-400">Proposal form is currently locked.</p>
+  </form>
   {% else %}
   <p class="text-center text-gray-500">No proposals yet. Generate one from the dashboard to view your live link.</p>
   {% endif %}
@@ -57,7 +73,6 @@
     const btn = document.getElementById("copyBtn");
     const input = document.getElementById("proposalLink");
     const success = document.getElementById("copySuccess");
-
     if (btn && input && success) {
       btn.addEventListener("click", function () {
         input.select();
