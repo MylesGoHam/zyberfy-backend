@@ -1,88 +1,32 @@
-def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
-    import secrets
-    from slugify import slugify
-    import openai
+# notifications.py
+import requests
+import os
+
+def send_onesignal_notification(title, message, public_id, proposal_id=None):
+    api_key = os.getenv("ONESIGNAL_API_KEY")
+    app_id = os.getenv("ONESIGNAL_APP_ID")
+
+    if not api_key or not app_id:
+        print("[OneSignal] Missing credentials.")
+        return
+
+    data = {
+        "app_id": app_id,
+        "headings": {"en": title},
+        "contents": {"en": message},
+        "url": f"https://zyberfy.com/proposal/{public_id}",
+        "included_segments": ["All"]
+    }
 
     try:
-        conn = get_db_connection()
-
-        # ✅ Check if client hit proposal limit
-        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
-        if count_row["count"] >= 3:
-            conn.close()
-            return "LIMIT_REACHED"
-
-        # ✅ Get settings
-        settings_row = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (client_email,)).fetchone()
-        if not settings_row:
-            conn.close()
-            return None
-
-        tone = settings_row["tone"] or "friendly"
-        length = settings_row["length"] or "concise"
-        company_name = settings_row["company_name"] or "client"
-        first_name = settings_row["first_name"] or "Client"
-        position = settings_row["position"] or ""
-        website = settings_row["website"] or "example.com"
-        reply_to = settings_row["reply_to"] or "contact@example.com"
-        phone = settings_row["phone"] or "123-456-7890"
-
-        # ✅ Build unique public_id from company slug + random suffix
-        base_slug = slugify(company_name)
-        suffix = secrets.token_hex(3)[:6]
-        public_id = f"{base_slug}-{suffix}"
-
-        # ✅ Generate AI proposal
-        prompt = (
-            f"Write a {length} business proposal in a {tone} tone.\n"
-            f"Client: {first_name} ({position}) from {company_name}.\n"
-            f"Website: {website}, Contact: {reply_to} / {phone}.\n"
-            f"Lead Info: {name} from {company}, wants: {services}, budget: {budget}, timeline: {timeline}.\n"
-            f"Extra message from lead: {message}\n"
-            f"Generate a custom response from the client to the lead."
+        res = requests.post(
+            "https://onesignal.com/api/v1/notifications",
+            headers={
+                "Authorization": f"Basic {api_key}",
+                "Content-Type": "application/json"
+            },
+            json=data
         )
-
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.7
-        )
-        proposal_text = response["choices"][0]["message"]["content"].strip()
-
-        # ✅ Save proposal
-        conn.execute("""
-            INSERT INTO proposals (
-                public_id, user_email, lead_name, lead_email, lead_company,
-                services, budget, timeline, message, proposal_text
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            public_id,
-            client_email,
-            name,
-            email,
-            company,
-            services,
-            budget,
-            timeline,
-            message,
-            proposal_text
-        ))
-        conn.commit()
-        conn.close()
-
-        # ✅ Log event and send proposal
-        log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
-        send_proposal_email(
-            to_email=email,
-            subject="Your Proposal Has Been Received",
-            content=proposal_text,
-            cc_client=True,
-            client_email=client_email
-        )
-
-        return public_id
-
+        print("[OneSignal] ✅ Notification sent:", res.status_code)
     except Exception as e:
-        print(f"[ERROR] handle_new_proposal failed: {e}")
-        return None
+        print("[OneSignal] ❌ Failed:", e)
