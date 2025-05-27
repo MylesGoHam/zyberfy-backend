@@ -47,7 +47,8 @@
   </div>
 
 <!-- 🔒 Proposal Form (Disabled) -->
-<form method="POST" class="mt-10 space-y-4">
+<div class="flex justify-center mt-10">
+  <form method="POST" class="space-y-4 w-full max-w-md">
   <input type="text" name="name" placeholder="Your Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
   <input type="email" name="email" placeholder="Your Email" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
   <input type="text" name="company" placeholder="Company Name" disabled class="border px-4 py-2 rounded w-full bg-gray-100 text-gray-500" />
@@ -60,8 +61,8 @@
     <button type="submit" disabled class="bg-blue-500 text-white px-6 py-2 rounded opacity-50 cursor-not-allowed">
       Submit Proposal
     </button>
-  </div>
-</form>
+   </form>
+</div>
   {% else %}
   <p class="text-center text-gray-500">No proposals yet. Generate one from the dashboard to view your live link.</p>
   {% endif %}
