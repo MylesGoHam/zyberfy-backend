@@ -942,8 +942,11 @@ def lead_proposal(public_id):
 
     conn = get_db_connection()
 
-    # Fetch the original proposal by short public_id
-    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+    # 🔍 Fetch the original proposal
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+    ).fetchone()
+
     if not proposal:
         conn.close()
         return "Invalid or expired proposal link.", 404
@@ -952,19 +955,17 @@ def lead_proposal(public_id):
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
 
-    is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = Path(f"static/qr/proposal_{public_id}.png")
+    qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # Generate QR code if missing
-    if not qr_path.exists():
-        qr_path.parent.mkdir(parents=True, exist_ok=True)
+    # ✅ Auto-generate QR code if missing
+    if not os.path.exists(qr_path):
+        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         img = qrcode.make(full_link)
         img.save(qr_path)
-        print(f"[QR] ✅ Generated QR for {public_id}")
 
-    # Handle lead submission
+    # ✅ Handle form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -997,9 +998,10 @@ def lead_proposal(public_id):
         flash("Error submitting proposal. Try again.", "error")
         return redirect(url_for("lead_proposal", public_id=public_id))
 
+    # ✅ Render proposal submission form
     submitted = request.args.get("submitted") == "1"
-    response = make_response(render_template(
-        "public_proposal.html",
+    resp = make_response(render_template(
+        "lead_proposal.html",
         user=user,
         proposal=proposal,
         submitted=submitted,
@@ -1008,10 +1010,10 @@ def lead_proposal(public_id):
         show_qr=True
     ))
 
-    if not is_client and not request.cookies.get(viewed_key):
-        response.set_cookie(viewed_key, "1", max_age=86400 * 30)
+    if not request.cookies.get(viewed_key):
+        resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
 
-    return response
+    return resp
 
 @app.route("/proposalpage")
 def proposalpage():
