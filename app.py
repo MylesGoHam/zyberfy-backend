@@ -1013,26 +1013,35 @@ def lead_proposal(public_id):
 
     return response
 
-@app.route('/proposalpage')
+@app.route("/proposalpage")
+@login_required
 def proposalpage():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    user_email = session["email"]
     conn = get_db_connection()
-
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
-        (user_email,)
+        (session["email"],)
     ).fetchone()
     conn.close()
 
-    if proposal:
-        public_id = proposal["public_id"]
-        public_link = f"https://zyberfy.com/proposal/{public_id}"
-        return render_template("client_proposal.html", public_id=public_id, public_link=public_link)
-    else:
-        return render_template("client_proposal.html", public_id="", public_link="")
+    if not proposal:
+        return render_template("client_proposal.html", public_id=None, public_link=None)
+
+    public_id = proposal["public_id"]
+    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    qr_path = f"static/qr/proposal_{public_id}.png"
+
+    # 🧠 Auto-generate QR code if missing
+    if not os.path.exists(qr_path):
+        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+        img = qrcode.make(full_link)
+        img.save(qr_path)
+        print(f"[QR] ✅ Generated QR for {public_id} at {qr_path}")
+
+    return render_template(
+        "client_proposal.html",
+        public_id=public_id,
+        public_link=full_link
+    )
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
