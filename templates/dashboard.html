@@ -76,7 +76,7 @@
 
   <!-- New Proposal -->
   <div class="mb-6 text-center">
-   <a href="{{ url_for('lead_proposal', public_id=user['public_id']) }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+   <a href="{{ url_for('client_proposal', public_id=user['public_id']) }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
   + New Proposal
   </a>  
   </div>
@@ -97,7 +97,7 @@
     <tbody class="text-sm divide-y divide-gray-200">
   {% for proposal in proposals %}
     <tr 
-     onclick="window.location.href='{{ url_for('lead_proposal', public_id=proposal.public_id) }}'" 
+     onclick="window.location.href='{{ url_for('client_proposal', public_id=proposal.public_id) }}'"
      class="hover:bg-gray-100 cursor-pointer"
     >
       <td class="px-4 py-2">{{ proposal.lead_name }}</td>
