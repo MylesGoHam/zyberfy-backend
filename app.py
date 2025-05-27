@@ -7,6 +7,7 @@ import logging
 import requests
 import qrcode
 import secrets
+import random
 import string
 from models import create_proposals_table
 from pathlib import Path
@@ -1024,15 +1025,10 @@ def proposalpage():
 
     # If no proposal exists, auto-generate one
     if not proposal:
-        import random, string, re
+        import random, string
 
-        # Default client identity
-        business_name = "zyberfy-client"
-        slug = re.sub(r'[^a-z0-9]+', '-', business_name.lower()).strip('-')
-
-        # Generate 6-character ID
-        short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-        public_id = f"{slug}-{short_id}"
+        # ✅ Generate 6-character ID with no slug
+        public_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
         # Save to database
         conn.execute(
