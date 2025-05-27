@@ -1017,6 +1017,8 @@ def lead_proposal(public_id):
 @login_required
 def proposalpage():
     conn = get_db_connection()
+
+    # 🔍 Fetch the latest proposal for the logged-in client
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
         (session["email"],)
@@ -1024,18 +1026,19 @@ def proposalpage():
     conn.close()
 
     if not proposal:
+        # 🚫 No proposals yet — show the empty state
         return render_template("client_proposal.html", public_id=None, public_link=None)
 
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # 🧠 Auto-generate QR code if missing
+    # 🧠 Generate the QR code if it doesn’t exist
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-        print(f"[QR] ✅ Generated QR for {public_id} at {qr_path}")
+        qr = qrcode.make(full_link)
+        qr.save(qr_path)
+        print(f"[QR] ✅ Generated for {public_id}")
 
     return render_template(
         "client_proposal.html",
