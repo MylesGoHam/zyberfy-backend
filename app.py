@@ -1036,8 +1036,10 @@ def lead_proposal(public_id):
 @app.route('/proposalpage')
 @login_required
 def proposalpage():
+    print("✅ Entered /proposalpage route")
     user_email = session.get('email')
     if not user_email:
+        print("⚠️ No user email found in session.")
         return redirect(url_for('login'))
 
     proposal = db.execute(
@@ -1048,8 +1050,10 @@ def proposalpage():
     if proposal:
         public_id = proposal['public_id']
         public_link = f"https://zyberfy.com/proposal/{public_id}"
+        print("🔗 Found proposal:", public_id)
         return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
     else:
+        print("🕳️ No proposals found for user.")
         return render_template('client_proposal.html', public_id="", public_link="")
 
 
