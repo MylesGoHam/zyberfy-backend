@@ -59,32 +59,30 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
         # ✅ Save proposal
         conn.execute("""
-            INSERT INTO proposals (
-                public_id,
-                user_email,
-                lead_name,
-                lead_email,
-                lead_company,
-                services,
-                budget,
-                timeline,
-                message,
-                proposal_text
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            public_id,
-            client_email,
-            name,
-            email,
-            company,
-            services,
-            budget,
-            timeline,
-            message,
-            proposal_text
-        ))
-        conn.commit()
-        conn.close()
+        INSERT INTO proposals (
+        public_id,
+        user_email,
+        lead_name,
+        lead_email,
+        lead_company,
+        services,
+        budget,
+        timeline,
+        message,
+        proposal_text
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     """, (
+        public_id,         # ✅ This is the new unique slug!
+        client_email,
+        name,
+        email,
+        company,
+        services,
+        budget,
+        timeline,
+        message,
+        proposal_text
+         ))
 
         # ✅ Log + email
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
