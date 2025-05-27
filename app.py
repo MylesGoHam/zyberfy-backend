@@ -939,15 +939,11 @@ def ping():
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def lead_proposal(public_id):
     from flask import make_response
-    from pathlib import Path
 
     conn = get_db_connection()
 
-    # 🔍 Fetch the original proposal to identify the client
-    proposal = conn.execute(
-        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
-    ).fetchone()
-
+    # Fetch the original proposal by short public_id
+    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
     if not proposal:
         conn.close()
         return "Invalid or expired proposal link.", 404
@@ -956,20 +952,19 @@ def lead_proposal(public_id):
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
 
-    # Setup
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = Path(f"static/qr/proposal_{public_id}.png")
 
-    # ✅ Auto-generate QR code if missing
+    # Generate QR code if missing
     if not qr_path.exists():
         qr_path.parent.mkdir(parents=True, exist_ok=True)
         img = qrcode.make(full_link)
         img.save(qr_path)
-        print(f"[QR] Generated for {public_id} at {qr_path}")
+        print(f"[QR] ✅ Generated QR for {public_id}")
 
-    # ✅ Handle form submission
+    # Handle lead submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -979,7 +974,6 @@ def lead_proposal(public_id):
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        # 🧠 AI generates new proposal
         new_pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         if new_pid == "LIMIT_REACHED":
@@ -1003,7 +997,6 @@ def lead_proposal(public_id):
         flash("Error submitting proposal. Try again.", "error")
         return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Render proposal page
     submitted = request.args.get("submitted") == "1"
     response = make_response(render_template(
         "public_proposal.html",
