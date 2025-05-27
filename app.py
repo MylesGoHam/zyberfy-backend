@@ -57,7 +57,6 @@ from flask_login import login_required
 
 from flask_login import LoginManager, UserMixin, login_user, current_user
 
-app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login" 
@@ -1465,7 +1464,7 @@ def inject_user():
 
 
 @app.before_request
-def load_user():
+def store_user_email():
     g.email = session.get("email")
 
 
