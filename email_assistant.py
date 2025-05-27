@@ -5,13 +5,13 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         conn = get_db_connection()
 
-        # ✅ Check if client hit proposal limit
+        # ✅ Check proposal limit
         count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
         if count_row["count"] >= 3:
             conn.close()
             return "LIMIT_REACHED"
 
-        # ✅ Fetch client automation settings
+        # ✅ Fetch automation settings
         settings = get_user_automation(client_email)
         if not settings:
             conn.close()
@@ -20,7 +20,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         tone = settings.get("tone", "friendly")
         length = settings.get("length", "concise")
 
-        # ✅ Pull client user/settings data
+        # ✅ Pull client info
         user_row = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
         settings_row = conn.execute("SELECT * FROM settings WHERE email = ?", (client_email,)).fetchone()
         if not user_row or not settings_row:
@@ -34,12 +34,12 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         reply_to     = settings_row["reply_to"] or "contact@example.com"
         phone        = settings_row["phone"] or "123-456-7890"
 
-        # ✅ Generate unique public_id from company name + random 6-char slug
+        # ✅ Generate unique public_id
         base_slug = slugify(company_name)
         suffix = secrets.token_hex(3)[:6]
         public_id = f"{base_slug}-{suffix}"
 
-        # ✅ Compose prompt
+        # ✅ Compose OpenAI prompt
         prompt = (
             f"Write a {length} business proposal in a {tone} tone.\n"
             f"Client: {first_name} ({position}) from {company_name}.\n"
@@ -57,7 +57,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         )
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # ✅ Save to database
+        # ✅ Save proposal
         conn.execute("""
             INSERT INTO proposals (
                 public_id,
@@ -86,9 +86,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # ✅ Log + send email
+        # ✅ Log + email
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
-
         send_proposal_email(
             to_email=email,
             subject="Your Proposal Has Been Received",
