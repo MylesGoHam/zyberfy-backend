@@ -1,14 +1,16 @@
+# ─── System & Utility Imports ────────────────────────────────────────────────
 import os
 import csv
 import uuid
-import qrcode
-import logging
 import sqlite3
+import logging
 import requests
-from datetime import datetime, timedelta
+import qrcode
 from pathlib import Path
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
+# ─── Flask & Extensions ──────────────────────────────────────────────────────
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
@@ -19,6 +21,7 @@ from flask_login import (
     login_user, login_required, current_user
 )
 
+# ─── Third-Party APIs ────────────────────────────────────────────────────────
 import openai
 import stripe
 
@@ -87,15 +90,13 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
 # ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
-    try:
-        full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
-        qr_dir = os.path.join("static", "qr")
-        os.makedirs(qr_dir, exist_ok=True)
-        qr_path = os.path.join(qr_dir, f"proposal_{public_id}.png")
-        qrcode.make(full_url).save(qr_path)
-        print(f"[QR] ✅ Saved to {qr_path}")
-    except Exception as e:
-        print(f"[QR ERROR] ❌ {e}")
+    full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
+    output_path = os.path.join("static", "qr")
+    os.makedirs(output_path, exist_ok=True)
+    qr_path = os.path.join(output_path, f"proposal_{public_id}.png")
+    qr = qrcode.make(full_url)
+    qr.save(qr_path)
+    print(f"[QR] ✅ Saved to {qr_path}")
 
 # ─── Setup Logging ──────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -907,13 +908,15 @@ def ping():
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
 def lead_proposal(public_id):
-    import os, qrcode
-    from flask import make_response, request
+    from flask import make_response
 
     conn = get_db_connection()
 
-    # 🔍 Get the original proposal by public_id (to get client info)
-    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+    # 🔍 Fetch the original proposal to identify the client
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+    ).fetchone()
+
     if not proposal:
         conn.close()
         return "Invalid or expired proposal link.", 404
@@ -922,27 +925,27 @@ def lead_proposal(public_id):
     user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
     conn.close()
 
+    # Setup variables
     is_client = session.get("email") == client_email
     viewed_key = f"viewed_{public_id}"
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview if not already viewed
-    has_viewed = request.cookies.get(viewed_key)
-    if not is_client and not has_viewed:
+    # ✅ Log pageview (only for leads, not client)
+    if not is_client and not request.cookies.get(viewed_key):
         log_event(
             event_name="pageview",
             user_email=client_email,
             metadata={"public_id": public_id, "source": "lead_proposal"}
         )
 
-    # ✅ Generate QR code if missing
+    # ✅ Auto-generate QR code if missing
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
+        qr_img = qrcode.make(full_link)
+        qr_img.save(qr_path)
 
-    # ✅ Handle submission from lead
+    # ✅ Handle form submission
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -952,24 +955,23 @@ def lead_proposal(public_id):
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        # 🔁 Generate a new proposal using AI
+        # 🧠 AI generates new proposal
         new_pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         if new_pid == "LIMIT_REACHED":
             return redirect(url_for("memberships"))
 
         if new_pid:
-            # ✅ Fetch the new proposal ID using the public_id
             conn = get_db_connection()
-            new_proposal = conn.execute("SELECT id FROM proposals WHERE public_id = ?", (new_pid,)).fetchone()
+            new_row = conn.execute("SELECT id FROM proposals WHERE public_id = ?", (new_pid,)).fetchone()
             conn.close()
 
-            if new_proposal:
+            if new_row:
                 send_onesignal_notification(
                     title="New Proposal Submitted",
                     message=f"{name} just submitted a proposal to {client_email}.",
                     public_id=new_pid,
-                    proposal_id=new_proposal["id"]
+                    proposal_id=new_row["id"]
                 )
 
             return redirect(url_for("lead_proposal", public_id=new_pid, submitted=1))
@@ -977,22 +979,22 @@ def lead_proposal(public_id):
         flash("Error submitting proposal. Try again.", "error")
         return redirect(url_for("lead_proposal", public_id=public_id))
 
-    # ✅ Render the form or the thank-you screen
+    # ✅ Render proposal page
     submitted = request.args.get("submitted") == "1"
-    resp = make_response(render_template(
-        "lead_proposal.html",
+    response = make_response(render_template(
+        "public_proposal.html",
         user=user,
         proposal=proposal,
         submitted=submitted,
         public_id=public_id,
         public_link=full_link,
-        show_qr=False
+        show_qr=True
     ))
 
-    if not is_client and not has_viewed:
-        resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
+    if not is_client and not request.cookies.get(viewed_key):
+        response.set_cookie(viewed_key, "1", max_age=86400 * 30)
 
-    return resp
+    return response
 
 @app.route('/proposalpage')
 def proposalpage():
