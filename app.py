@@ -601,29 +601,16 @@ def billing_portal():
     return redirect(portal.url, code=303)
 
 @app.route("/client_proposal")
+@login_required
 def client_proposal():
-    public_id = request.args.get("public_id")
     user_email = session.get("email")
     conn = get_db_connection()
-
-    if public_id:
-        proposal = conn.execute(
-            "SELECT * FROM proposals WHERE public_id = ? AND user_email = ?",
-            (public_id, user_email)
-        ).fetchone()
-        conn.close()
-        if proposal:
-            return render_template("client_proposal.html", public_id=public_id, proposal=proposal)
-        else:
-            return render_template("client_proposal.html", public_id=None, proposal=None)
-    else:
-        # Fallback: show most recent proposal
-        proposal = conn.execute(
-            "SELECT * FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
-            (user_email,)
-        ).fetchone()
-        conn.close()
-        return render_template("client_proposal.html", public_id=proposal["public_id"] if proposal else None, proposal=proposal)
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
+        (user_email,)
+    ).fetchone()
+    conn.close()
+    return render_template("client_proposal.html", proposal=proposal)
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
