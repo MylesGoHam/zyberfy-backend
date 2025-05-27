@@ -1014,7 +1014,6 @@ def lead_proposal(public_id):
     return response
 
 @app.route("/proposalpage")
-@login_required
 def proposalpage():
     conn = get_db_connection()
 
