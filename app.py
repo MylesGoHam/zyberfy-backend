@@ -1057,41 +1057,56 @@ def proposalpage():
     return render_template("client_proposal.html", public_id=public_id, public_link=full_link)
 
 
-@app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
-def proposal_view(pid):
+@app.route("/proposal/<public_id>", methods=["GET", "POST"])
+def public_proposal(public_id):
     conn = get_db_connection()
-    proposal = conn.execute("SELECT * FROM proposals WHERE id = ?", (pid,)).fetchone()
+
+    # ✅ Log pageview (real lead visited)
+    from datetime import datetime
+    conn.execute(
+        "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
+        ("pageview", public_id, datetime.utcnow())
+    )
+    conn.commit()
+
+    # ✅ Fetch proposal
+    proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
 
     if not proposal:
         conn.close()
         return "Proposal not found", 404
 
-    client_email = proposal["user_email"]
-
-    # ✅ Log dashboard view
-    log_event(
-        event_name="pageview",
-        user_email=client_email,
-        metadata={"proposal_id": pid, "source": "client_dashboard"}
-    )
-
     if request.method == "POST":
-        action = request.form.get("action")
-        if action in ["approved", "declined"]:
-            conn.execute("UPDATE proposals SET status = ? WHERE id = ?", (action, pid))
-            conn.commit()
+        # Extract fields from form
+        name = request.form.get("name")
+        email = request.form.get("email")
+        company = request.form.get("company")
+        # ... any other fields
 
-            log_event(
-                event_name=f"proposal_{action}",
-                user_email=client_email,
-                metadata={"proposal_id": pid}
-            )
+        # ✅ Log submission
+        conn.execute(
+            "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
+            ("proposal_submitted", public_id, datetime.utcnow())
+        )
+        conn.commit()
 
-            flash(f"Proposal {action.capitalize()}!", "success")
-            return redirect(url_for("proposal_view", pid=pid))
+        # You can also trigger OpenAI + email send here
+
+        flash("Your proposal was submitted successfully!", "success")
+        return redirect(url_for("thank_you"))
 
     conn.close()
-    return render_template("proposal_receipt.html", proposal=proposal)
+
+    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    qr_path = f"static/qr/proposal_{public_id}.png"
+
+    if not os.path.exists(qr_path):
+        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+        import qrcode
+        img = qrcode.make(full_link)
+        img.save(qr_path)
+
+    return render_template("public_proposal.html", public_id=public_id, public_link=full_link)
 
 
 
