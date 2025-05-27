@@ -602,24 +602,25 @@ def billing_portal():
     )
     return redirect(portal.url, code=303)
 
-@app.route("/client_proposal")
+@app.route('/client_proposal')
 @login_required
 def client_proposal():
-    user_email = session.get("email")
-    conn = get_db_connection()
-    proposal = conn.execute(
-        "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
+    user_email = session.get('email')
+    if not user_email:
+        return redirect(url_for('login'))
+
+    proposal = db.execute(
+        'SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1',
         (user_email,)
     ).fetchone()
-    conn.close()
 
-    if not proposal:
-        return render_template("client_proposal.html", public_id=None, public_link=None)
-
-    public_id = proposal["public_id"]
-    public_link = f"https://zyberfy.com/proposal/{public_id}"
-
-    return render_template("client_proposal.html", public_id=public_id, public_link=public_link)
+    if proposal:
+        public_id = proposal['public_id']
+        public_link = f"https://zyberfy.com/client_proposal/{public_id}"
+        return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
+    else:
+        # Avoid template crash by rendering the page without proposal data
+        return render_template('client_proposal.html', public_id="", public_link="")
     
 @app.route("/dashboard")
 def dashboard():
