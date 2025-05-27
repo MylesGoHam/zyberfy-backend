@@ -20,7 +20,7 @@
           <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 hover:bg-gray-100">Home</a>
           <a href="{{ url_for('automation') }}" class="block px-4 py-2 hover:bg-gray-100">Automation</a>
           <a href="{{ url_for('analytics') }}" class="block px-4 py-2 hover:bg-gray-100">Analytics</a>
-          <a href="{{ url_for('client_proposal', public_id=user['public_id']) }}" class="block px-4 py-2 hover:bg-gray-100">Proposal Page</a>
+          <a href="{{ url_for('lead_proposal', public_id=user['public_id']) }}" class="block px-4 py-2 hover:bg-gray-100">Proposal Page</a>
           <a href="{{ url_for('settings') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
           <a href="{{ url_for('billing') }}" class="block px-4 py-2 hover:bg-gray-100">Billing</a>
           <a href="{{ url_for('logout') }}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
@@ -76,8 +76,9 @@
 
   <!-- New Proposal -->
   <div class="mb-6 text-center">
-   <a href="{{ url_for('lead_proposal', public_id=user['public_id']) }}" class="block px-4 py-2 hover:bg-gray-100">Proposal Page</a>
-   </a>
+   <a href="{{ url_for('lead_proposal', public_id=user['public_id']) }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+  + New Proposal
+  </a>  
   </div>
 
   <!-- Proposal Table -->
