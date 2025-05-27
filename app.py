@@ -3,68 +3,39 @@ import logging
 import sqlite3
 import uuid
 import csv
+import qrcode
+import requests
 
 from flask import (
     Flask, render_template, request,
     redirect, url_for, session,
-    flash, jsonify, send_file
+    flash, jsonify, send_file, g
+)
+from flask_login import (
+    LoginManager, UserMixin,
+    login_user, login_required, current_user
 )
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import openai
 import stripe
 
-# Load environment variables before using them
+# Load environment variables
 load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-from models import (
-    get_db_connection,
-    create_users_table,
-    create_automation_settings_table,
-    create_subscriptions_table,
-    create_analytics_events_table,
-    create_proposals_table,
-    create_offers_table,
-    get_user_automation,
-    log_event
-)
+# Create Flask app FIRST
+app = Flask(__name__, template_folder="templates")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+app.debug = True
 
-
-
-from email_utils import send_proposal_email
-from email_assistant import handle_new_proposal
-
-import qrcode
-from sms_utils import send_sms_alert
-from flask import g
-
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-from pathlib import Path
-
-import uuid
-import requests
-from notifications import send_onesignal_notification
-
-from models import get_db_connection, generate_slugified_id
-
-from models import handle_new_proposal
-
-from flask_login import login_required
-
-from flask import Flask
-from flask_login import LoginManager
-
-app = Flask(__name__)
+# Setup LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.login_manager = login_manager  # ✅ Fixes the AttributeError
-
 login_manager.login_view = "login"
-
 
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
