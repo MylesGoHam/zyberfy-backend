@@ -161,3 +161,42 @@ def generate_slugified_id(base_text):
     slug = slugify(base_text)
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"{slug}-{suffix}"
+
+def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
+    try:
+        conn = get_db_connection()
+
+        # ✅ Fetch client’s automation settings to access company name
+        settings = get_user_automation(client_email)
+        if not settings:
+            conn.close()
+            return None
+
+        company_name = settings["company_name"] or "client"
+        base_slug = company_name  # ✅ Always use client business
+        public_id = generate_slugified_id(base_slug)
+
+        # Optional: cap proposals per client
+        count_row = conn.execute("SELECT COUNT(*) FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+        if count_row["count"] >= 3:
+            conn.close()
+            return "LIMIT_REACHED"
+
+        # Save proposal
+        conn.execute("""
+            INSERT INTO proposals (
+                public_id, user_email, lead_name, lead_email, lead_company,
+                services, budget, timeline, message
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            public_id, client_email, name, email, company,
+            services, budget, timeline, message
+        ))
+        conn.commit()
+        conn.close()
+
+        return public_id
+
+    except Exception as e:
+        print(f"[ERROR] Failed to handle proposal: {e}")
+        return None
