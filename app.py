@@ -91,9 +91,6 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     conn.close()
     return pid
 
-def generate_short_id(length=6):
-    charset = string.ascii_lowercase + string.digits
-    return ''.join(secrets.choice(charset) for _ in range(length))
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
     conn = get_db_connection()
