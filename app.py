@@ -1017,15 +1017,36 @@ def lead_proposal(public_id):
 def proposalpage():
     conn = get_db_connection()
 
-    # Get the most recent proposal in the system (adjust logic if needed to match a client)
+    # Get the most recent proposal in the system
     proposal = conn.execute(
         "SELECT * FROM proposals ORDER BY id DESC LIMIT 1"
     ).fetchone()
 
-    conn.close()
-
+    # If no proposal exists, auto-generate one
     if not proposal:
-        return render_template("client_proposal.html", public_id=None, public_link=None)
+        import random, string, re
+
+        # Default client identity
+        business_name = "zyberfy-client"
+        slug = re.sub(r'[^a-z0-9]+', '-', business_name.lower()).strip('-')
+
+        # Generate 6-character ID
+        short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        public_id = f"{slug}-{short_id}"
+
+        # Save to database
+        conn.execute(
+            "INSERT INTO proposals (user_email, public_id, content, created_at) VALUES (?, ?, ?, datetime('now'))",
+            ("demo@zyberfy.com", public_id, "Auto-generated proposal preview")
+        )
+        conn.commit()
+
+        # Re-fetch the newly created proposal
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+        ).fetchone()
+
+    conn.close()
 
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
