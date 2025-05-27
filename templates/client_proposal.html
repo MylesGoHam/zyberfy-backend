@@ -1,15 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Proposal Submission | Zyberfy{% endblock %}
+{% block title %}Client Proposal | Zyberfy{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md space-y-8">
+<div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow space-y-8">
+  <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm mb-2 block">&larr; Back to Dashboard</a>
 
-  <a href="{{ url_for('dashboard') }}" class="text-blue-500 text-sm">&larr; Back to Dashboard</a>
-  <h1 class="text-2xl font-bold text-blue-600">Proposal Submission Page</h1>
+  <h1 class="text-2xl font-bold text-blue-600">Your Live Proposal Page</h1>
 
-  {% if public_id %}
   <div class="text-center space-y-4">
-    <h3 class="text-lg font-semibold">Share This Proposal Page</h3>
+    <h3 class="text-lg font-semibold">Share This Link</h3>
 
     <img src="{{ url_for('static', filename='qr/proposal_' + public_id + '.png') }}"
          alt="QR Code"
@@ -22,13 +21,13 @@
     </a>
 
     <div>
-      <h3 class="text-sm font-medium mb-1">Copy Your Proposal Page Link</h3>
+      <h3 class="text-sm font-medium mb-1">Copy Link</h3>
       <div class="flex justify-center items-center gap-2 px-4">
         <input
           id="proposalLink"
           type="text"
           readonly
-          value="https://zyberfy.com/proposal/{{ public_id }}"
+          value="{{ public_link }}"
           class="border px-3 py-2 rounded w-2/3 text-sm"
         />
         <button
@@ -42,63 +41,9 @@
     </div>
   </div>
 
-  <div class="flex items-start bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded shadow text-sm mt-6">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 mt-0.5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-.01-10a9 9 0 100 18 9 9 0 000-18z" />
-    </svg>
-    <div>
-      <strong>You don’t have to fill out anything.</strong> This is what leads will see.
-    </div>
+  <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800 shadow mt-4">
+    This is your public proposal link. When a lead submits the form, the AI will automatically respond and send the proposal.
   </div>
-  {% endif %}
-
-  <!-- ✅ Proposal Form -->
-  <form method="POST" class="space-y-4">
-    <div>
-      <label for="name" class="block font-medium text-gray-700 mb-1">Your Name</label>
-      <input type="text" id="name" name="name" required class="w-full border rounded px-3 py-2" />
-    </div>
-
-    <div>
-      <label for="email" class="block font-medium text-gray-700 mb-1">Your Email</label>
-      <input type="email" id="email" name="email" required class="w-full border rounded px-3 py-2" />
-    </div>
-
-    <div>
-      <label for="company" class="block font-medium text-gray-700 mb-1">Company Name</label>
-      <input type="text" id="company" name="company" class="w-full border rounded px-3 py-2" />
-    </div>
-
-    <div>
-      <label for="services" class="block font-medium text-gray-700 mb-1">Services Needed</label>
-      <input type="text" id="services" name="services" class="w-full border rounded px-3 py-2" />
-    </div>
-
-    <div>
-      <label for="budget" class="block font-medium text-gray-700 mb-1">Estimated Budget</label>
-      <select id="budget" name="budget" class="w-full border rounded px-3 py-2">
-        <option value="">Select a range</option>
-        <option value="<$1,000">Less than $1,000</option>
-        <option value="$1,000–$3,000">$1,000–$3,000</option>
-        <option value="$3,000–$5,000">$3,000–$5,000</option>
-        <option value=">$5,000">More than $5,000</option>
-      </select>
-    </div>
-
-    <div>
-      <label for="timeline" class="block font-medium text-gray-700 mb-1">Timeline / Deadline</label>
-      <input type="text" id="timeline" name="timeline" class="w-full border rounded px-3 py-2" />
-    </div>
-
-    <div>
-      <label for="message" class="block font-medium text-gray-700 mb-1">Additional Message</label>
-      <textarea id="message" name="message" rows="5" class="w-full border rounded px-3 py-2"></textarea>
-    </div>
-
-    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition">
-      Submit Proposal
-    </button>
-  </form>
 </div>
 {% endblock %}
 
