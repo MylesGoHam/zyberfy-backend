@@ -6,6 +6,8 @@ import sqlite3
 import logging
 import requests
 import qrcode
+import secrets
+import string
 from pathlib import Path
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -88,6 +90,33 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
     conn.close()
     return pid
+
+def generate_short_id(length=6):
+    charset = string.ascii_lowercase + string.digits
+    return ''.join(secrets.choice(charset) for _ in range(length))
+
+def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
+    conn = get_db_connection()
+
+    # Generate a short, unique public_id
+    public_id = generate_short_id()
+    while conn.execute("SELECT 1 FROM proposals WHERE public_id = ?", (public_id,)).fetchone():
+        public_id = generate_short_id()  # Ensure uniqueness
+
+    conn.execute("""
+        INSERT INTO proposals (
+            public_id, user_email, lead_name, lead_email, lead_company,
+            services, budget, timeline, message
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        public_id, user_email, name, email, company,
+        services, budget, timeline, message
+    ))
+    conn.commit()
+
+    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.close()
+    return public_id
 
 # ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
