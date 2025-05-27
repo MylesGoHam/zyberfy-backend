@@ -51,6 +51,8 @@ from notifications import send_onesignal_notification
 
 from models import get_db_connection, generate_slugified_id
 
+from models import handle_new_proposal
+
 
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
