@@ -7,6 +7,7 @@
 
   <h1 class="text-2xl font-bold text-blue-600">Your Live Proposal Page</h1>
 
+  {% if public_id and public_link %}
   <div class="text-center space-y-4">
     <h3 class="text-lg font-semibold">Share This Link</h3>
 
@@ -44,6 +45,9 @@
   <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800 shadow mt-4">
     This is your public proposal link. When a lead submits the form, the AI will automatically respond and send the proposal.
   </div>
+  {% else %}
+  <p class="text-center text-gray-500">No proposals yet. Generate one from the dashboard to view your live link.</p>
+  {% endif %}
 </div>
 {% endblock %}
 
