@@ -164,20 +164,28 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         conn = get_db_connection()
 
+        # ✅ Fetch client’s automation settings to access company name
         settings = get_user_automation(client_email)
         if not settings:
+            print(f"[ERROR] No automation settings found for {client_email}")
             conn.close()
             return None
 
-        company_name = settings["company_name"] or "client"
-        base_slug = company_name
-        public_id = generate_slugified_id(base_slug)
+        company_name = settings["company_name"]
+        if not company_name or not company_name.strip():
+            print(f"[WARNING] Missing company name in settings for {client_email}")
+            company_name = "client"
 
-        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
-        if count_row["count"] >= 3:
+        # ✅ Generate branded public_id like 'quintessentially-0a9f1x'
+        public_id = generate_slugified_id(company_name)
+
+        # ✅ Optional: Enforce 3 proposal limit
+        count_row = conn.execute("SELECT COUNT(*) AS cnt FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+        if count_row["cnt"] >= 3:
             conn.close()
             return "LIMIT_REACHED"
 
+        # ✅ Save proposal
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
