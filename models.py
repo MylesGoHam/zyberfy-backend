@@ -203,3 +203,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     except Exception as e:
         print(f"[ERROR] Failed to handle proposal: {e}")
         return None
+    
+def generate_short_id(length=6):
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choices(characters, k=length))
