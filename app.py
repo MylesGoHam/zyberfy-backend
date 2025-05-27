@@ -1014,19 +1014,42 @@ def lead_proposal(public_id):
     return resp
 
 @app.route("/proposalpage")
+@login_required
 def proposalpage():
     if "email" not in session:
         return redirect(url_for("login", next="/proposalpage"))
 
     conn = get_db_connection()
+
+    # Check if a proposal exists
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
         (session["email"],)
     ).fetchone()
-    conn.close()
 
+    # If not, auto-create a basic one using data from settings or defaults
     if not proposal:
-        return render_template("client_proposal.html", public_id=None, public_link=None)
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (session["email"],)).fetchone()
+        settings = conn.execute("SELECT * FROM settings WHERE user_email = ?", (session["email"],)).fetchone()
+        
+        import uuid, re
+        business_name = settings["business_name"] if settings else "zyberfy-client"
+        slug = re.sub(r'[^a-z0-9]+', '-', business_name.lower()).strip('-')
+        public_id = f"{slug}-{uuid.uuid4().hex[:6]}"
+
+        conn.execute(
+            "INSERT INTO proposals (user_email, public_id, content, created_at) VALUES (?, ?, ?, datetime('now'))",
+            (session["email"], public_id, "Placeholder proposal generated on login")
+        )
+        conn.commit()
+        
+        # Fetch it again
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+            (session["email"],)
+        ).fetchone()
+
+    conn.close()
 
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
@@ -1037,11 +1060,7 @@ def proposalpage():
         img = qrcode.make(full_link)
         img.save(qr_path)
 
-    return render_template(
-        "client_proposal.html",
-        public_id=public_id,
-        public_link=full_link
-    )
+    return render_template("client_proposal.html", public_id=public_id, public_link=full_link)
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
