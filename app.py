@@ -55,11 +55,14 @@ from models import handle_new_proposal
 
 from flask_login import login_required
 
-from flask_login import LoginManager, UserMixin, login_user, current_user
+from flask import Flask
+from flask_login import LoginManager
+
+app = Flask(__name__, template_folder="templates")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login" 
+login_manager.login_view = "login"
 
 
 
