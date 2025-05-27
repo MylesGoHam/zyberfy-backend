@@ -602,42 +602,28 @@ def billing_portal():
 
 @app.route("/client_proposal")
 def client_proposal():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
+    public_id = request.args.get("public_id")
+    user_email = session.get("email")
     conn = get_db_connection()
 
-    # ✅ Get most recent proposal for this user
-    proposal = conn.execute("""
-        SELECT * FROM proposals
-        WHERE user_email = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (session["email"],)).fetchone()
-
-    if not proposal:
+    if public_id:
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE public_id = ? AND user_email = ?",
+            (public_id, user_email)
+        ).fetchone()
         conn.close()
-        return "No proposals yet."
-
-    public_id = proposal["public_id"]
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (session["email"],)).fetchone()
-    conn.close()
-
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
-
-    # ✅ Generate QR if missing
-    if not os.path.exists(qr_path):
-        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-
-    return render_template(
-        "client_proposal.html",
-        public_id=public_id,
-        user=user,
-        public_link=full_link
-    )
+        if proposal:
+            return render_template("client_proposal.html", public_id=public_id, proposal=proposal)
+        else:
+            return render_template("client_proposal.html", public_id=None, proposal=None)
+    else:
+        # Fallback: show most recent proposal
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY created_at DESC LIMIT 1",
+            (user_email,)
+        ).fetchone()
+        conn.close()
+        return render_template("client_proposal.html", public_id=proposal["public_id"] if proposal else None, proposal=proposal)
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
