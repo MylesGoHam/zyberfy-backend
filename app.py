@@ -1009,9 +1009,8 @@ def lead_proposal(public_id):
 
     conn = get_db_connection()
 
-    # 🔍 Try loading this proposal
+    # 🔍 Get the original proposal by public_id (to get client info)
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
-
     if not proposal:
         conn.close()
         return "Invalid or expired proposal link.", 404
@@ -1025,7 +1024,7 @@ def lead_proposal(public_id):
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Log pageview once (only for leads)
+    # ✅ Log pageview if not already viewed
     has_viewed = request.cookies.get(viewed_key)
     if not is_client and not has_viewed:
         log_event(
@@ -1040,7 +1039,7 @@ def lead_proposal(public_id):
         img = qrcode.make(full_link)
         img.save(qr_path)
 
-    # ✅ Handle proposal submission
+    # ✅ Handle submission from lead
     if request.method == "POST":
         name     = request.form.get("name")
         email    = request.form.get("email")
@@ -1050,27 +1049,33 @@ def lead_proposal(public_id):
         timeline = request.form.get("timeline")
         message  = request.form.get("message")
 
-        # ✅ Generate new proposal and get its public_id
+        # 🔁 Generate a new proposal using AI
         new_pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
 
         if new_pid == "LIMIT_REACHED":
             return redirect(url_for("memberships"))
 
         if new_pid:
-            send_onesignal_notification(
-                title="New Proposal Submitted",
-                message=f"{name} just submitted a proposal to {client_email}.",
-                public_id=new_pid,
-                proposal_id=proposal["id"]
-            )
+            # ✅ Fetch the new proposal ID using the public_id
+            conn = get_db_connection()
+            new_proposal = conn.execute("SELECT id FROM proposals WHERE public_id = ?", (new_pid,)).fetchone()
+            conn.close()
+
+            if new_proposal:
+                send_onesignal_notification(
+                    title="New Proposal Submitted",
+                    message=f"{name} just submitted a proposal to {client_email}.",
+                    public_id=new_pid,
+                    proposal_id=new_proposal["id"]
+                )
+
             return redirect(url_for("lead_proposal", public_id=new_pid, submitted=1))
 
         flash("Error submitting proposal. Try again.", "error")
         return redirect(url_for("lead_proposal", public_id=public_id))
 
+    # ✅ Render the form or the thank-you screen
     submitted = request.args.get("submitted") == "1"
-
-    # ✅ Render page (either form or confirmation)
     resp = make_response(render_template(
         "lead_proposal.html",
         user=user,
