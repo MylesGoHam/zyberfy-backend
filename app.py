@@ -602,25 +602,6 @@ def billing_portal():
     )
     return redirect(portal.url, code=303)
 
-@app.route('/client_proposal')
-@login_required
-def client_proposal():
-    user_email = session.get('email')
-    if not user_email:
-        return redirect(url_for('login'))
-
-    proposal = db.execute(
-        'SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1',
-        (user_email,)
-    ).fetchone()
-
-    if proposal:
-        public_id = proposal['public_id']
-        public_link = f"https://zyberfy.com/client_proposal/{public_id}"
-        return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
-    else:
-        # Avoid template crash by rendering the page without proposal data
-        return render_template('client_proposal.html', public_id="", public_link="")
     
 @app.route("/dashboard")
 def dashboard():
@@ -1051,6 +1032,25 @@ def lead_proposal(public_id):
         resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
 
     return resp
+
+@app.route('/proposalpage')
+@login_required
+def proposalpage():
+    user_email = session.get('email')
+    if not user_email:
+        return redirect(url_for('login'))
+
+    proposal = db.execute(
+        'SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1',
+        (user_email,)
+    ).fetchone()
+
+    if proposal:
+        public_id = proposal['public_id']
+        public_link = f"https://zyberfy.com/proposal/{public_id}"
+        return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
+    else:
+        return render_template('client_proposal.html', public_id="", public_link="")
 
 
 @app.route("/proposal_view/<int:pid>", methods=["GET", "POST"])
