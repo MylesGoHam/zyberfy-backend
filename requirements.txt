@@ -10,3 +10,4 @@ qrcode
 pillow
 twilio
 python-slugify
+flask_login==0.6.3
