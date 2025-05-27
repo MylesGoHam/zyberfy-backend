@@ -600,38 +600,37 @@ def billing_portal():
     )
     return redirect(portal.url, code=303)
 
-@app.route("/client_proposal/<public_id>")
-def client_proposal(public_id):
-    import os, qrcode
-
+@app.route("/client_proposal")
+def client_proposal():
     if "email" not in session:
         return redirect(url_for("login"))
 
     conn = get_db_connection()
 
-    # 🔒 Make sure this public_id belongs to a proposal owned by this user
+    # 🔍 Get most recent proposal by this user
     proposal = conn.execute("""
-        SELECT * FROM proposals WHERE public_id = ? AND user_email = ?
-        ORDER BY id DESC
+        SELECT * FROM proposals
+        WHERE user_email = ?
+        ORDER BY created_at DESC
         LIMIT 1
-    """, (public_id, session["email"])).fetchone()
+    """, (session["email"],)).fetchone()
 
     if not proposal:
         conn.close()
-        return "Proposal not found or unauthorized.", 403
+        return "No proposals yet."
 
+    public_id = proposal["public_id"]
     user = conn.execute("SELECT * FROM users WHERE email = ?", (session["email"],)).fetchone()
     conn.close()
 
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
-    # ✅ Generate QR code if missing
+    # ✅ Generate QR if missing
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         img = qrcode.make(full_link)
         img.save(qr_path)
-        print(f"[QR] Created QR for client preview: {full_link}")
 
     return render_template(
         "client_proposal.html",
