@@ -995,18 +995,14 @@ def lead_proposal(public_id):
     return resp
 
 @app.route('/proposalpage')
-@login_required
 def proposalpage():
-    print("✅ Entered /proposalpage route")
-    user_email = session.get('email')
-    if not user_email:
-        print("⚠️ No user email found in session.")
-        return redirect(url_for('login'))
+    print("✅ Public access to /proposalpage")
 
-    proposal = db.execute(
-        'SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1',
-        (user_email,)
+    conn = get_db_connection()
+    proposal = conn.execute(
+        'SELECT * FROM proposals ORDER BY id DESC LIMIT 1'
     ).fetchone()
+    conn.close()
 
     if proposal:
         public_id = proposal['public_id']
@@ -1014,7 +1010,7 @@ def proposalpage():
         print("🔗 Found proposal:", public_id)
         return render_template('client_proposal.html', public_id=public_id, public_link=public_link)
     else:
-        print("🕳️ No proposals found for user.")
+        print("🕳️ No proposals found.")
         return render_template('client_proposal.html', public_id="", public_link="")
 
 
