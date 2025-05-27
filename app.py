@@ -1,10 +1,13 @@
 import os
+import csv
+import uuid
+import qrcode
 import logging
 import sqlite3
-import uuid
-import csv
-import qrcode
 import requests
+from datetime import datetime, timedelta
+from pathlib import Path
+from dotenv import load_dotenv
 
 from flask import (
     Flask, render_template, request,
@@ -15,156 +18,119 @@ from flask_login import (
     LoginManager, UserMixin,
     login_user, login_required, current_user
 )
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-from pathlib import Path
 
 import openai
 import stripe
 
-# Load environment variables
+# ─── Load Environment Variables ─────────────────────────────────────────────
 load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Create Flask app FIRST
+# ─── Initialize Flask ───────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 app.debug = True
+app.config["PROPAGATE_EXCEPTIONS"] = True
 
-# Setup LoginManager
+# ─── Initialize Flask-Login ─────────────────────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
-app.login_manager = login_manager  # ✅ Fixes the AttributeError
 login_manager.login_view = "login"
+app.login_manager = login_manager  # Required to avoid AttributeError
 
+# ─── Import Local Modules ───────────────────────────────────────────────────
+from models import (
+    get_db_connection,
+    create_users_table,
+    create_automation_settings_table,
+    create_subscriptions_table,
+    create_analytics_events_table,
+    create_proposals_table,
+    create_offers_table,
+    get_user_automation,
+    generate_slugified_id,
+    log_event
+)
+from email_utils import send_proposal_email
+from sms_utils import send_sms_alert
+from notifications import send_onesignal_notification
 
-def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
-    conn = get_db_connection()
-
-    # 🧠 Generate public_id from name/company/services
-    base_slug = name or company or services or "client"
-    public_id = generate_slugified_id(base_slug)
-
-    conn.execute("""
-        INSERT INTO proposals (
-            public_id, user_email, lead_name, lead_email, lead_company,
-            services, budget, timeline, message
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        public_id, user_email, name, email, company,
-        services, budget, timeline, message
-    ))
-    conn.commit()
-
-    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-    conn.close()
-    return pid
-
-from models import create_analytics_events_table
-
-import sqlite3
-
-conn = sqlite3.connect("zyberfy.db")
-conn.execute("""
-    CREATE TABLE IF NOT EXISTS analytics_events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_name TEXT NOT NULL,
-        user_email TEXT,
-        metadata TEXT,
-        timestamp TEXT
-    )
-""")
-conn.commit()
-conn.close()
-
+# ─── User Loader for Flask-Login ────────────────────────────────────────────
 @login_manager.user_loader
 def load_user(user_id):
-    from models import get_db_connection
     conn = get_db_connection()
     user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     conn.close()
     if user:
         class User(UserMixin):
-            def __init__(self, user_row):
-                self.id = user_row["id"]
-                self.email = user_row["email"]
+            def __init__(self, row): 
+                self.id = row["id"]
+                self.email = row["email"]
         return User(user)
     return None
 
+# ─── Proposal Handler (Basic Version) ───────────────────────────────────────
+def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
+    conn = get_db_connection()
+    public_id = generate_slugified_id(name or company or services or "client")
+    conn.execute("""
+        INSERT INTO proposals (
+            public_id, user_email, lead_name, lead_email, lead_company,
+            services, budget, timeline, message
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (public_id, user_email, name, email, company, services, budget, timeline, message))
+    conn.commit()
+    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.close()
+    return pid
 
-# --- QR Code Generator Function ---
+# ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
-    import os
-    import qrcode
-
     try:
-        # Ensure no double slashes in final URL
         full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
-
-        # Path to save QR image
-        output_path = os.path.join("static", "qr")
-        os.makedirs(output_path, exist_ok=True)
-        full_path = os.path.join(output_path, f"proposal_{public_id}.png")
-
-        # Generate and save QR
-        qr = qrcode.make(full_url)
-        qr.save(full_path)
-        print(f"[QR] ✅ Saved to {full_path} for {full_url}")
-
+        qr_dir = os.path.join("static", "qr")
+        os.makedirs(qr_dir, exist_ok=True)
+        qr_path = os.path.join(qr_dir, f"proposal_{public_id}.png")
+        qrcode.make(full_url).save(qr_path)
+        print(f"[QR] ✅ Saved to {qr_path}")
     except Exception as e:
-        print(f"[QR ERROR] ❌ Failed for {public_id}: {e}")
+        print(f"[QR ERROR] ❌ {e}")
 
-# ─── Logging ────────────────────────────────────────────────────────────────
+# ─── Setup Logging ──────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ─── Load config ────────────────────────────────────────────────────────────
-load_dotenv()
-stripe.api_key           = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key           = os.getenv("OPENAI_API_KEY")
-PERSONAL_EMAIL           = os.getenv("PERSONAL_EMAIL")
-ADMIN_EMAIL              = os.getenv("ADMIN_EMAIL")
-ADMIN_PASSWORD           = os.getenv("ADMIN_PASSWORD")
-SECRET_BUNDLE_PRICE_ID   = os.getenv("SECRET_BUNDLE_PRICE_ID")
-STRIPE_WEBHOOK_SECRET    = os.getenv("STRIPE_WEBHOOK_SECRET")
-
-# ─── Flask setup ────────────────────────────────────────────────────────────
-app = Flask(__name__, template_folder="templates")
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
-app.debug = True
-
-# ─── Database init + migration ───────────────────────────────────────────────
+# ─── Initialize Database Tables ─────────────────────────────────────────────
 create_users_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
 create_proposals_table()
+create_offers_table()
 
-# Add stripe_customer_id column if missing
-import os
-
-# Auto-delete old DB on Render if REDEPLOY_FORCE_DB is set
-if os.getenv("REDEPLOY_FORCE_DB") == "1" and os.path.exists("zyberfy.db"):
-    os.remove("zyberfy.db")
-    print("✅ Deleted stale zyberfy.db for fresh deployment.")
-
-conn = get_db_connection()
+# ─── Optional: Add stripe_customer_id if missing ────────────────────────────
 try:
-    conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT;")
+    conn = get_db_connection()
+    conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
     conn.commit()
 except sqlite3.OperationalError:
     pass
 finally:
     conn.close()
 
-# Seed admin user if credentials are set
-if ADMIN_EMAIL and ADMIN_PASSWORD:
+# ─── Optional: Seed Admin User ───────────────────────────────────────────────
+if os.getenv("ADMIN_EMAIL") and os.getenv("ADMIN_PASSWORD"):
     conn = get_db_connection()
-    conn.execute(
-        "INSERT OR IGNORE INTO users (email, password, first_name, plan_status) "
-        "VALUES (?, ?, ?, ?)",
-        (ADMIN_EMAIL, ADMIN_PASSWORD, "Admin", "pro")
-    )
+    conn.execute("""
+        INSERT OR IGNORE INTO users (email, password, first_name, plan_status)
+        VALUES (?, ?, ?, ?)
+    """, (
+        os.getenv("ADMIN_EMAIL"),
+        os.getenv("ADMIN_PASSWORD"),
+        "Admin",
+        "pro"
+    ))
     conn.commit()
     conn.close()
 
