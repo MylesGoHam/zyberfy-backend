@@ -171,13 +171,11 @@ def restrict_routes():
         "/", 
         "/login", 
         "/signup", 
-        "/test_proposal", 
         "/proposal", 
         "/proposal/", 
         "/proposal/public", 
         "/proposal_view", 
         "/landing",
-        "/test-stripe-signup"
     }
 
     print(f"[DEBUG] PUBLIC_PATHS: {PUBLIC_PATHS}")
@@ -944,33 +942,21 @@ def ping():
     
 @app.route("/proposalpage")
 def proposalpage():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
     conn = get_db_connection()
 
-    # Get the most recent proposal in the system
+    # ✅ FIX: Only fetch most recent proposal for this client
     proposal = conn.execute(
-        "SELECT * FROM proposals ORDER BY id DESC LIMIT 1"
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        (session["email"],)
     ).fetchone()
 
-    # If no proposal exists, auto-generate one
-    if not proposal:
-        import random, string
-
-        # ✅ Generate 6-character ID with no slug
-        public_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-
-        # Save to database
-        conn.execute(
-            "INSERT INTO proposals (user_email, public_id, content, created_at) VALUES (?, ?, ?, datetime('now'))",
-            ("demo@zyberfy.com", public_id, "Auto-generated proposal preview")
-        )
-        conn.commit()
-
-        # Re-fetch the newly created proposal
-        proposal = conn.execute(
-            "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
-        ).fetchone()
-
     conn.close()
+
+    if not proposal:
+        return render_template("client_proposal.html", public_id=None, public_link=None)
 
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
@@ -1200,125 +1186,15 @@ def subscribe():
     flash("Subscription successful! You now have full access.")
     return redirect(url_for("dashboard"))
 
+
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
 
-@app.route("/test-log")
-def test_log_route():
-    import os
-    from models import log_event, get_db_connection
 
-    db_path = os.path.abspath("zyberfy.db")
-    print(f"[DEBUG] Writing to DB path: {db_path}")
-
-    try:
-        log_event("pageview", user_email="client@test.com", metadata={"public_id": "test-client-001", "source": "test_log"})
-        return f"Log success — DB: {db_path}"
-    except Exception as e:
-        return f"Log failed: {e}"
-
-
-@app.route("/test-stripe-signup")
-def test_stripe_signup():
-    email = "testsignup@example.com"
-    first_name = "Test"
-    plan_status = "starter"
-    price_id = "price_1RERprKpgIhBPea4U7zezbWd"
-
-    conn = get_db_connection()
-
-    # Insert test user if not exists
-    conn.execute("""
-        INSERT OR IGNORE INTO users (email, password, first_name, plan_status)
-        VALUES (?, ?, ?, ?)
-    """, (email, "test1234", first_name, plan_status))
-
-    # Insert dummy subscription
-    conn.execute("""
-        INSERT OR IGNORE INTO subscriptions (email, plan, status)
-        VALUES (?, ?, ?)
-    """, (email, "Starter", "active"))
-
-    conn.commit()
-    conn.close()
-
-    # Set session
-    session["email"] = email
-
-    return redirect(url_for("dashboard"))
-
-
-@app.route("/test-success")
-def test_success():
-    session_id = request.args.get("session_id")
-    if not session_id:
-        return "Missing session ID", 400
-
-    # Fetch details from Stripe (optional)
-    session_data = stripe.checkout.Session.retrieve(session_id)
-
-    # Simulate user creation
-    conn = get_db_connection()
-    conn.execute("""
-        INSERT OR IGNORE INTO users (email, password, first_name, plan_status)
-        VALUES (?, ?, ?, ?)
-    """, (session_data.customer_email, "dummy123", "Test User", "elite"))
-    conn.commit()
-    conn.close()
-
-    session["email"] = session_data.customer_email
-
-    return "✅ Test user created and logged in. You can now visit the dashboard."
-
-@app.route("/test_proposal", methods=["GET"])
-def test_proposal():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
-    user_email = session["email"]
-    settings = get_user_automation(user_email)
-
-    if not settings:
-        flash("No automation settings found.", "error")
-        return redirect(url_for("automation"))
-
-    # Pull user data safely from settings Row object
-    tone = settings["tone"] or "friendly"
-    length = settings["length"] or "concise"
-    first_name = settings["first_name"] or "Your Name"
-    position = settings["position"] or ""
-    company_name = settings["company_name"] or "Your Company"
-    website = settings["website"] or "example.com"
-    phone = settings["phone"] or "123-456-7890"
-    reply_to = settings["reply_to"] or "contact@example.com"
-
-    # Create prompt
-    prompt = (
-        f"Write a {length} business proposal in a {tone} tone.\n"
-        f"The sender is {first_name} ({position}) from {company_name}.\n"
-        f"Their website is {website}, and they can be reached at {reply_to} or {phone}.\n"
-        f"Pretend a lead has just inquired and you're writing the first follow-up."
-    )
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.7
-    )
-
-    preview = response["choices"][0]["message"]["content"].strip()
-
-    # Render back to the same automation page with preview
-    return render_template("automation.html", 
-        tone=tone,
-        length=length,
-        full_auto=settings["full_auto"],
-        accept_offers=settings["accept_offers"],
-        reject_offers=settings["reject_offers"],
-        preview=preview
-    )
+@app.route("/thank_you")
+def thank_you():
+    return render_template("thank_you.html")
 
 
 @app.route("/track_event", methods=["POST"])
@@ -1349,6 +1225,7 @@ def track_event():
     except Exception as e:
         print("❌ Track event error:", e)
         return jsonify({"error": "Tracking failed"}), 500
+    
     
     
 @app.route('/webhook', methods=['POST'])
