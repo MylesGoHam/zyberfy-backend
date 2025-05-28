@@ -4,12 +4,15 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
+# Load API key
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-FROM_EMAIL = os.getenv("SENDER_EMAIL", "noreply@zyberfy.com")  # ✅ updated here
+FROM_EMAIL = "hello@zyberfy.com"  # ✅ Hardcoded sender
 
 def send_proposal_email(to_email, subject, content, cc_client=False, client_email=None):
+    # Format plain text to HTML
     formatted_html = content.replace('\n', '<br>')
 
     html_body = f"""
@@ -36,8 +39,8 @@ def send_proposal_email(to_email, subject, content, cc_client=False, client_emai
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
-        print(f"✅ Email sent to {to_email} | Status: {response.status_code}")
+        print(f"[SENDGRID] Email sent to {to_email} | Status: {response.status_code}")
         return response.status_code
     except Exception as e:
-        print(f"❌ Error sending email: {e}")
+        print(f"[SENDGRID] Failed to send email: {e}")
         return None
