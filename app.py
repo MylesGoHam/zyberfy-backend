@@ -1208,18 +1208,30 @@ def thank_you(public_id):
         return "Proposal not found", 404
 
     user_email = proposal["user_email"]
+    lead_email = proposal["lead_email"]
 
-    # Get automation settings
-    settings = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (user_email,)
-    ).fetchone()
+    # Check if proposal_text already exists
+    if not proposal["proposal_text"]:
+        from email_assistant import handle_new_proposal
+
+        new_id = handle_new_proposal(
+            name=proposal["lead_name"],
+            email=proposal["lead_email"],
+            company=proposal["lead_company"],
+            services=proposal["services"],
+            budget=proposal["budget"],
+            timeline=proposal["timeline"],
+            message=proposal["message"],
+            client_email=user_email
+        )
+
+        # Optional: Log it or verify it matches
+        print(f"[Automation] Proposal regenerated with ID: {new_id}")
 
     conn.close()
 
-    if not settings:
-        return "Automation settings not found", 404
-
-    return render_template("thank_you.html", company=settings["company_name"])
+    # Render thank you page
+    return render_template("thank_you.html", public_id=public_id)
 
 
 @app.route("/track_event", methods=["POST"])
