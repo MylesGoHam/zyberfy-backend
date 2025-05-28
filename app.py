@@ -1061,20 +1061,20 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # ✅ Log pageview (real lead visited)
-    from datetime import datetime
-    conn.execute(
-        "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
-        ("pageview", public_id, datetime.utcnow())
-    )
-    conn.commit()
-
     # ✅ Fetch proposal
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
 
     if not proposal:
         conn.close()
         return "Proposal not found", 404
+
+    # ✅ Now log pageview (only if the proposal exists)
+    from datetime import datetime
+    conn.execute(
+        "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
+        ("pageview", public_id, datetime.utcnow())
+    )
+    conn.commit()
 
     if request.method == "POST":
         # Extract fields from form
@@ -1089,8 +1089,6 @@ def public_proposal(public_id):
             ("proposal_submitted", public_id, datetime.utcnow())
         )
         conn.commit()
-
-        # You can also trigger OpenAI + email send here
 
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you"))
