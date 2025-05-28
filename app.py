@@ -732,6 +732,13 @@ def export_analytics():
         download_name="zyberfy_analytics.csv"
     )
 
+# 🔓 Dev override for test user
+@app.route("/force-login")
+def force_login():
+    session["email"] = "tester1@example.com"
+    return redirect("/dashboard")
+
+
 @app.route("/generate_qr")
 def generate_qr():
     if "email" not in session:
