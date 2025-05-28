@@ -82,41 +82,34 @@
   </div>
 
   <!-- Proposal Table -->
-  <div class="mt-12">
-    <h3 class="text-xl font-semibold mb-4">Your Proposals</h3>
-    <div class="overflow-x-auto rounded-lg shadow">
-      <table class="min-w-full bg-white border border-gray-200 mb-12">
-        <thead class="bg-gray-100 text-sm text-gray-600">
-          <tr>
-            <th class="px-6 py-3 text-left font-medium">Lead</th>
-            <th class="px-6 py-3 text-left font-medium">Email</th>
-            <th class="px-6 py-3 text-left font-medium">Status</th>
-            <th class="px-6 py-3 text-left font-medium">Date</th>
-          </tr>
-        </thead>
-        <tbody class="text-sm divide-y divide-gray-200">
-          {% for proposal in proposals %}
-          <tr 
-            onclick="window.location.href='{{ url_for('proposalpage') }}'"
-            class="hover:bg-gray-100 cursor-pointer"
-          >
-            <td class="px-4 py-2">{{ proposal.lead_name }}</td>
-            <td class="px-4 py-2">{{ proposal.lead_email }}</td>
-            <td class="px-4 py-2">
-              <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold 
-                {% if proposal.status == 'approved' %}bg-green-100 text-green-700
-                {% elif proposal.status == 'declined' %}bg-red-100 text-red-700
-                {% else %}bg-gray-100 text-gray-700{% endif %}">
-                {{ proposal.status or "pending" }}
-              </span>
+<div class="proposals-section" style="max-width: 1000px; margin: auto; padding: 0 1rem;">
+  <h2 class="text-xl font-semibold mb-4">Your Proposals</h2>
+  
+  <div style="overflow-x: auto;">
+    <table class="min-w-full bg-white border rounded-md shadow-sm">
+      <thead>
+        <tr class="bg-gray-100 text-left text-sm font-semibold">
+          <th class="p-3">Lead</th>
+          <th class="p-3">Email</th>
+          <th class="p-3">Status</th>
+          <th class="p-3">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in proposals %}
+          <tr class="border-t text-sm">
+            <td class="p-3">{{ row['lead_name'] }}</td>
+            <td class="p-3">{{ row['lead_email'] }}</td>
+            <td class="p-3">
+              <span class="inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full">pending</span>
             </td>
-            <td class="px-4 py-2">{{ proposal.timestamp or "—" }}</td>
+            <td class="p-3">{{ row['created_at'] }}</td>
           </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+</div>
 
   <!-- Mini Chart -->
   <div>
