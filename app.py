@@ -1061,19 +1061,17 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # Fetch proposal
+    # Fetch the proposal
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
-
     if not proposal:
         conn.close()
         return "Proposal not found", 404
 
-    # ✅ Log pageview with correct columns
     from datetime import datetime
     import json
 
-    print(f"📊 Logged pageview for: {public_id}")  # Confirm this shows up in logs
-
+    # ✅ Log lead pageview correctly
+    print(f"📊 Logged pageview for: {public_id}")
     conn.execute(
         "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
         (
@@ -1107,9 +1105,9 @@ def public_proposal(public_id):
 
     conn.close()
 
+    # Create QR if needed
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
-
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         import qrcode
