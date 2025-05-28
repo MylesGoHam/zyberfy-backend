@@ -1028,7 +1028,7 @@ def public_proposal(public_id):
         import qrcode
         qrcode.make(full_link).save(qr_path)
 
-    return render_template("public_proposal.html", public_id=public_id, public_link=full_link)
+    return render_template("lead_proposal.html", public_id=public_id, public_link=full_link)
 
 
 
