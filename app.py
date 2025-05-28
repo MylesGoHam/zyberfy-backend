@@ -1008,14 +1008,28 @@ def public_proposal(public_id):
         email = request.form.get("email")
         company = request.form.get("company")
 
-        # Optional: store lead info (not implemented here)
+        # Log submission
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("proposal_submitted", public_id, client_email, datetime.utcnow())
         )
         conn.commit()
-        conn.close()
 
+        # 🔁 Call automation
+        from email_assistant import handle_new_proposal
+        new_public_id = handle_new_proposal(
+            name=name,
+            email=email,
+            company=company,
+            services=proposal["services"],
+            budget=proposal["budget"],
+            timeline=proposal["timeline"],
+            message=proposal["message"],
+            client_email=client_email
+        )
+        print(f"[AUTOMATION] New proposal generated: {new_public_id}")
+
+        conn.close()
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you", public_id=public_id))
 
@@ -1205,35 +1219,11 @@ def thank_you(public_id):
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
     ).fetchone()
-
-    if not proposal:
-        conn.close()
-        return "Proposal not found", 404
-
-    user_email = proposal["user_email"]
-    lead_email = proposal["lead_email"]
-
-    # Check if proposal_text already exists
-    if not proposal["proposal_text"]:
-        from email_assistant import handle_new_proposal
-
-        new_id = handle_new_proposal(
-            name=proposal["lead_name"],
-            email=proposal["lead_email"],
-            company=proposal["lead_company"],
-            services=proposal["services"],
-            budget=proposal["budget"],
-            timeline=proposal["timeline"],
-            message=proposal["message"],
-            client_email=user_email
-        )
-
-        # Optional: Log it or verify it matches
-        print(f"[Automation] Proposal regenerated with ID: {new_id}")
-
     conn.close()
 
-    # Render thank you page
+    if not proposal:
+        return "Proposal not found", 404
+
     return render_template("thank_you.html", public_id=public_id)
 
 
