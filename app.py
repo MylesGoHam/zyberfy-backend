@@ -1061,16 +1061,19 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # ✅ Fetch proposal
+    # Fetch proposal
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
 
     if not proposal:
         conn.close()
         return "Proposal not found", 404
 
-    # ✅ Log pageview (AFTER confirming the proposal exists)
+    # ✅ Log pageview with correct columns
     from datetime import datetime
-    print(f"📊 Logged pageview for: {public_id}")  # Will show up in Render logs
+    import json
+
+    print(f"📊 Logged pageview for: {public_id}")  # Confirm this shows up in logs
+
     conn.execute(
         "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
         (
@@ -1083,19 +1086,17 @@ def public_proposal(public_id):
     conn.commit()
 
     if request.method == "POST":
-        # Extract fields from form
+        # Log submission
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
-        # ... any other fields
 
-        # ✅ Log submission
         conn.execute(
             "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
             (
                 "proposal_submitted",
                 proposal["user_email"],
-                json.dumps({"public_id": public_id, "submitted_by": email}),
+                json.dumps({"submitted_by": email, "company": company, "public_id": public_id}),
                 datetime.utcnow()
             )
         )
@@ -1481,4 +1482,3 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0",
             port=int(os.getenv("PORT", 5001)),
             debug=True)
-
