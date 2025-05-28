@@ -1207,52 +1207,15 @@ def thank_you(public_id):
         conn.close()
         return "Proposal not found", 404
 
-    user_email = proposal["user_email"]
-    lead_email = proposal["lead_email"]
-
-    # Get automation settings
     settings = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (user_email,)
+        "SELECT * FROM automation_settings WHERE email = ?", (proposal["user_email"],)
     ).fetchone()
 
+    conn.close()
+
     if not settings:
-        conn.close()
         return "Automation settings not found", 404
 
-    # Generate proposal text
-    from email_assistant import generate_proposal_text, send_proposal_email
-
-    proposal_text = generate_proposal_text(
-        name=proposal["lead_name"],
-        company=proposal["lead_company"],
-        services=proposal["services"],
-        budget=proposal["budget"],
-        timeline=proposal["timeline"],
-        message=proposal["message"],
-        automation=settings
-    )
-
-    # Update proposal with generated text
-    conn.execute(
-        "UPDATE proposals SET proposal_text = ? WHERE public_id = ?",
-        (proposal_text, public_id)
-    )
-    conn.commit()
-
-    # Send proposal email
-    send_proposal_email(
-        to_email=lead_email,
-        from_email=settings["reply_to"],
-        subject="Your Proposal from " + (settings["company_name"] or "Our Team"),
-        proposal_text=proposal_text
-    )
-
-    # Log analytics
-    from models import log_event
-    log_event("generated_proposal", user_email=user_email, metadata={"public_id": public_id})
-    log_event("sent_proposal", user_email=user_email, metadata={"public_id": public_id})
-
-    conn.close()
     return render_template("thank_you.html", company=settings["company_name"])
 
 
