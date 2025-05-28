@@ -1068,12 +1068,11 @@ def public_proposal(public_id):
         conn.close()
         return "Proposal not found", 404
 
+    # ✅ Now log pageview (only if the proposal exists)
     from datetime import datetime
-
-    # ✅ Print and log pageview after confirming proposal exists
-    print(f"📊 Logged pageview for: {public_id}")
     conn.execute(
         "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
+        print(f"📊 Logged pageview for: {public_id}")
         ("pageview", public_id, datetime.utcnow())
     )
     conn.commit()
@@ -1107,6 +1106,78 @@ def public_proposal(public_id):
         img.save(qr_path)
 
     return render_template("public_proposal.html", public_id=public_id, public_link=full_link)
+
+
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if "email" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    if request.method == "POST":
+        # ✅ Save automation/business settings
+        conn.execute("""
+            INSERT INTO automation_settings (
+                email, first_name, last_name, company_name, position,
+                website, phone, reply_to, timezone
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                first_name = excluded.first_name,
+                last_name = excluded.last_name,
+                company_name = excluded.company_name,
+                position = excluded.position,
+                website = excluded.website,
+                phone = excluded.phone,
+                reply_to = excluded.reply_to,
+                timezone = excluded.timezone
+        """, (
+            session["email"],
+            request.form.get("first_name", ""),
+            request.form.get("last_name", ""),
+            request.form.get("company_name", ""),
+            request.form.get("position", ""),
+            request.form.get("website", ""),
+            request.form.get("phone", ""),
+            request.form.get("reply_to", ""),
+            request.form.get("timezone", "")
+        ))
+
+        # ✅ Save notification preference
+        notifications_enabled = request.form.get("notifications_enabled") == "on"
+        conn.execute("UPDATE users SET notifications_enabled = ? WHERE email = ?", (int(notifications_enabled), session["email"]))
+
+        # ✅ Handle password change
+        new_pw = request.form.get("new_password")
+        confirm_pw = request.form.get("confirm_password")
+        if new_pw and new_pw == confirm_pw:
+            conn.execute("UPDATE users SET password = ? WHERE email = ?", (new_pw, session["email"]))
+
+        conn.commit()
+        conn.close()
+
+        flash("Settings updated successfully ✅", "info")
+        return redirect(url_for("settings"))
+
+    # ✅ Load automation settings
+    settings = conn.execute("""
+        SELECT first_name, last_name, company_name, position,
+               website, phone, reply_to, timezone
+        FROM automation_settings WHERE email = ?
+    """, (session["email"],)).fetchone()
+
+    settings = dict(settings) if settings else {}
+
+    # ✅ Load notification preference from users table
+    user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
+    if user:
+        settings["notifications_enabled"] = user["notifications_enabled"]
+    else:
+        settings["notifications_enabled"] = 1  # Default to ON if not set
+
+    conn.close()
+    return render_template("settings.html", settings=settings)
 
 
 
