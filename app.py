@@ -259,7 +259,7 @@ def analytics():
             event_name, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE user_email = ? AND DATE(timestamp) >= ? 
+        WHERE email = ? AND DATE(timestamp) >= ? 
         GROUP BY event_name
     """, (user_email, since)).fetchall()
 
@@ -276,7 +276,7 @@ def analytics():
             DATE(timestamp) as day, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE user_email = ? AND DATE(timestamp) >= ? 
+        WHERE email = ? AND DATE(timestamp) >= ? 
         GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
@@ -304,7 +304,7 @@ def analytics():
     ]
 
     recent_events = conn.execute(
-        "SELECT event_name, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
+        "SELECT event_name, timestamp FROM analytics_events WHERE email = ? ORDER BY timestamp DESC LIMIT 50",
         (user_email,)
     ).fetchall()
 
@@ -349,7 +349,7 @@ def analytics_data():
     rows = conn.execute("""
         SELECT event_name, DATE(timestamp) as day, COUNT(*) as cnt
         FROM analytics_events
-        WHERE user_email = ? AND DATE(timestamp) >= ?
+        WHERE email = ? AND DATE(timestamp) >= ?
         GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
@@ -367,7 +367,7 @@ def analytics_data():
     total_stats = conn.execute("""
         SELECT event_name, COUNT(*) AS cnt
         FROM analytics_events
-        WHERE user_email = ? AND DATE(timestamp) >= ?
+        WHERE email = ? AND DATE(timestamp) >= ?
         GROUP BY event_name
     """, (user_email, since)).fetchall()
 
@@ -382,7 +382,7 @@ def analytics_data():
         """
         SELECT event_name, timestamp 
         FROM analytics_events 
-        WHERE user_email = ? 
+        WHERE email = ? 
         ORDER BY datetime(timestamp) DESC 
         LIMIT 50
         """,
@@ -624,14 +624,14 @@ def dashboard():
         ).fetchone()
 
         proposal_count_row = conn.execute(
-            "SELECT COUNT(*) AS total FROM proposals WHERE user_email = ?",
+            "SELECT COUNT(*) AS total FROM proposals WHERE email = ?",
             (session["email"],)
         ).fetchone()
         proposal_count = proposal_count_row["total"] if proposal_count_row else 0
 
         # ✅ Fetch proposals
         proposals = conn.execute(
-            "SELECT * FROM proposals WHERE user_email = ? ORDER BY timestamp DESC",
+            "SELECT * FROM proposals WHERE email = ? ORDER BY timestamp DESC",
             (session["email"],)
         ).fetchall()
 
@@ -953,7 +953,7 @@ def proposalpage():
 
     # ✅ FIX: Only fetch most recent proposal for this client
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM proposals WHERE email = ? ORDER BY id DESC LIMIT 1",
         (session["email"],)
     ).fetchone()
 
@@ -1194,9 +1194,66 @@ def terms():
     return render_template("terms.html")
 
 
-@app.route("/thank_you")
-def thank_you():
-    return render_template("thank_you.html")
+@app.route("/thankyou/<public_id>")
+def thank_you(public_id):
+    conn = get_db_connection()
+
+    # Fetch proposal
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+    ).fetchone()
+
+    if not proposal:
+        conn.close()
+        return "Proposal not found", 404
+
+    user_email = proposal["user_email"]
+    lead_email = proposal["lead_email"]
+
+    # Get automation settings
+    settings = conn.execute(
+        "SELECT * FROM automation_settings WHERE email = ?", (user_email,)
+    ).fetchone()
+
+    if not settings:
+        conn.close()
+        return "Automation settings not found", 404
+
+    # Generate proposal text
+    from email_assistant import generate_proposal_text, send_proposal_email
+
+    proposal_text = generate_proposal_text(
+        name=proposal["lead_name"],
+        company=proposal["lead_company"],
+        services=proposal["services"],
+        budget=proposal["budget"],
+        timeline=proposal["timeline"],
+        message=proposal["message"],
+        automation=settings
+    )
+
+    # Update proposal with generated text
+    conn.execute(
+        "UPDATE proposals SET proposal_text = ? WHERE public_id = ?",
+        (proposal_text, public_id)
+    )
+    conn.commit()
+
+    # Send proposal email
+    send_proposal_email(
+        to_email=lead_email,
+        from_email=settings["reply_to"],
+        subject="Your Proposal from " + (settings["company_name"] or "Our Team"),
+        proposal_text=proposal_text
+    )
+
+    # Log analytics
+    from models import log_event
+    log_event("generated_proposal", user_email=user_email, metadata={"public_id": public_id})
+    log_event("sent_proposal", user_email=user_email, metadata={"public_id": public_id})
+
+    conn.close()
+    return render_template("thank_you.html", company=settings["company_name"])
 
 
 @app.route("/track_event", methods=["POST"])
