@@ -1207,8 +1207,11 @@ def thank_you(public_id):
         conn.close()
         return "Proposal not found", 404
 
+    user_email = proposal["user_email"]
+
+    # Get automation settings
     settings = conn.execute(
-        "SELECT * FROM automation_settings WHERE email = ?", (proposal["user_email"],)
+        "SELECT * FROM automation_settings WHERE email = ?", (user_email,)
     ).fetchone()
 
     conn.close()
