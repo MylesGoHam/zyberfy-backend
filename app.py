@@ -119,6 +119,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     conn.close()
     return public_id
 
+
 # ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
     full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
