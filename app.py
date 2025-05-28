@@ -1068,11 +1068,11 @@ def public_proposal(public_id):
         conn.close()
         return "Proposal not found", 404
 
-    # ✅ Now log pageview (only if the proposal exists)
+    # ✅ Log pageview (AFTER confirming the proposal exists)
     from datetime import datetime
+    print(f"📊 Logged pageview for: {public_id}")  # Will show up in Render logs
     conn.execute(
         "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
-        print(f"📊 Logged pageview for: {public_id}")
         ("pageview", public_id, datetime.utcnow())
     )
     conn.commit()
