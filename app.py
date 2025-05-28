@@ -9,12 +9,14 @@ import qrcode
 import secrets
 import random
 import string
-from models import create_proposals_table
 from pathlib import Path
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from pathlib import Path
 
+from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
+from models import create_proposals_table
 # ─── Flask & Extensions ──────────────────────────────────────────────────────
 from flask import (
     Flask, render_template, request,
