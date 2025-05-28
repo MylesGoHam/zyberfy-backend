@@ -259,7 +259,7 @@ def analytics():
             event_name, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE email = ? AND DATE(timestamp) >= ? 
+        WHERE user_email = ? AND DATE(timestamp) >= ? 
         GROUP BY event_name
     """, (user_email, since)).fetchall()
 
@@ -276,7 +276,7 @@ def analytics():
             DATE(timestamp) as day, 
             COUNT(*) AS cnt 
         FROM analytics_events 
-        WHERE email = ? AND DATE(timestamp) >= ? 
+        WHERE user_email = ? AND DATE(timestamp) >= ? 
         GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
@@ -304,7 +304,7 @@ def analytics():
     ]
 
     recent_events = conn.execute(
-        "SELECT event_name, timestamp FROM analytics_events WHERE email = ? ORDER BY timestamp DESC LIMIT 50",
+        "SELECT event_name, timestamp FROM analytics_events WHERE user_email = ? ORDER BY timestamp DESC LIMIT 50",
         (user_email,)
     ).fetchall()
 
@@ -349,7 +349,7 @@ def analytics_data():
     rows = conn.execute("""
         SELECT event_name, DATE(timestamp) as day, COUNT(*) as cnt
         FROM analytics_events
-        WHERE email = ? AND DATE(timestamp) >= ?
+        WHERE user_email = ? AND DATE(timestamp) >= ?
         GROUP BY event_name, day
     """, (user_email, since)).fetchall()
 
@@ -367,7 +367,7 @@ def analytics_data():
     total_stats = conn.execute("""
         SELECT event_name, COUNT(*) AS cnt
         FROM analytics_events
-        WHERE email = ? AND DATE(timestamp) >= ?
+        WHERE user_email = ? AND DATE(timestamp) >= ?
         GROUP BY event_name
     """, (user_email, since)).fetchall()
 
@@ -382,7 +382,7 @@ def analytics_data():
         """
         SELECT event_name, timestamp 
         FROM analytics_events 
-        WHERE email = ? 
+        WHERE user_email = ? 
         ORDER BY datetime(timestamp) DESC 
         LIMIT 50
         """,
@@ -953,7 +953,7 @@ def proposalpage():
 
     # ✅ FIX: Only fetch most recent proposal for this client
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE email = ? ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
         (session["email"],)
     ).fetchone()
 
