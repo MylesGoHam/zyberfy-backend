@@ -631,7 +631,7 @@ def dashboard():
 
         # ✅ Fetch proposals
         proposals = conn.execute(
-            "SELECT * FROM proposals WHERE email = ? ORDER BY timestamp DESC",
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY timestamp DESC",
             (session["email"],)
         ).fetchall()
 
