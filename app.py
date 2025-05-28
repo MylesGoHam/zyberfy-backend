@@ -1014,7 +1014,7 @@ def public_proposal(public_id):
         conn.close()
 
         flash("Your proposal was submitted successfully!", "success")
-        return redirect(url_for("thank_you"))
+        return redirect(url_for("thank_you", public_id=public_id))
 
     # ✅ Generate QR code if needed
     full_link = f"https://zyberfy.com/proposal/{public_id}"
