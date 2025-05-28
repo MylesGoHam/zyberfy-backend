@@ -624,7 +624,7 @@ def dashboard():
         ).fetchone()
 
         proposal_count_row = conn.execute(
-            "SELECT COUNT(*) AS total FROM proposals WHERE email = ?",
+            "SELECT COUNT(*) AS total FROM proposals WHERE user_email = ?",
             (session["email"],)
         ).fetchone()
         proposal_count = proposal_count_row["total"] if proposal_count_row else 0
