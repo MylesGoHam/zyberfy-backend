@@ -984,41 +984,39 @@ def public_proposal(public_id):
         conn.close()
         return "Proposal not found", 404
 
-    client_email = proposal["user_email"]  # ✅ associate analytics with client
+    client_email = proposal["user_email"]
 
-    # ✅ Log pageview using the proposal owner’s email
-    from datetime import datetime
-    print(f"📊 Logging pageview for: {public_id} ({client_email})")
-    conn.execute(
-        "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
-        ("pageview", public_id, client_email, datetime.utcnow())
-    )
-    conn.commit()
+    # ✅ Log pageview only for GET
+    if request.method == "GET":
+        print(f"📊 Logging pageview for: {public_id} ({client_email})")
+        conn.execute(
+            "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
+            ("pageview", public_id, client_email, datetime.utcnow())
+        )
+        conn.commit()
 
+    # ✅ Handle POST form submission
     if request.method == "POST":
-        # Handle lead form submission
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
-        # You can store these in the database later if needed
 
-        # ✅ Log submission as an event
+        # Optional: store lead info (not implemented here)
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("proposal_submitted", public_id, client_email, datetime.utcnow())
         )
         conn.commit()
+        conn.close()
 
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you"))
 
-    # ✅ Generate QR if needed
+    # ✅ Generate QR code if needed
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
-
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        import qrcode
         img = qrcode.make(full_link)
         img.save(qr_path)
 
