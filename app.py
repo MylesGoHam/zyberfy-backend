@@ -1072,8 +1072,13 @@ def public_proposal(public_id):
     from datetime import datetime
     print(f"📊 Logged pageview for: {public_id}")  # Will show up in Render logs
     conn.execute(
-        "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
-        ("pageview", public_id, datetime.utcnow())
+        "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
+        (
+            "pageview",
+            proposal["user_email"],
+            json.dumps({"public_id": public_id, "source": "public_proposal"}),
+            datetime.utcnow()
+        )
     )
     conn.commit()
 
@@ -1086,8 +1091,13 @@ def public_proposal(public_id):
 
         # ✅ Log submission
         conn.execute(
-            "INSERT INTO analytics_events (event_type, public_id, timestamp) VALUES (?, ?, ?)",
-            ("proposal_submitted", public_id, datetime.utcnow())
+            "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
+            (
+                "proposal_submitted",
+                proposal["user_email"],
+                json.dumps({"public_id": public_id, "submitted_by": email}),
+                datetime.utcnow()
+            )
         )
         conn.commit()
 
