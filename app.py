@@ -1007,8 +1007,9 @@ def public_proposal(public_id):
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
+        # You can store these in the database later if needed
 
-        # ✅ Log submission
+        # ✅ Log submission as an event
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("proposal_submitted", public_id, client_email, datetime.utcnow())
@@ -1018,9 +1019,7 @@ def public_proposal(public_id):
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you"))
 
-    conn.close()
-
-    # Generate QR if needed
+    # ✅ Generate QR if needed
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
 
@@ -1030,6 +1029,7 @@ def public_proposal(public_id):
         img = qrcode.make(full_link)
         img.save(qr_path)
 
+    conn.close()
     return render_template("lead_proposal.html", public_id=public_id, public_link=full_link)
 
 
