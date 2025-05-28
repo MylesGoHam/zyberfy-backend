@@ -934,86 +934,7 @@ def onboarding():
 def ping():
     return "pong"
 
-
-@app.route("/proposal/<public_id>", methods=["GET", "POST"])
-def lead_proposal(public_id):
-    from flask import make_response
-
-    conn = get_db_connection()
-
-    # 🔍 Fetch the original proposal
-    proposal = conn.execute(
-        "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
-    ).fetchone()
-
-    if not proposal:
-        conn.close()
-        return "Invalid or expired proposal link.", 404
-
-    client_email = proposal["user_email"]
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (client_email,)).fetchone()
-    conn.close()
-
-    viewed_key = f"viewed_{public_id}"
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
-
-    # ✅ Auto-generate QR code if missing
-    if not os.path.exists(qr_path):
-        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-
-    # ✅ Handle form submission
-    if request.method == "POST":
-        name     = request.form.get("name")
-        email    = request.form.get("email")
-        company  = request.form.get("company")
-        services = request.form.get("services")
-        budget   = request.form.get("budget")
-        timeline = request.form.get("timeline")
-        message  = request.form.get("message")
-
-        new_pid = handle_new_proposal(name, email, company, services, budget, timeline, message, client_email)
-
-        if new_pid == "LIMIT_REACHED":
-            return redirect(url_for("memberships"))
-
-        if new_pid:
-            conn = get_db_connection()
-            new_row = conn.execute("SELECT id FROM proposals WHERE public_id = ?", (new_pid,)).fetchone()
-            conn.close()
-
-            if new_row:
-                send_onesignal_notification(
-                    title="New Proposal Submitted",
-                    message=f"{name} just submitted a proposal to {client_email}.",
-                    public_id=new_pid,
-                    proposal_id=new_row["id"]
-                )
-
-            return redirect(url_for("lead_proposal", public_id=new_pid, submitted=1))
-
-        flash("Error submitting proposal. Try again.", "error")
-        return redirect(url_for("lead_proposal", public_id=public_id))
-
-    # ✅ Render proposal submission form
-    submitted = request.args.get("submitted") == "1"
-    resp = make_response(render_template(
-        "lead_proposal.html",
-        user=user,
-        proposal=proposal,
-        submitted=submitted,
-        public_id=public_id,
-        public_link=full_link,
-        show_qr=True
-    ))
-
-    if not request.cookies.get(viewed_key):
-        resp.set_cookie(viewed_key, "1", max_age=86400 * 30)
-
-    return resp
-
+    
 @app.route("/proposalpage")
 def proposalpage():
     conn = get_db_connection()
@@ -1061,42 +982,35 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # Fetch the proposal
+    # ✅ Fetch proposal first
     proposal = conn.execute("SELECT * FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+
     if not proposal:
         conn.close()
         return "Proposal not found", 404
 
+    # ✅ Use the proposal owner's email for tracking
+    client_email = proposal["user_email"]
     from datetime import datetime
     import json
 
-    # ✅ Log lead pageview correctly
-    print(f"📊 Logged pageview for: {public_id}")
+    print(f"📊 Logging pageview for: {public_id} ({client_email})")
+
     conn.execute(
-        "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
-        (
-            "pageview",
-            proposal["user_email"],
-            json.dumps({"public_id": public_id, "source": "public_proposal"}),
-            datetime.utcnow()
-        )
+        "INSERT INTO analytics_events (event_name, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
+        ("pageview", client_email, json.dumps({"public_id": public_id, "source": "public_proposal"}), datetime.utcnow())
     )
     conn.commit()
 
+    # Handle form POST
     if request.method == "POST":
-        # Log submission
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
 
         conn.execute(
-            "INSERT INTO analytics_events (event_type, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
-            (
-                "proposal_submitted",
-                proposal["user_email"],
-                json.dumps({"submitted_by": email, "company": company, "public_id": public_id}),
-                datetime.utcnow()
-            )
+            "INSERT INTO analytics_events (event_name, user_email, metadata, timestamp) VALUES (?, ?, ?, ?)",
+            ("proposal_submitted", client_email, json.dumps({"lead_email": email, "public_id": public_id}), datetime.utcnow())
         )
         conn.commit()
 
@@ -1105,14 +1019,14 @@ def public_proposal(public_id):
 
     conn.close()
 
-    # Create QR if needed
+    # Proposal link + QR
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
+
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         import qrcode
-        img = qrcode.make(full_link)
-        img.save(qr_path)
+        qrcode.make(full_link).save(qr_path)
 
     return render_template("public_proposal.html", public_id=public_id, public_link=full_link)
 
