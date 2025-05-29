@@ -75,11 +75,21 @@
   </div>
 
   <!-- New Proposal Button -->
-  <div class="mb-6 text-center">
+<!-- New Proposal Button or Lock -->
+<div class="mb-6 text-center">
+  {% if proposal_count < 3 or session.get("plan_status") == "elite" %}
     <a href="{{ url_for('proposalpage') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
       + New Proposal
     </a>
-  </div>
+  {% else %}
+    <div class="inline-block px-6 py-3 bg-gray-300 text-gray-600 font-semibold rounded-lg shadow cursor-not-allowed">
+      Proposal Limit Reached
+    </div>
+    <p class="mt-2 text-sm text-gray-600">
+      You’ve used all 3 free proposals. <a href="{{ url_for('memberships') }}" class="text-blue-600 hover:underline">Upgrade to Elite</a> for unlimited proposals.
+    </p>
+  {% endif %}
+</div>
 
 <!-- Proposal Table -->
 <div class="proposals-section" style="max-width: 1000px; margin: auto; padding: 0 1rem;">
