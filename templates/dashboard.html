@@ -81,14 +81,15 @@
     </a>
   </div>
 
-  <!-- Proposal Table -->
+<!-- Proposal Table -->
 <div class="proposals-section" style="max-width: 1000px; margin: auto; padding: 0 1rem;">
   <h2 class="text-xl font-semibold mb-4">Your Proposals</h2>
-  
-  <div style="overflow-x: auto;">
-    <table class="min-w-full bg-white border rounded-md shadow-sm">
-      <thead>
-        <tr class="bg-gray-100 text-left text-sm font-semibold">
+
+  <!-- Add scrollable box -->
+  <div style="max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 0.375rem;">
+    <table class="min-w-full bg-white border-collapse">
+      <thead class="sticky top-0 bg-gray-100 z-10">
+        <tr class="text-left text-sm font-semibold">
           <th class="p-3">Lead</th>
           <th class="p-3">Email</th>
           <th class="p-3">Status</th>
