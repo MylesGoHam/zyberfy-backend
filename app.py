@@ -93,30 +93,6 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     return pid
 
 
-def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
-    conn = get_db_connection()
-
-    # Generate a short, unique public_id
-    public_id = generate_short_id()
-    while conn.execute("SELECT 1 FROM proposals WHERE public_id = ?", (public_id,)).fetchone():
-        public_id = generate_short_id()  # Ensure uniqueness
-
-    conn.execute("""
-        INSERT INTO proposals (
-            public_id, user_email, lead_name, lead_email, lead_company,
-            services, budget, timeline, message
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        public_id, user_email, name, email, company,
-        services, budget, timeline, message
-    ))
-    conn.commit()
-
-    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-    conn.close()
-    return public_id
-
-
 # ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
     full_url = f"{base_url.rstrip('/')}/proposal/{public_id}"
@@ -986,7 +962,7 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # ✅ Fetch the proposal
+    # ✅ Fetch the original proposal template
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
     ).fetchone()
@@ -997,30 +973,29 @@ def public_proposal(public_id):
 
     client_email = proposal["user_email"]
 
-    # ✅ Log pageview only for GET
+    # ✅ Log pageview event on GET request
     if request.method == "GET":
         log_event("pageview", user_email=client_email, metadata={"public_id": public_id})
-        print(f"📊 Logging pageview for: {public_id} ({client_email})")
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("pageview", public_id, client_email, datetime.utcnow())
         )
         conn.commit()
 
-    # ✅ Handle POST form submission
+    # ✅ Handle proposal form submission from a lead
     if request.method == "POST":
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
 
-        # Log submission
+        # Log submission event
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("proposal_submitted", public_id, client_email, datetime.utcnow())
         )
         conn.commit()
 
-        # 🔁 Call automation
+        # ✅ Trigger automation with the real lead data
         from email_assistant import handle_new_proposal
         new_public_id = handle_new_proposal(
             name=name,
@@ -1030,7 +1005,7 @@ def public_proposal(public_id):
             budget=proposal["budget"],
             timeline=proposal["timeline"],
             message=proposal["message"],
-            client_email=client_email
+            user_email=client_email
         )
         print(f"[AUTOMATION] New proposal generated: {new_public_id}")
 
@@ -1038,7 +1013,7 @@ def public_proposal(public_id):
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you", public_id=public_id))
 
-    # ✅ Generate QR code if needed
+    # ✅ Generate a QR code if missing
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
