@@ -644,14 +644,21 @@ def dashboard():
 
         session["plan_status"] = user_row["plan_status"]
 
-        onboarding_incomplete = any([
-            not (user_row["settings_first_name"] or "").strip(),
-            not (user_row["company_name"] or "").strip(),
-            not (user_row["position"] or "").strip(),
-            not (user_row["website"] or "").strip(),
-            not (user_row["phone"] or "").strip(),
-            not (user_row["reply_to"] or "").strip()
-        ])
+        # ✅ Check onboarding fields
+        onboarding_fields = {
+            "first_name": user_row["settings_first_name"],
+            "company_name": user_row["company_name"],
+            "position": user_row["position"],
+            "website": user_row["website"],
+            "phone": user_row["phone"],
+            "reply_to": user_row["reply_to"]
+        }
+
+        onboarding_incomplete = any(not (v or "").strip() for v in onboarding_fields.values())
+
+        # ✅ Debug print to identify missing values
+        print("[DEBUG] Onboarding Fields:", onboarding_fields)
+        print("[DEBUG] onboarding_incomplete:", onboarding_incomplete)
 
         return render_template(
             "dashboard.html",
@@ -992,6 +999,7 @@ def public_proposal(public_id):
 
     # ✅ Log pageview only for GET
     if request.method == "GET":
+        log_event("pageview", user_email=client_email, metadata={"public_id": public_id})
         print(f"📊 Logging pageview for: {public_id} ({client_email})")
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
