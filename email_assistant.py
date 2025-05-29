@@ -83,6 +83,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             client_email=client_email
         )
 
+        log_event("sent_proposal", user_email=client_email, metadata={"public_id": public_id})
+
         return public_id
 
     except Exception as e:
