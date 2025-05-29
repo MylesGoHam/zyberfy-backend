@@ -1007,8 +1007,13 @@ def public_proposal(public_id):
             message=proposal["message"],
             client_email=client_email
         )
-        print(f"[AUTOMATION] New proposal generated: {new_public_id}")
 
+        if new_public_id == "LIMIT_REACHED":
+            conn.close()
+            flash("You've reached your 3-proposal limit. Please upgrade to continue.", "warning")
+            return redirect(url_for("memberships"))
+
+        print(f"[AUTOMATION] New proposal generated: {new_public_id}")
         conn.close()
         flash("Your proposal was submitted successfully!", "success")
         return redirect(url_for("thank_you", public_id=public_id))
