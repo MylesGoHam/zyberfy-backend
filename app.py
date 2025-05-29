@@ -984,6 +984,15 @@ def public_proposal(public_id):
 
     # ✅ Handle proposal form submission from a lead
     if request.method == "POST":
+        # 🔒 Check if client has hit the free limit
+        plan_row = conn.execute("SELECT plan_status FROM users WHERE email = ?", (client_email,)).fetchone()
+        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+
+        if count_row["count"] >= 3 and (not plan_row or plan_row["plan_status"] != "elite"):
+            conn.close()
+            flash("You’ve used all 3 free proposals. Upgrade to Elite for unlimited proposals.", "warning")
+            return redirect(url_for("memberships"))
+
         name = request.form.get("name")
         email = request.form.get("email")
         company = request.form.get("company")
@@ -995,7 +1004,6 @@ def public_proposal(public_id):
         )
         conn.commit()
 
-        # ✅ Trigger automation with the real lead data
         from email_assistant import handle_new_proposal
         new_public_id = handle_new_proposal(
             name=name,
@@ -1007,11 +1015,6 @@ def public_proposal(public_id):
             message=proposal["message"],
             client_email=client_email
         )
-
-        if new_public_id == "LIMIT_REACHED":
-            conn.close()
-            flash("You've reached your 3-proposal limit. Please upgrade to continue.", "warning")
-            return redirect(url_for("memberships"))
 
         print(f"[AUTOMATION] New proposal generated: {new_public_id}")
         conn.close()
