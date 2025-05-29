@@ -1005,7 +1005,7 @@ def public_proposal(public_id):
             budget=proposal["budget"],
             timeline=proposal["timeline"],
             message=proposal["message"],
-            user_email=client_email
+            client_email=client_emaill
         )
         print(f"[AUTOMATION] New proposal generated: {new_public_id}")
 
