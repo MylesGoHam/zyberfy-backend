@@ -13,9 +13,6 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-
 from models import create_proposals_table
 # ─── Flask & Extensions ──────────────────────────────────────────────────────
 from flask import (
@@ -634,7 +631,7 @@ def dashboard():
 
         # ✅ Fetch proposals
         proposals = conn.execute(
-            "SELECT * FROM proposals WHERE user_email = ? ORDER BY timestamp DESC",
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY created_at DESC",
             (session["email"],)
         ).fetchall()
 
