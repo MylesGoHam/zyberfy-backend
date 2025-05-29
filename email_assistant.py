@@ -10,10 +10,13 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         conn = get_db_connection()
 
-        count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
-        if count_row["count"] >= 3:
-            conn.close()
-            return "LIMIT_REACHED"
+# count_row = conn.execute(
+#     "SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)
+# ).fetchone()
+
+# if count_row["count"] >= 3:
+#     conn.close()
+#     return "LIMIT_REACHED"
 
         settings_row = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (client_email,)).fetchone()
         if not settings_row:
