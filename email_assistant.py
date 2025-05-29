@@ -56,9 +56,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
-                services, budget, timeline, message, proposal_text
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+                services, budget, timeline, message, proposal_text, created_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """, (         
             public_id,
             client_email,
             name,
