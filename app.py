@@ -1243,6 +1243,8 @@ def track_event():
     
     
     
+from models import log_event  # make sure this is already imported
+
 @app.route('/webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.data
@@ -1250,30 +1252,31 @@ def stripe_webhook():
     endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except ValueError:
         return 'Invalid payload', 400
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError:
         return 'Invalid signature', 400
 
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
         customer_email = session_obj.get('customer_email')
 
-        conn = get_db_connection()
-        conn.execute(
-            "UPDATE users SET plan_status = ? WHERE email = ?",
-            ("active", customer_email)
-        )
-        conn.commit()
-        conn.close()
+        if customer_email:
+            conn = get_db_connection()
+            conn.execute(
+                "UPDATE users SET plan_status = ? WHERE email = ?",
+                ("elite", customer_email)
+            )
+            conn.commit()
+            conn.close()
+
+            # ✅ Log the upgrade event
+            log_event("upgraded_plan", user_email=customer_email, metadata={"plan": "elite"})
+        else:
+            print("[WEBHOOK] No customer_email in session object.")
 
     return '', 200
-
-
-from pathlib import Path
 
 @app.context_processor
 def inject_user():
