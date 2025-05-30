@@ -958,6 +958,7 @@ def proposalpage():
             message="Looking for help on a project.",
             client_email=email
         )
+        print("[DEBUG] Generated proposal with public_id:", default_public_id)
         # Re-fetch proposal
         proposal = conn.execute(
             "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
