@@ -54,6 +54,7 @@ from models import (
     get_db_connection,
     create_users_table,
     create_automation_settings_table,
+    create_settings_table,
     create_subscriptions_table,
     create_analytics_events_table,
     create_proposals_table,
@@ -112,7 +113,6 @@ logger = logging.getLogger(__name__)
 
 # ─── Initialize Database Tables ─────────────────────────────────────────────
 create_users_table()
-create_settings_table()
 create_automation_settings_table()
 create_subscriptions_table()
 create_analytics_events_table()
