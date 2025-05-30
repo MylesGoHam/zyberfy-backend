@@ -179,13 +179,9 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         settings = get_user_automation(client_email)
         if not settings:
             print(f"[ERROR] No automation settings found for {client_email}")
-            conn.close()
-            return None
-
-        company_name = settings["company_name"]
-        if not company_name or not company_name.strip():
-            print(f"[WARNING] Missing company name in settings for {client_email}")
-            company_name = "client"
+            company_name = company or "demo"
+        else:
+            company_name = settings["company_name"] or company or "demo"
 
         # ✅ Generate branded public_id like 'quintessentially-0a9f1x'
         public_id = generate_slugified_id(company_name)
