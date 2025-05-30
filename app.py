@@ -25,6 +25,9 @@ from flask_login import (
     login_user, login_required, current_user
 )
 
+# ─── # Database path (for Render disk persistence)───────────────────────────────────
+DATABASE_PATH = "/data/zyberfy.db"
+
 # ─── Third-Party APIs ────────────────────────────────────────────────────────
 import openai
 import stripe
@@ -393,7 +396,7 @@ def automation():
     if request.method == "POST":
         # Reset settings
         if "reset" in request.form:
-            conn = sqlite3.connect("zyberfy.db")
+            conn = sqlite3.connect(DATABASE_PATH)
             c = conn.cursor()
             c.execute("DELETE FROM automation_settings WHERE email = ?", (user_email,))
             conn.commit()
@@ -439,7 +442,7 @@ def automation():
             accept_offers = "accept_offers" in request.form
             reject_offers = "reject_offers" in request.form
 
-            conn = sqlite3.connect("zyberfy.db")
+            conn = sqlite3.connect(DATABASE_PATH)
             c = conn.cursor()
             c.execute("""
                 INSERT INTO automation_settings (email, tone, length, full_auto, accept_offers, reject_offers)
