@@ -161,15 +161,9 @@ def log_event(event_name, user_email=None, metadata=None):
     conn.commit()
     conn.close()
 
-def slugify(text):
-    text = text.lower()
-    text = re.sub(r'[^a-z0-9]+', '-', text)
-    return text.strip('-')
 
-def generate_slugified_id(base_text):
-    slug = slugify(base_text)
-    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-    return f"{slug}-{suffix}"
+def generate_random_public_id(length=6):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
@@ -179,7 +173,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         company_name = company if company else "client"
 
         # ✅ Generate branded public_id like 'democo-0a9f1x'
-        public_id = generate_slugified_id(company_name)
+        public_id = generate_random_public_id()
 
         # ✅ Optional: Enforce 3 proposal limit
         count_row = conn.execute("SELECT COUNT(*) AS cnt FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
