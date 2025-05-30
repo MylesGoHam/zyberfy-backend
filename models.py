@@ -60,6 +60,22 @@ def create_automation_settings_table():
     conn.commit()
     conn.close()
 
+def create_settings_table():
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            email TEXT PRIMARY KEY,
+            first_name TEXT,
+            company_name TEXT,
+            position TEXT,
+            website TEXT,
+            phone TEXT,
+            reply_to TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
 def create_subscriptions_table():
     conn = get_db_connection()
     conn.execute("""
