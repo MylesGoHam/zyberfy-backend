@@ -1,24 +1,38 @@
 # email_assistant.py
 import secrets
-from slugify import slugify
 import openai
 
-from models import get_db_connection, get_user_automation, log_event
+from models import (
+    get_db_connection,
+    get_user_automation,
+    log_event,
+    generate_random_public_id
+)
 from email_utils import send_proposal_email
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
         conn = get_db_connection()
 
-# count_row = conn.execute(
-#     "SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)
-# ).fetchone()
+        # 🔒 STEP 1: Enforce 3-proposal limit for non-Elite users
+        count_row = conn.execute(
+            "SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)
+        ).fetchone()
 
-# if count_row["count"] >= 3:
-#     conn.close()
-#     return "LIMIT_REACHED"
+        plan_row = conn.execute(
+            "SELECT plan_status FROM users WHERE email = ?", (client_email,)
+        ).fetchone()
 
-        settings_row = conn.execute("SELECT * FROM automation_settings WHERE email = ?", (client_email,)).fetchone()
+        if count_row["count"] >= 3 and (not plan_row or plan_row["plan_status"] != "elite"):
+            print(f"[LIMIT] Proposal limit reached for {client_email}")
+            conn.close()
+            return "LIMIT_REACHED"
+        
+        # STEP 2: Fetch automation settings
+        settings_row = conn.execute(
+            "SELECT * FROM automation_settings WHERE email = ?", (client_email,)
+        ).fetchone()
+
         if not settings_row:
             conn.close()
             return None
@@ -32,10 +46,10 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         reply_to = settings_row["reply_to"] or "contact@example.com"
         phone = settings_row["phone"] or "123-456-7890"
 
-        base_slug = slugify(company_name)
-        suffix = secrets.token_hex(3)[:6]
-        public_id = f"{base_slug}-{suffix}"
+        # STEP 3: Generate unique public ID
+        public_id = generate_random_public_id()
 
+        # STEP 4: Generate proposal text with OpenAI
         prompt = (
             f"Write a {length} business proposal in a {tone} tone.\n"
             f"Client: {first_name} ({position}) from {company_name}.\n"
@@ -51,14 +65,16 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             max_tokens=500,
             temperature=0.7
         )
+
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
+        # STEP 5: Store proposal in database
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
                 services, budget, timeline, message, proposal_text, created_at
-             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """, (         
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """, (
             public_id,
             client_email,
             name,
@@ -73,6 +89,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
+        # STEP 6: Log analytics events and send proposal
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
 
         send_proposal_email(
