@@ -936,16 +936,40 @@ def proposalpage():
     if "email" not in session:
         return redirect(url_for("login", next="/proposalpage"))
 
+    email = session["email"]
     conn = get_db_connection()
+
+    # ✅ Try to fetch latest proposal
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
-        (session["email"],)
+        (email,)
     ).fetchone()
+
+    # ✅ If no proposals exist, create a default one
+    if not proposal:
+        from email_assistant import handle_new_proposal
+        default_public_id = handle_new_proposal(
+            name="John Doe",
+            email="demo@client.com",
+            company="DemoCo",
+            services="Consulting",
+            budget="$2,000",
+            timeline="2 weeks",
+            message="Looking for help on a project.",
+            client_email=email
+        )
+        # Re-fetch proposal
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+            (email,)
+        ).fetchone()
+
     conn.close()
 
     if not proposal:
         return render_template("client_proposal.html", public_id=None, public_link=None)
 
+    # ✅ Ensure public link + QR code
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
     qr_path = f"static/qr/proposal_{public_id}.png"
