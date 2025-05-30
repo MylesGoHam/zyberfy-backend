@@ -161,7 +161,6 @@ def log_event(event_name, user_email=None, metadata=None):
     conn.commit()
     conn.close()
 
-
 def generate_random_public_id(length=6):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
