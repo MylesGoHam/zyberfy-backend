@@ -939,47 +939,32 @@ def proposalpage():
     email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Try to fetch latest proposal
+    # Get latest proposal for this client
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
         (email,)
     ).fetchone()
-
-    # ✅ If no proposals exist, create a default one
-    if not proposal:
-        from email_assistant import handle_new_proposal
-        default_public_id = handle_new_proposal(
-            name="John Doe",
-            email="demo@client.com",
-            company="DemoCo",
-            services="Consulting",
-            budget="$2,000",
-            timeline="2 weeks",
-            message="Looking for help on a project.",
-            client_email=email
-        )
-        proposal_check = conn.execute("SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1", (email,)).fetchone()
-        print("[DEBUG] Proposal after insertion:", dict(proposal_check) if proposal_check else None)
-        # Re-fetch proposal
-        proposal = proposal_check
-
     conn.close()
 
     if not proposal:
-        return render_template("client_proposal.html", public_id=None, public_link=None)
+        # Optional: Auto-create one (same logic you already have)
+        from email_assistant import handle_new_proposal
+        default_id = handle_new_proposal(
+            name="John Doe",
+            email="demo@client.com",
+            company="Client",
+            services="Demo",
+            budget="$1000",
+            timeline="1 week",
+            message="Test project.",
+            client_email=email
+        )
+        if not default_id or default_id == "LIMIT_REACHED":
+            return render_template("client_proposal.html", public_id=None, public_link=None)
+        return redirect(url_for("proposal_view", public_id=default_id))
 
-    # ✅ Ensure public link + QR code
-    public_id = proposal["public_id"]
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
-
-    if not os.path.exists(qr_path):
-        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        import qrcode
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-
-    return render_template("client_proposal.html", public_id=public_id, public_link=full_link)
+    # ✅ Redirect client to their actual public proposal link (same as leads)
+    return redirect(url_for("proposal_view", public_id=proposal["public_id"]))
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
