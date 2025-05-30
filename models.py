@@ -9,13 +9,8 @@ from datetime import datetime
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
 
 def get_db_connection():
-    conn = sqlite3.connect(
-        DATABASE,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread=False
-    )
+    conn = sqlite3.connect("/data/zyberfy.db")  # 🔒 persistent storage path
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
 def add_stripe_column_if_missing():
