@@ -175,15 +175,10 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     try:
         conn = get_db_connection()
 
-        # ✅ Fetch client’s automation settings to access company name
-        settings = get_user_automation(client_email)
-        if not settings:
-            print(f"[ERROR] No automation settings found for {client_email}")
-            company_name = company or "demo"
-        else:
-            company_name = settings["company_name"] or company or "demo"
+        # ✅ Use submitted company name or fallback
+        company_name = company if company else "client"
 
-        # ✅ Generate branded public_id like 'quintessentially-0a9f1x'
+        # ✅ Generate branded public_id like 'democo-0a9f1x'
         public_id = generate_slugified_id(company_name)
 
         # ✅ Optional: Enforce 3 proposal limit
