@@ -38,41 +38,54 @@
   </div>
   {% endif %}
 
-  <!-- Status Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+
+<!-- Status Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+
+  {% if session.get("plan_status") == "elite" %}
+    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-lg shadow text-white text-center">
+      <h3 class="text-sm font-medium">Plan</h3>
+      <p class="text-xl font-bold">Elite Member</p>
+      <p class="text-xs mt-1 text-white/80">Unlimited Proposals</p>
+    </div>
+  {% else %}
     <div class="bg-white p-4 rounded-lg shadow text-center">
       <h3 class="text-sm text-gray-500 font-medium">Proposals Used</h3>
       <p class="text-lg font-bold text-blue-600">{{ proposal_count }} / 3</p>
       <p class="text-xs text-gray-400">Limit on current plan</p>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h3 class="text-sm text-gray-500 font-medium">Plan Status</h3>
-      <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
-        Active
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-        </svg>
-      </p>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow text-center">
-      <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
-      {% if automation_complete %}
-      <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
-        Configured
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-        </svg>
-      </p>
-      {% else %}
-      <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
-        Not Configured
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </p>
-      {% endif %}
-    </div>
+  {% endif %}
+
+  <div class="bg-white p-4 rounded-lg shadow text-center">
+    <h3 class="text-sm text-gray-500 font-medium">Plan Status</h3>
+    <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
+      Active
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+      </svg>
+    </p>
   </div>
+
+  <div class="bg-white p-4 rounded-lg shadow text-center">
+    <h3 class="text-sm text-gray-500 font-medium">Automation</h3>
+    {% if automation_complete %}
+    <p class="text-lg font-semibold text-green-600 flex justify-center items-center gap-1">
+      Configured
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+      </svg>
+    </p>
+    {% else %}
+    <p class="text-lg font-semibold text-red-600 flex justify-center items-center gap-1">
+      Not Configured
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </p>
+    {% endif %}
+  </div>
+
+</div>
 
   <!-- New Proposal Button -->
 <!-- New Proposal Button or Lock -->
