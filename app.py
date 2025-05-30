@@ -930,16 +930,24 @@ def ping():
 @app.route("/proposalpage")
 def proposalpage():
     if "email" not in session:
-        return redirect(url_for("login"))
+        return redirect(url_for("login", next="/proposalpage"))
 
     conn = get_db_connection()
 
-    # ✅ FIX: Only fetch most recent proposal for this client
+    # ✅ Check plan and proposal count
+    user = conn.execute("SELECT plan_status FROM users WHERE email = ?", (session["email"],)).fetchone()
+    count = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (session["email"],)).fetchone()
+
+    if count["count"] >= 3 and (not user or user["plan_status"] != "elite"):
+        conn.close()
+        flash("You’ve used all 3 free proposals. Upgrade to Elite for unlimited proposals.", "warning")
+        return redirect(url_for("memberships"))
+
+    # ✅ Load latest proposal
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
         (session["email"],)
     ).fetchone()
-
     conn.close()
 
     if not proposal:
@@ -951,7 +959,6 @@ def proposalpage():
 
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        import qrcode
         img = qrcode.make(full_link)
         img.save(qr_path)
 
