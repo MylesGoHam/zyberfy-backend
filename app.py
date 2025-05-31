@@ -1056,7 +1056,12 @@ def public_proposal(public_id):
         img.save(qr_path)
 
     conn.close()
-    return render_template("lead_proposal.html", public_id=public_id, public_link=full_link)
+    return render_template(
+    "lead_proposal.html",
+    public_id=public_id,
+    public_link=full_link,
+    proposal=proposal  # ✅ this fixes your QR and lead link issue
+)
 
 
 
