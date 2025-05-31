@@ -12,11 +12,9 @@ import string
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from flask import Flask  
-app = Flask(__name__)    
+# ─── Ensure /data folder exists for SQLite persistence on Render ─────────────
+os.makedirs("/data", exist_ok=True)
 
-from dotenv import load_dotenv
-from models import create_proposals_table
 # ─── Flask & Extensions ──────────────────────────────────────────────────────
 from flask import (
     Flask, render_template, request,
@@ -28,17 +26,10 @@ from flask_login import (
     login_user, login_required, current_user
 )
 
-# ─── # Database path (for Render disk persistence)───────────────────────────────────
-DATABASE_PATH = "/data/zyberfy.db"
-
 # ─── Third-Party APIs ────────────────────────────────────────────────────────
 import openai
 import stripe
-
-# ─── Load Environment Variables ─────────────────────────────────────────────
-load_dotenv()
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
 
 # ─── Initialize Flask ───────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates")
@@ -46,11 +37,19 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 app.debug = True
 app.config["PROPAGATE_EXCEPTIONS"] = True
 
+# ─── Load Environment Variables ─────────────────────────────────────────────
+load_dotenv()
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 # ─── Initialize Flask-Login ─────────────────────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
-app.login_manager = login_manager  # Required to avoid AttributeError
+app.login_manager = login_manager  # Avoid AttributeError on login_manager
+
+# ─── DB Path (Render-safe) ──────────────────────────────────────────────────
+DATABASE_PATH = "/data/zyberfy.db"
 
 # ─── Import Local Modules ───────────────────────────────────────────────────
 from models import (
