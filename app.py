@@ -988,7 +988,6 @@ def proposalpage():
 def public_proposal(public_id):
     conn = get_db_connection()
 
-    # ✅ Fetch the original proposal template
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
     ).fetchone()
@@ -998,8 +997,9 @@ def public_proposal(public_id):
         return "Proposal not found", 404
 
     client_email = proposal["user_email"]
+    full_link = request.url  # dynamically build link
+    submitted = False  # default unless POST
 
-    # ✅ Log pageview event on GET request
     if request.method == "GET":
         log_event("pageview", user_email=client_email, metadata={"public_id": public_id})
         conn.execute(
@@ -1008,9 +1008,7 @@ def public_proposal(public_id):
         )
         conn.commit()
 
-    # ✅ Handle proposal form submission from a lead
-    if request.method == "POST":
-        # 🔒 Check if client has hit the free limit
+    elif request.method == "POST":
         plan_row = conn.execute("SELECT plan_status FROM users WHERE email = ?", (client_email,)).fetchone()
         count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
 
@@ -1023,7 +1021,6 @@ def public_proposal(public_id):
         email = request.form.get("email")
         company = request.form.get("company")
 
-        # Log submission event
         conn.execute(
             "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
             ("proposal_submitted", public_id, client_email, datetime.utcnow())
@@ -1031,7 +1028,7 @@ def public_proposal(public_id):
         conn.commit()
 
         from email_assistant import handle_new_proposal
-        new_public_id = handle_new_proposal(
+        handle_new_proposal(
             name=name,
             email=email,
             company=company,
@@ -1042,13 +1039,10 @@ def public_proposal(public_id):
             client_email=client_email
         )
 
-        print(f"[AUTOMATION] New proposal generated: {new_public_id}")
-        conn.close()
-        flash("Your proposal was submitted successfully!", "success")
-        return redirect(url_for("thank_you", public_id=public_id))
+        print(f"[AUTOMATION] New proposal submitted from lead: {name} <{email}>")
+        submitted = True
 
-    # ✅ Generate a QR code if missing
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    # ✅ Generate QR code if missing
     qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
@@ -1057,12 +1051,12 @@ def public_proposal(public_id):
 
     conn.close()
     return render_template(
-    "lead_proposal.html",
-    public_id=public_id,
-    public_link=full_link,
-    proposal=proposal,
-    submitted=False  # 👈 necessary for template logic
-)
+        "lead_proposal.html",
+        public_id=public_id,
+        public_link=full_link,
+        proposal=proposal,
+        submitted=submitted  # ✅ now reflects GET vs POST
+    )
 
 
 
