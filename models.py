@@ -4,6 +4,7 @@ import json
 import re
 import random
 import string
+import secrets
 from datetime import datetime
 
 DATABASE = os.getenv('DATABASE', 'zyberfy.db')
@@ -164,6 +165,8 @@ def log_event(event_name, user_email=None, metadata=None):
 def generate_random_public_id(length=6):
     return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
+print("[DEBUG] handle_new_proposal() called")
+
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
         conn = get_db_connection()
@@ -181,6 +184,8 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             return "LIMIT_REACHED"
 
         # ✅ Save proposal
+        print(f"[SQL] Saving proposal with public_id: {public_id} for client: {client_email}")
+        
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
