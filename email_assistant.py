@@ -1,12 +1,10 @@
-# email_assistant.py
 import secrets
 import openai
 
 from models import (
     get_db_connection,
     get_user_automation,
-    log_event,
-    generate_random_public_id
+    log_event
 )
 from email_utils import send_proposal_email
 
@@ -27,7 +25,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             print(f"[LIMIT] Proposal limit reached for {client_email}")
             conn.close()
             return "LIMIT_REACHED"
-        
+
         # STEP 2: Fetch automation settings
         settings_row = conn.execute(
             "SELECT * FROM automation_settings WHERE email = ?", (client_email,)
@@ -46,10 +44,10 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         reply_to = settings_row["reply_to"] or "contact@example.com"
         phone = settings_row["phone"] or "123-456-7890"
 
-        # STEP 3: Generate unique public ID
-        public_id = generate_random_public_id()
+        # ✅ STEP 3: Generate a short, random public_id
+        public_id = secrets.token_hex(7)  # ~14-character hex string like "3fa7b2e59c3af9"
 
-        # STEP 4: Generate proposal text with OpenAI
+        # STEP 4: Generate proposal with OpenAI
         prompt = (
             f"Write a {length} business proposal in a {tone} tone.\n"
             f"Client: {first_name} ({position}) from {company_name}.\n"
@@ -68,7 +66,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
         proposal_text = response["choices"][0]["message"]["content"].strip()
 
-        # STEP 5: Store proposal in database
+        # STEP 5: Store proposal
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
@@ -89,7 +87,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         conn.commit()
         conn.close()
 
-        # STEP 6: Log analytics events and send proposal
+        # STEP 6: Log events and send
         log_event("generated_proposal", user_email=client_email, metadata={"public_id": public_id})
 
         send_proposal_email(
