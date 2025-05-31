@@ -86,7 +86,7 @@ def load_user(user_id):
 # ─── Proposal Handler (Basic Version) ───────────────────────────────────────
 def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
     conn = get_db_connection()
-    public_id = generate_slugified_id(name or company or services or "client")
+    public_id = generate_random_public_id()
     conn.execute("""
         INSERT INTO proposals (
             public_id, user_email, lead_name, lead_email, lead_company,
