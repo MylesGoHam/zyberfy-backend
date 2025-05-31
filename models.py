@@ -162,7 +162,7 @@ def log_event(event_name, user_email=None, metadata=None):
     conn.close()
 
 def generate_random_public_id(length=6):
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
