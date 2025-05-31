@@ -1060,7 +1060,8 @@ def public_proposal(public_id):
     "lead_proposal.html",
     public_id=public_id,
     public_link=full_link,
-    proposal=proposal  # ✅ this fixes your QR and lead link issue
+    proposal=proposal,
+    submitted=False  # 👈 necessary for template logic
 )
 
 
