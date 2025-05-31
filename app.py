@@ -941,16 +941,16 @@ def proposalpage():
     client_email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Fetch latest proposal
+    # ✅ Fetch latest valid proposal with a clean public_id
     proposal = conn.execute(
-        "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        "SELECT public_id FROM proposals WHERE user_email = ? AND LENGTH(public_id) > 10 ORDER BY id DESC LIMIT 1",
         (client_email,)
     ).fetchone()
 
     if not proposal:
-        # ✅ Auto-generate a default proposal
+        # ✅ Auto-generate a new default proposal if none exists
         from email_assistant import handle_new_proposal
-        default_public_id = handle_new_proposal(
+        public_id = handle_new_proposal(
             name="John Doe",
             email="demo@client.com",
             company="DemoCo",
@@ -960,8 +960,6 @@ def proposalpage():
             message="Looking for help on a project.",
             client_email=client_email
         )
-
-        # 🔁 Re-fetch after generation
         proposal = conn.execute(
             "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
             (client_email,)
@@ -979,7 +977,6 @@ def proposalpage():
     # ✅ Generate QR code if it doesn’t exist
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        import qrcode
         img = qrcode.make(public_link)
         img.save(qr_path)
 
