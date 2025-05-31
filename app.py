@@ -997,8 +997,8 @@ def public_proposal(public_id):
         return "Proposal not found", 404
 
     client_email = proposal["user_email"]
-    full_link = request.url  # dynamically build link
-    submitted = False  # default unless POST
+    full_link = request.url
+    submitted = request.args.get("submitted") == "1"  # reflects true after redirect
 
     if request.method == "GET":
         log_event("pageview", user_email=client_email, metadata={"public_id": public_id})
@@ -1028,7 +1028,7 @@ def public_proposal(public_id):
         conn.commit()
 
         from email_assistant import handle_new_proposal
-        handle_new_proposal(
+        new_public_id = handle_new_proposal(
             name=name,
             email=email,
             company=company,
@@ -1039,8 +1039,14 @@ def public_proposal(public_id):
             client_email=client_email
         )
 
-        print(f"[AUTOMATION] New proposal submitted from lead: {name} <{email}>")
-        submitted = True
+        conn.close()
+
+        if new_public_id == "LIMIT_REACHED":
+            flash("You’ve used all 3 free proposals. Upgrade to Elite for unlimited proposals.", "warning")
+            return redirect(url_for("memberships"))
+
+        flash("Your proposal was submitted successfully!", "success")
+        return redirect(url_for("public_proposal", public_id=new_public_id, submitted=1))
 
     # ✅ Generate QR code if missing
     qr_path = f"static/qr/proposal_{public_id}.png"
@@ -1055,7 +1061,7 @@ def public_proposal(public_id):
         public_id=public_id,
         public_link=full_link,
         proposal=proposal,
-        submitted=submitted  # ✅ now reflects GET vs POST
+        submitted=submitted
     )
 
 
