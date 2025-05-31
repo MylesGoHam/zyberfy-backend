@@ -938,19 +938,19 @@ def proposalpage():
     if "email" not in session:
         return redirect(url_for("login", next="/proposalpage"))
 
-    client_email = session["email"]
+    email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Fetch latest valid proposal with a clean public_id
+    # ✅ Try to fetch latest proposal
     proposal = conn.execute(
-        "SELECT public_id FROM proposals WHERE user_email = ? AND LENGTH(public_id) > 10 ORDER BY id DESC LIMIT 1",
-        (client_email,)
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        (email,)
     ).fetchone()
 
+    # ✅ If no proposals exist, create one
     if not proposal:
-        # ✅ Auto-generate a new default proposal if none exists
         from email_assistant import handle_new_proposal
-        public_id = handle_new_proposal(
+        default_public_id = handle_new_proposal(
             name="John Doe",
             email="demo@client.com",
             company="DemoCo",
@@ -958,11 +958,11 @@ def proposalpage():
             budget="$2,000",
             timeline="2 weeks",
             message="Looking for help on a project.",
-            client_email=client_email
+            client_email=email
         )
         proposal = conn.execute(
-            "SELECT public_id FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
-            (client_email,)
+            "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+            (email,)
         ).fetchone()
 
     conn.close()
@@ -970,17 +970,18 @@ def proposalpage():
     if not proposal:
         return render_template("client_proposal.html", public_id=None, public_link=None)
 
+    # ✅ Build clean link with public_id
     public_id = proposal["public_id"]
-    public_link = f"https://zyberfy.com/proposal/{public_id}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
+    full_link = f"https://zyberfy.com/proposal/{public_id}"
 
-    # ✅ Generate QR code if it doesn’t exist
+    # ✅ Generate QR code if not exists
+    qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(public_link)
+        img = qrcode.make(full_link)
         img.save(qr_path)
 
-    return render_template("client_proposal.html", public_id=public_id, public_link=public_link)
+    return render_template("client_proposal.html", public_id=public_id, public_link=full_link)
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
