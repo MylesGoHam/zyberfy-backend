@@ -1120,24 +1120,29 @@ def settings():
         flash("Settings updated successfully ✅", "info")
         return redirect(url_for("settings"))
 
-    # ✅ Load automation settings
-    settings = conn.execute("""
-        SELECT first_name, last_name, company_name, position,
-               website, phone, reply_to, timezone
-        FROM automation_settings WHERE email = ?
-    """, (session["email"],)).fetchone()
+    # ✅ Debug wrapper for GET request load
+    try:
+        settings = conn.execute("""
+            SELECT first_name, last_name, company_name, position,
+                   website, phone, reply_to, timezone
+            FROM automation_settings WHERE email = ?
+        """, (session["email"],)).fetchone()
 
-    settings = dict(settings) if settings else {}
+        settings = dict(settings) if settings else {}
 
-    # ✅ Load notification preference from users table
-    user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
-    if user:
-        settings["notifications_enabled"] = user["notifications_enabled"]
-    else:
-        settings["notifications_enabled"] = 1  # Default to ON if not set
+        user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
+        if user:
+            settings["notifications_enabled"] = user["notifications_enabled"]
+        else:
+            settings["notifications_enabled"] = 1
 
-    conn.close()
-    return render_template("settings.html", settings=settings)
+        conn.close()
+        return render_template("settings.html", settings=settings)
+
+    except Exception as e:
+        conn.close()
+        import traceback
+        return f"<pre>{traceback.format_exc()}</pre>"
 
 
 
