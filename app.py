@@ -941,48 +941,20 @@ def proposalpage():
     email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Try to fetch latest proposal
+    # ✅ Only fetch latest valid proposal — do NOT insert anything
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM proposals WHERE user_email = ? AND public_id NOT LIKE 'client-%' ORDER BY id DESC LIMIT 1",
         (email,)
     ).fetchone()
-
-    # ✅ If no proposals exist, create one manually with a clean short public_id
-    if not proposal:
-        import secrets
-        public_id = secrets.token_hex(3)  # clean ID like "2f7a1b"
-
-        conn.execute("""
-            INSERT INTO proposals (user_email, public_id, lead_name, lead_email, company, services, budget, timeline, message)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            email,
-            public_id,
-            "John Doe",
-            "demo@client.com",
-            "DemoCo",
-            "Consulting",
-            "$2,000",
-            "2 weeks",
-            "Looking for help on a project."
-        ))
-        conn.commit()
-
-        proposal = conn.execute(
-            "SELECT * FROM proposals WHERE public_id = ?",
-            (public_id,)
-        ).fetchone()
-
     conn.close()
 
     if not proposal:
         return render_template("client_proposal.html", public_id=None, public_link=None)
 
-    # ✅ Build clean link with public_id
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
 
-    # ✅ Generate QR code if not exists
+    # ✅ Generate QR code if missing
     qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
