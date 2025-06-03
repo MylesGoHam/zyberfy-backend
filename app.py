@@ -945,7 +945,7 @@ def proposalpage():
             return render_template("client_proposal.html", public_id=None, public_link=None)
 
         # Create branded public_id like "quintessentially-a1c2xk"
-        company = settings["company_name"] or session.get("first_name") or "zyberfy"
+        company = settings["company_name"] or "zyberfy"
         brand = re.sub(r'[^a-z0-9]+', '-', company.lower()).strip("-")
         short = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
         public_id = f"{brand}-{short}"
