@@ -661,42 +661,25 @@ def dashboard_proposal():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-
-    # 🔐 Check if user exists
-    user = conn.execute("SELECT email FROM users WHERE email = ?", (session["email"],)).fetchone()
-    if not user:
-        conn.close()
-        return "User not found", 404
-
-    # 🆕 Get latest proposal if exists
-    proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
-        (session["email"],)
-    ).fetchone()
-
-    if proposal:
-        public_id = proposal["public_id"]
-    else:
-        # ✅ Generate short public_id like "2f7c9a"
-        import secrets
-        public_id = secrets.token_hex(3)
-
-        # 📝 Insert new proposal with that public_id
-        conn.execute(
-            "INSERT INTO proposals (user_email, public_id) VALUES (?, ?)",
-            (session["email"], public_id)
-        )
-        conn.commit()
-
+    user = conn.execute("SELECT public_id FROM users WHERE email = ?", (session["email"],)).fetchone()
     conn.close()
 
-    # ✅ Generate QR code if missing
-    qr_path = f"static/qr/proposal_{public_id}.png"
-    if not Path(qr_path).exists():
-        full_url = f"{request.host_url}proposal/{public_id}"
-        qr = qrcode.make(full_url)
-        qr.save(qr_path)
-        print(f"[QR] Created: {qr_path}")
+    if not user:
+        return "User not found", 404
+
+    public_id = user["public_id"]
+
+    # ✅ Save public_id in session if not already
+    session["public_id"] = public_id
+
+    # ✅ Generate QR code for /proposal/<public_id> if missing
+    if public_id:
+        qr_path = f"static/qr/proposal_{public_id}.png"
+        if not Path(qr_path).exists():
+            full_url = f"{request.host_url}proposal/{public_id}"
+            qr = qrcode.make(full_url)
+            qr.save(qr_path)
+            print(f"[QR] Created: {qr_path}")
 
     return render_template(
         "dashboard_proposal.html",
@@ -964,22 +947,30 @@ def proposalpage():
         (email,)
     ).fetchone()
 
-    # ✅ If no proposals exist, create one
+    # ✅ If no proposals exist, create one manually with a clean short public_id
     if not proposal:
-        from email_assistant import handle_new_proposal
-        default_public_id = handle_new_proposal(
-            name="John Doe",
-            email="demo@client.com",
-            company="DemoCo",
-            services="Consulting",
-            budget="$2,000",
-            timeline="2 weeks",
-            message="Looking for help on a project.",
-            client_email=email
-        )
+        import secrets
+        public_id = secrets.token_hex(3)  # clean ID like "2f7a1b"
+
+        conn.execute("""
+            INSERT INTO proposals (user_email, public_id, lead_name, lead_email, company, services, budget, timeline, message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            email,
+            public_id,
+            "John Doe",
+            "demo@client.com",
+            "DemoCo",
+            "Consulting",
+            "$2,000",
+            "2 weeks",
+            "Looking for help on a project."
+        ))
+        conn.commit()
+
         proposal = conn.execute(
-            "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
-            (email,)
+            "SELECT * FROM proposals WHERE public_id = ?",
+            (public_id,)
         ).fetchone()
 
     conn.close()
