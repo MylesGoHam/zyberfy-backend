@@ -1133,16 +1133,41 @@ def signup():
         public_id = str(uuid.uuid4())[:8]
 
         conn = get_db_connection()
+
+        # ✅ Insert new user into users table
         conn.execute(
             "INSERT INTO users (email, password, public_id) VALUES (?, ?, ?)",
             (email, password, public_id)
         )
+
+        # ✅ Also auto-create a clean public proposal for this user
+        import secrets
+        proposal_id = secrets.token_hex(3)  # 6-char clean ID like "a4f7c3"
+
+        conn.execute("""
+            INSERT INTO proposals (
+                user_email, public_id, lead_name, lead_email, lead_company,
+                services, budget, timeline, message
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            email,
+            proposal_id,
+            "New Client",
+            email,
+            "ClientCo",
+            "To be discussed",
+            "$0",
+            "TBD",
+            "Auto-generated when client signed up."
+        ))
+
         conn.commit()
         conn.close()
 
         flash("Account created! You can now log in.", "success")
         return redirect(url_for("login"))
-    
+
     return render_template("signup.html")
 
 
