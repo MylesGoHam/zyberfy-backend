@@ -1072,11 +1072,12 @@ def public_proposal(public_id):
     except Exception as e:
         print(f"[ERROR] Proposal route failed: {e}")
         return "An error occurred while loading the proposal.", 500
+        return redirect(url_for("public_proposal_by_slug", slug=new_public_id, submitted=1))
     
 
     
 @app.route("/proposal/<slug>", methods=["GET", "POST"])
-def public_proposal(slug):
+def public_proposal_by_slug(slug):
     try:
         conn = get_db_connection()
 
@@ -1458,4 +1459,6 @@ def inject_user():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0",
+    port=int(os.getenv("PORT", 5001)),
+    debug=True)
