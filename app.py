@@ -1,5 +1,6 @@
 # ─── System & Utility Imports ────────────────────────────────────────────────
 import os
+import re
 import csv
 import uuid
 import sqlite3
