@@ -63,6 +63,7 @@ from models import (
     create_proposals_table,
     create_offers_table,
     generate_random_public_id,
+    handle_new_proposal,
     get_user_automation,
     log_event
 )
@@ -83,22 +84,6 @@ def load_user(user_id):
                 self.email = row["email"]
         return User(user)
     return None
-
-# ─── Proposal Handler (Basic Version) ───────────────────────────────────────
-def handle_new_proposal(name, email, company, services, budget, timeline, message, user_email):
-    conn = get_db_connection()
-    public_id = f"zyberfy-{generate_random_public_id()}"
-    conn.execute("""
-        INSERT INTO proposals (
-            public_id, user_email, lead_name, lead_email, lead_company,
-            services, budget, timeline, message
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (public_id, user_email, name, email, company, services, budget, timeline, message))
-    conn.commit()
-    pid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-    conn.close()
-    return pid
-
 
 # ─── QR Code Generator ──────────────────────────────────────────────────────
 def generate_qr_code(public_id, base_url):
