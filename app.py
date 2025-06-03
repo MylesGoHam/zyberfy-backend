@@ -1072,6 +1072,55 @@ def public_proposal(public_id):
     except Exception as e:
         print(f"[ERROR] Proposal route failed: {e}")
         return "An error occurred while loading the proposal.", 500
+    
+
+    
+@app.route("/proposal/<slug>", methods=["GET", "POST"])
+def public_proposal(slug):
+    conn = get_db_connection()
+
+    # Try to find by custom_slug first, then by public_id
+    proposal = conn.execute("""
+        SELECT * FROM proposals
+        WHERE custom_slug = ? OR public_id = ?
+    """, (slug, slug)).fetchone()
+
+    if not proposal:
+        conn.close()
+        return "Proposal not found", 404
+
+    # ✅ Proceed as usual using `proposal` data
+    client_email = proposal["user_email"]
+    full_link = request.url
+    submitted = request.args.get("submitted") == "1"
+
+    if request.method == "GET":
+        log_event("pageview", user_email=client_email, metadata={"slug": slug})
+        conn.execute(
+            "INSERT INTO analytics_events (event_name, user_email, timestamp) VALUES (?, ?, ?)",
+            ("pageview", client_email, datetime.utcnow())
+        )
+
+    elif request.method == "POST":
+        # Proposal resubmission logic (can be same as current version)
+        # Add if needed
+
+        pass  # Optional
+
+    # ✅ QR Code
+    qr_path = f"static/qr/proposal_{slug}.png"
+    if not os.path.exists(qr_path):
+        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+        img = qrcode.make(full_link)
+        img.save(qr_path)
+
+    conn.close()
+
+    return render_template("lead_proposal.html",
+                           public_id=proposal["public_id"],
+                           public_link=full_link,
+                           proposal=proposal,
+                           submitted=submitted)
 
 
 
