@@ -941,15 +941,48 @@ def proposalpage():
     email = session["email"]
     conn = get_db_connection()
 
-    # ✅ Only fetch latest valid proposal — do NOT insert anything
+    # ✅ Check for existing default proposal
     proposal = conn.execute(
-        "SELECT * FROM proposals WHERE user_email = ? AND public_id NOT LIKE 'client-%' ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM proposals WHERE user_email = ? AND is_default = 1 LIMIT 1",
         (email,)
     ).fetchone()
-    conn.close()
 
+    # ✅ If not found, auto-create one
     if not proposal:
-        return render_template("client_proposal.html", public_id=None, public_link=None)
+        settings = conn.execute(
+            "SELECT company_name, first_name, reply_to FROM automation_settings WHERE email = ?",
+            (email,)
+        ).fetchone()
+
+        if not settings:
+            conn.close()
+            return render_template("client_proposal.html", public_id=None, public_link=None)
+
+        # Create branded public_id like "quintessentially-a1c2xk"
+        company = settings["company_name"] or "client"
+        brand = re.sub(r'[^a-z0-9]+', '-', company.lower()).strip("-")
+        short = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        public_id = f"{brand}-{short}"
+
+        # Insert default proposal
+        conn.execute("""
+            INSERT INTO proposals (public_id, user_email, lead_name, lead_email, lead_company, services,
+                                   budget, timeline, message, is_default)
+            VALUES (?, ?, ?, ?, ?, '', '', '', '', 1)
+        """, (
+            public_id,
+            email,
+            settings["first_name"] or "Client",
+            settings["reply_to"] or "client@example.com",
+            company
+        ))
+        conn.commit()
+
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
+        ).fetchone()
+
+    conn.close()
 
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
@@ -984,10 +1017,9 @@ def public_proposal(public_id):
         if request.method == "GET":
             log_event("pageview", user_email=client_email, metadata={"public_id": public_id})
             conn.execute(
-                "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
-                ("pageview", public_id, client_email, datetime.utcnow())
+                "INSERT INTO analytics_events (event_name, user_email, timestamp) VALUES (?, ?, ?)",
+               ("pageview", client_email, datetime.utcnow())
             )
-            conn.commit()
 
         elif request.method == "POST":
             plan_row = conn.execute("SELECT plan_status FROM users WHERE email = ?", (client_email,)).fetchone()
@@ -1001,13 +1033,11 @@ def public_proposal(public_id):
             name = request.form.get("name")
             email = request.form.get("email")
             company = request.form.get("company") or proposal["lead_company"]
-
+            
             conn.execute(
-                "INSERT INTO analytics_events (event_name, public_id, user_email, timestamp) VALUES (?, ?, ?, ?)",
-                ("proposal_submitted", public_id, client_email, datetime.utcnow())
+                 "INSERT INTO analytics_events (event_name, user_email, timestamp) VALUES (?, ?, ?)",
+                ("pageview", client_email, datetime.utcnow())
             )
-            conn.commit()
-
             from email_assistant import handle_new_proposal
             new_public_id = handle_new_proposal(
                 name=name,
