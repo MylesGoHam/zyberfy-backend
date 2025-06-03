@@ -44,8 +44,14 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
         reply_to = settings_row["reply_to"] or "contact@example.com"
         phone = settings_row["phone"] or "123-456-7890"
 
-        # ✅ STEP 3: Generate a short, random public_id
-        public_id = secrets.token_hex(7)  # ~14-character hex string like "3fa7b2e59c3af9"
+        # ✅ STEP 3: Generate a short, unique 6-char public_id
+        while True:
+            public_id = secrets.token_hex(3)  # 6-character slug
+            existing = conn.execute("SELECT 1 FROM proposals WHERE public_id = ?", (public_id,)).fetchone()
+            if not existing:
+                break
+
+        print(f"[INFO] Proposal created: https://zyberfy.com/proposal/{public_id}")
 
         # STEP 4: Generate proposal with OpenAI
         prompt = (
