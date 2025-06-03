@@ -1163,6 +1163,7 @@ def public_proposal_by_slug(slug):
     
     
 @app.route("/rename_slug", methods=["POST"])
+@app.route("/rename_slug", methods=["POST"])
 def rename_slug():
     if "email" not in session:
         return redirect(url_for("login"))
@@ -1180,17 +1181,17 @@ def rename_slug():
 
     conn = get_db_connection()
 
-    # Check for duplicate slug
-    exists = conn.execute(
+    # Check if slug already exists
+    existing = conn.execute(
         "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
     ).fetchone()
 
-    if exists:
+    if existing:
         conn.close()
-        flash("That link is already taken. Try something else.", "error")
+        flash("That link is already taken. Try another.", "error")
         return redirect(url_for("proposalpage"))
 
-    # Update the proposal
+    # Save custom slug
     conn.execute(
         "UPDATE proposals SET custom_slug = ? WHERE public_id = ? AND user_email = ?",
         (custom_slug, public_id, session["email"])
@@ -1198,7 +1199,7 @@ def rename_slug():
     conn.commit()
     conn.close()
 
-    flash("✅ Custom link saved!", "success")
+    flash("✅ Your custom link has been saved!")
     return redirect(url_for("proposalpage"))
 
 
