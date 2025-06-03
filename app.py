@@ -1077,12 +1077,20 @@ def settings():
     conn = get_db_connection()
 
     if request.method == "POST":
-        # ✅ Save automation/business settings
+        # ✅ Save profile/business settings to automation_settings
+        logo_file = request.files.get("logo")
+        logo_filename = None
+        if logo_file and logo_file.filename:
+            logo_filename = f"logo_{session['email'].replace('@', '_')}.png"
+            logo_path = os.path.join("static", "logos", logo_filename)
+            os.makedirs("static/logos", exist_ok=True)
+            logo_file.save(logo_path)
+
         conn.execute("""
             INSERT INTO automation_settings (
                 email, first_name, last_name, company_name, position,
-                website, phone, reply_to, timezone
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                website, phone, reply_to, timezone, logo
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(email) DO UPDATE SET
                 first_name = excluded.first_name,
                 last_name = excluded.last_name,
@@ -1091,7 +1099,8 @@ def settings():
                 website = excluded.website,
                 phone = excluded.phone,
                 reply_to = excluded.reply_to,
-                timezone = excluded.timezone
+                timezone = excluded.timezone,
+                logo = COALESCE(excluded.logo, logo)
         """, (
             session["email"],
             request.form.get("first_name", ""),
@@ -1101,7 +1110,8 @@ def settings():
             request.form.get("website", ""),
             request.form.get("phone", ""),
             request.form.get("reply_to", ""),
-            request.form.get("timezone", "")
+            request.form.get("timezone", ""),
+            logo_filename
         ))
 
         # ✅ Save notification preference
@@ -1120,29 +1130,21 @@ def settings():
         flash("Settings updated successfully ✅", "info")
         return redirect(url_for("settings"))
 
-    # ✅ Debug wrapper for GET request load
-    try:
-        settings = conn.execute("""
-            SELECT first_name, last_name, company_name, position,
-                   website, phone, reply_to, timezone
-            FROM automation_settings WHERE email = ?
-        """, (session["email"],)).fetchone()
+    # ✅ Load automation settings
+    settings = conn.execute("""
+        SELECT first_name, last_name, company_name, position,
+               website, phone, reply_to, timezone, logo
+        FROM automation_settings WHERE email = ?
+    """, (session["email"],)).fetchone()
 
-        settings = dict(settings) if settings else {}
+    settings = dict(settings) if settings else {}
 
-        user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
-        if user:
-            settings["notifications_enabled"] = user["notifications_enabled"]
-        else:
-            settings["notifications_enabled"] = 1
+    # ✅ Load notification preference from users table
+    user = conn.execute("SELECT notifications_enabled FROM users WHERE email = ?", (session["email"],)).fetchone()
+    settings["notifications_enabled"] = user["notifications_enabled"] if user else 1
 
-        conn.close()
-        return render_template("settings.html", settings=settings)
-
-    except Exception as e:
-        conn.close()
-        import traceback
-        return f"<pre>{traceback.format_exc()}</pre>"
+    conn.close()
+    return render_template("settings.html", settings=settings)
 
 
 
