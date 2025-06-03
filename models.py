@@ -175,29 +175,20 @@ def log_event(event_name, user_email=None, metadata=None):
     conn.commit()
     conn.close()
 
-def generate_random_public_id(length=6):
-    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
-
-print("[DEBUG] handle_new_proposal() called")
-add_is_default_column()
-
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
         conn = get_db_connection()
 
-        # ✅ Use submitted company name or fallback
-        company_name = company if company else "client"
-
-        # ✅ Generate branded public_id like 'democo-0a9f1x'
-        public_id = generate_random_public_id()
-
-        # ✅ Optional: Enforce 3 proposal limit
+        # ✅ Enforce 3-proposal limit for non-Elite users
         count_row = conn.execute("SELECT COUNT(*) AS cnt FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
         if count_row["cnt"] >= 3:
             conn.close()
             return "LIMIT_REACHED"
 
-        # ✅ Save proposal
+        # ✅ Generate branded public_id like 'zyberfy-4amktm'
+        random_id = generate_random_public_id()
+        public_id = f"zyberfy-{random_id}"
+
         print(f"[SQL] Saving proposal with public_id: {public_id} for client: {client_email}")
 
         conn.execute("""
