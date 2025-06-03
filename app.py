@@ -1160,6 +1160,30 @@ def public_proposal_by_slug(slug):
         import traceback
         print("[ERROR] Failed to render /proposal/<slug>:", traceback.format_exc())
         return "Internal Server Error", 500
+    
+    
+@app.route("/rename_slug", methods=["POST"])
+def rename_slug():
+    public_id = request.form.get("public_id")
+    custom_slug = request.form.get("custom_slug")
+
+    if not public_id or not custom_slug:
+        flash("Missing fields.", "error")
+        return redirect(url_for("proposalpage"))
+
+    conn = get_db_connection()
+    # Check if slug is taken
+    exists = conn.execute("SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)).fetchone()
+    if exists:
+        conn.close()
+        flash("That link is already taken. Try another.", "error")
+        return redirect(url_for("proposalpage"))
+
+    conn.execute("UPDATE proposals SET custom_slug = ? WHERE public_id = ?", (custom_slug, public_id))
+    conn.commit()
+    conn.close()
+    flash("Custom link updated!", "success")
+    return redirect(url_for("proposalpage"))
 
 
 
