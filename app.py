@@ -1163,36 +1163,40 @@ def public_proposal_by_slug(slug):
     
     
 @app.route("/rename_slug", methods=["POST"])
-@app.route("/rename_slug", methods=["POST"])
-@app.route("/rename_slug", methods=["POST"])
 def rename_slug():
-    public_id = request.form.get("public_id")
-    custom_slug = request.form.get("custom_slug")
+    try:
+        public_id = request.form.get("public_id")
+        custom_slug = request.form.get("custom_slug")
 
-    if not public_id or not custom_slug:
-        flash("Missing slug or public ID", "error")
-        return redirect(url_for("proposalpage"))
+        if not public_id or not custom_slug:
+            flash("Missing slug or public ID", "error")
+            return redirect(url_for("proposalpage"))
 
-    conn = get_db_connection()
+        conn = get_db_connection()
 
-    existing = conn.execute(
-        "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
-    ).fetchone()
+        existing = conn.execute(
+            "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
+        ).fetchone()
 
-    if existing:
+        if existing:
+            conn.close()
+            flash("That link is already taken. Try another.", "error")
+            return redirect(url_for("proposalpage"))
+
+        conn.execute(
+            "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
+            (custom_slug, public_id)
+        )
+        conn.commit()
         conn.close()
-        flash("That link is already taken. Try another.", "error")
+
+        flash("✅ Link updated!")
         return redirect(url_for("proposalpage"))
 
-    conn.execute(
-        "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
-        (custom_slug, public_id)
-    )
-    conn.commit()
-    conn.close()
-
-    flash("✅ Link updated!")
-    return redirect(url_for("proposalpage"))
+    except Exception as e:
+        import traceback
+        print("[ERROR] rename_slug failed:\n", traceback.format_exc())
+        return "Internal Server Error", 500
 
 
 
