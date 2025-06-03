@@ -6,8 +6,8 @@ import sqlite3
 import logging
 import requests
 import qrcode
-import secrets
 import random
+import secrets
 import string
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -661,25 +661,42 @@ def dashboard_proposal():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    user = conn.execute("SELECT public_id FROM users WHERE email = ?", (session["email"],)).fetchone()
-    conn.close()
 
+    # 🔐 Check if user exists
+    user = conn.execute("SELECT email FROM users WHERE email = ?", (session["email"],)).fetchone()
     if not user:
+        conn.close()
         return "User not found", 404
 
-    public_id = user["public_id"]
+    # 🆕 Get latest proposal if exists
+    proposal = conn.execute(
+        "SELECT * FROM proposals WHERE user_email = ? ORDER BY id DESC LIMIT 1",
+        (session["email"],)
+    ).fetchone()
 
-    # ✅ Save public_id in session if not already
-    session["public_id"] = public_id
+    if proposal:
+        public_id = proposal["public_id"]
+    else:
+        # ✅ Generate short public_id like "2f7c9a"
+        import secrets
+        public_id = secrets.token_hex(3)
 
-    # ✅ Generate QR code for /proposal/<public_id> if missing
-    if public_id:
-        qr_path = f"static/qr/proposal_{public_id}.png"
-        if not Path(qr_path).exists():
-            full_url = f"{request.host_url}proposal/{public_id}"
-            qr = qrcode.make(full_url)
-            qr.save(qr_path)
-            print(f"[QR] Created: {qr_path}")
+        # 📝 Insert new proposal with that public_id
+        conn.execute(
+            "INSERT INTO proposals (user_email, public_id) VALUES (?, ?)",
+            (session["email"], public_id)
+        )
+        conn.commit()
+
+    conn.close()
+
+    # ✅ Generate QR code if missing
+    qr_path = f"static/qr/proposal_{public_id}.png"
+    if not Path(qr_path).exists():
+        full_url = f"{request.host_url}proposal/{public_id}"
+        qr = qrcode.make(full_url)
+        qr.save(qr_path)
+        print(f"[QR] Created: {qr_path}")
 
     return render_template(
         "dashboard_proposal.html",
