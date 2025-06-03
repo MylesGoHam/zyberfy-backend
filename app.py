@@ -1164,24 +1164,17 @@ def public_proposal_by_slug(slug):
     
 @app.route("/rename_slug", methods=["POST"])
 @app.route("/rename_slug", methods=["POST"])
+@app.route("/rename_slug", methods=["POST"])
 def rename_slug():
-    if "email" not in session:
-        return redirect(url_for("login"))
-
     public_id = request.form.get("public_id")
-    custom_slug = request.form.get("custom_slug", "").strip().lower()
+    custom_slug = request.form.get("custom_slug")
 
     if not public_id or not custom_slug:
-        flash("Missing slug or proposal ID.", "error")
-        return redirect(url_for("proposalpage"))
-
-    if not re.match("^[a-z0-9-]+$", custom_slug):
-        flash("Slug can only contain lowercase letters, numbers, and dashes.", "error")
+        flash("Missing slug or public ID", "error")
         return redirect(url_for("proposalpage"))
 
     conn = get_db_connection()
 
-    # Check if slug already exists
     existing = conn.execute(
         "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
     ).fetchone()
@@ -1191,15 +1184,14 @@ def rename_slug():
         flash("That link is already taken. Try another.", "error")
         return redirect(url_for("proposalpage"))
 
-    # Save custom slug
     conn.execute(
-        "UPDATE proposals SET custom_slug = ? WHERE public_id = ? AND user_email = ?",
-        (custom_slug, public_id, session["email"])
+        "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
+        (custom_slug, public_id)
     )
     conn.commit()
     conn.close()
 
-    flash("✅ Your custom link has been saved!")
+    flash("✅ Link updated!")
     return redirect(url_for("proposalpage"))
 
 
