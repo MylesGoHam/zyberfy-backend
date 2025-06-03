@@ -1162,41 +1162,47 @@ def public_proposal_by_slug(slug):
         return "Internal Server Error", 500
     
     
+    
 @app.route("/rename_slug", methods=["POST"])
 def rename_slug():
-    try:
-        public_id = request.form.get("public_id")
-        custom_slug = request.form.get("custom_slug")
+    if "email" not in session:
+        return redirect(url_for("login"))
 
-        if not public_id or not custom_slug:
-            flash("Missing slug or public ID", "error")
-            return redirect(url_for("proposalpage"))
+    public_id = request.form.get("public_id")
+    custom_slug = request.form.get("custom_slug")
 
-        conn = get_db_connection()
-
-        existing = conn.execute(
-            "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
-        ).fetchone()
-
-        if existing:
-            conn.close()
-            flash("That link is already taken. Try another.", "error")
-            return redirect(url_for("proposalpage"))
-
-        conn.execute(
-            "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
-            (custom_slug, public_id)
-        )
-        conn.commit()
-        conn.close()
-
-        flash("✅ Link updated!")
+    if not public_id or not custom_slug:
+        flash("Missing public_id or slug.", "error")
         return redirect(url_for("proposalpage"))
 
-    except Exception as e:
-        import traceback
-        print("[ERROR] rename_slug failed:\n", traceback.format_exc())
-        return "Internal Server Error", 500
+    conn = get_db_connection()
+
+    # Check if slug already exists
+    existing = conn.execute(
+        "SELECT 1 FROM proposals WHERE custom_slug = ?",
+        (custom_slug,)
+    ).fetchone()
+    if existing:
+        conn.close()
+        flash("Slug is already taken. Please choose another.", "error")
+        return redirect(url_for("proposalpage"))
+
+    # Update slug
+    conn.execute(
+        "UPDATE proposals SET custom_slug = ? WHERE public_id = ? AND user_email = ?",
+        (custom_slug, public_id, session["email"])
+    )
+    conn.commit()
+
+    # Update QR
+    qr_path = f"static/qr/proposal_{public_id}.png"
+    full_link = f"https://zyberfy.com/proposal/{custom_slug}"
+    img = qrcode.make(full_link)
+    img.save(qr_path)
+
+    conn.close()
+    flash("Custom link updated!", "success")
+    return redirect(url_for("proposalpage"))
 
 
 
