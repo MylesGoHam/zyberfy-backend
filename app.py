@@ -935,11 +935,11 @@ def proposalpage():
 
     # ✅ If not found, auto-create one
     if not proposal:
-        settings = conn.execute(
-            "SELECT company_name, first_name, reply_to FROM automation_settings WHERE email = ?",
-            (email,)
-        ).fetchone()
-
+        settings = conn.execute("""
+            SELECT first_name, last_name, company_name, position,website, phone, reply_to, timezone, logo""", 
+            (session["email"],)
+         ).fetchone()
+       
         if not settings:
             conn.close()
             return render_template("client_proposal.html", public_id=None, public_link=None)
