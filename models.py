@@ -179,6 +179,7 @@ def generate_random_public_id(length=6):
     return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 print("[DEBUG] handle_new_proposal() called")
+add_is_default_column()
 
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
