@@ -888,39 +888,34 @@ def memberships():
 @app.route("/onboarding", methods=["GET", "POST"])
 def onboarding():
     if request.method == "POST":
-        email = request.form.get("email")
-        first_name = request.form.get("first_name")
-        position = request.form.get("position")
-        company_name = request.form.get("company_name")
-        website = request.form.get("website")
-        phone = request.form.get("phone")
-        tone = request.form.get("tone")
-        length = request.form.get("length")
-        r_template(
-            "lead_proposal.html",
-            public_id=public_id,
-            public_link=full_link,
-            proposal=proposal,
-            submitted=submitted
-        )
+        try:
+            email = request.form.get("email")
+            first_name = request.form.get("first_name")
+            position = request.form.get("position")
+            company_name = request.form.get("company_name")
+            website = request.form.get("website")
+            phone = request.form.get("phone")
+            tone = request.form.get("tone")
+            length = request.form.get("length")
+            reply_to = request.form.get("reply_to")
 
-    except Exception as e:
-        import traceback
-        print("[ERROR] Failed to render /proposal/<public_id>:", traceback.format_exc())
-        return "Internal Server Error", 500eply_to = request.form.get("reply_to")
+            conn = get_db_connection()
+            conn.execute("""
+                INSERT OR REPLACE INTO automation_settings (
+                    email, first_name, position, company_name, website,
+                    phone, tone, length, reply_to
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (email, first_name, position, company_name, website, phone, tone, length, reply_to))
+            conn.commit()
+            conn.close()
 
-        conn = get_db_connection()
-        conn.execute("""
-            INSERT OR REPLACE INTO automation_settings (
-                user_email, first_name, position, company_name, website,
-                phone, tone, length, reply_to
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (email, first_name, position, company_name, website, phone, tone, length, reply_to))
-        conn.commit()
-        conn.close()
+            flash("Automation settings saved successfully.", "success")
+            return redirect(url_for("dashboard"))
 
-        flash("Automation settings saved successfully.", "success")
-        return redirect(url_for("dashboard"))
+        except Exception as e:
+            import traceback
+            print("[ERROR] Failed to save onboarding data:", traceback.format_exc())
+            return "Internal Server Error", 500
 
     return render_template("onboarding.html")
 
