@@ -1168,33 +1168,37 @@ def rename_slug():
         return redirect(url_for("login"))
 
     public_id = request.form.get("public_id")
-    custom_slug = request.form.get("custom_slug")
+    custom_slug = request.form.get("custom_slug", "").strip().lower()
 
     if not public_id or not custom_slug:
-        flash("Missing slug or ID.", "error")
+        flash("Missing slug or proposal ID.", "error")
+        return redirect(url_for("proposalpage"))
+
+    if not re.match("^[a-z0-9-]+$", custom_slug):
+        flash("Slug can only contain lowercase letters, numbers, and dashes.", "error")
         return redirect(url_for("proposalpage"))
 
     conn = get_db_connection()
 
     # Check for duplicate slug
-    existing = conn.execute(
+    exists = conn.execute(
         "SELECT 1 FROM proposals WHERE custom_slug = ?", (custom_slug,)
     ).fetchone()
 
-    if existing:
+    if exists:
         conn.close()
-        flash("That custom link is already taken. Please try another.", "error")
+        flash("That link is already taken. Try something else.", "error")
         return redirect(url_for("proposalpage"))
 
     # Update the proposal
     conn.execute(
-        "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
-        (custom_slug, public_id)
+        "UPDATE proposals SET custom_slug = ? WHERE public_id = ? AND user_email = ?",
+        (custom_slug, public_id, session["email"])
     )
     conn.commit()
     conn.close()
 
-    flash("Custom link saved!", "success")
+    flash("✅ Custom link saved!", "success")
     return redirect(url_for("proposalpage"))
 
 
