@@ -14,6 +14,19 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def add_is_default_column():
+    conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE proposals ADD COLUMN is_default INTEGER DEFAULT 0")
+        conn.commit()
+        print("[DB] ✅ 'is_default' column added to proposals table.")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e).lower():
+            print("[DB] ℹ️ 'is_default' column already exists.")
+        else:
+            raise e
+    conn.close()
+
 def add_stripe_column_if_missing():
     conn = get_db_connection()
     try:
@@ -185,7 +198,7 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 
         # ✅ Save proposal
         print(f"[SQL] Saving proposal with public_id: {public_id} for client: {client_email}")
-        
+
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
