@@ -212,3 +212,6 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
 def generate_short_id(length=6):
     characters = string.ascii_lowercase + string.digits
     return ''.join(random.choices(characters, k=length))
+
+def generate_random_public_id(length=6):
+    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
