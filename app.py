@@ -1077,50 +1077,88 @@ def public_proposal(public_id):
     
 @app.route("/proposal/<slug>", methods=["GET", "POST"])
 def public_proposal(slug):
-    conn = get_db_connection()
+    try:
+        conn = get_db_connection()
 
-    # Try to find by custom_slug first, then by public_id
-    proposal = conn.execute("""
-        SELECT * FROM proposals
-        WHERE custom_slug = ? OR public_id = ?
-    """, (slug, slug)).fetchone()
+        # Try custom_slug first
+        proposal = conn.execute(
+            "SELECT * FROM proposals WHERE custom_slug = ?", (slug,)
+        ).fetchone()
 
-    if not proposal:
+        # Fallback to public_id if no match
+        if not proposal:
+            proposal = conn.execute(
+                "SELECT * FROM proposals WHERE public_id = ?", (slug,)
+            ).fetchone()
+
+        if not proposal:
+            conn.close()
+            return "Proposal not found", 404
+
+        client_email = proposal["user_email"]
+        full_link = request.url
+        submitted = request.args.get("submitted") == "1"
+
+        if request.method == "GET":
+            log_event("pageview", user_email=client_email, metadata={"slug": slug})
+            conn.execute(
+                "INSERT INTO analytics_events (event_name, user_email, timestamp) VALUES (?, ?, ?)",
+                ("pageview", client_email, datetime.utcnow())
+            )
+
+        elif request.method == "POST":
+            plan_row = conn.execute("SELECT plan_status FROM users WHERE email = ?", (client_email,)).fetchone()
+            count_row = conn.execute("SELECT COUNT(*) as count FROM proposals WHERE user_email = ?", (client_email,)).fetchone()
+
+            if count_row["count"] >= 3 and (not plan_row or plan_row["plan_status"] != "elite"):
+                conn.close()
+                flash("You’ve used all 3 free proposals. Upgrade to Elite for unlimited proposals.", "warning")
+                return redirect(url_for("memberships"))
+
+            name = request.form.get("name")
+            email = request.form.get("email")
+            company = request.form.get("company") or proposal["lead_company"]
+
+            from email_assistant import handle_new_proposal
+            new_public_id = handle_new_proposal(
+                name=name,
+                email=email,
+                company=company,
+                services=proposal["services"],
+                budget=proposal["budget"],
+                timeline=proposal["timeline"],
+                message=proposal["message"],
+                client_email=client_email
+            )
+
+            conn.close()
+
+            if new_public_id == "LIMIT_REACHED":
+                flash("You’ve used all 3 free proposals. Upgrade to Elite for unlimited proposals.", "warning")
+                return redirect(url_for("memberships"))
+
+            flash("Your proposal was submitted successfully!", "success")
+            return redirect(url_for("public_proposal", slug=new_public_id, submitted=1))
+
+        # ✅ Generate QR if needed
+        qr_path = f"static/qr/proposal_{proposal['public_id']}.png"
+        if not os.path.exists(qr_path):
+            os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+            img = qrcode.make(full_link)
+            img.save(qr_path)
+
         conn.close()
-        return "Proposal not found", 404
 
-    # ✅ Proceed as usual using `proposal` data
-    client_email = proposal["user_email"]
-    full_link = request.url
-    submitted = request.args.get("submitted") == "1"
+        return render_template("lead_proposal.html",
+                               public_id=proposal["public_id"],
+                               public_link=full_link,
+                               proposal=proposal,
+                               submitted=submitted)
 
-    if request.method == "GET":
-        log_event("pageview", user_email=client_email, metadata={"slug": slug})
-        conn.execute(
-            "INSERT INTO analytics_events (event_name, user_email, timestamp) VALUES (?, ?, ?)",
-            ("pageview", client_email, datetime.utcnow())
-        )
-
-    elif request.method == "POST":
-        # Proposal resubmission logic (can be same as current version)
-        # Add if needed
-
-        pass  # Optional
-
-    # ✅ QR Code
-    qr_path = f"static/qr/proposal_{slug}.png"
-    if not os.path.exists(qr_path):
-        os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
-
-    conn.close()
-
-    return render_template("lead_proposal.html",
-                           public_id=proposal["public_id"],
-                           public_link=full_link,
-                           proposal=proposal,
-                           submitted=submitted)
+    except Exception as e:
+        import traceback
+        print("[ERROR] Failed to render /proposal/<slug>:", traceback.format_exc())
+        return "Internal Server Error", 500
 
 
 
