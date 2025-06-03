@@ -68,7 +68,8 @@ def create_automation_settings_table():
             phone TEXT,
             reply_to TEXT,
             timezone TEXT,
-            logo TEXT
+            logo TEXT,
+            custom_slug TEXT
         )
     """)
     conn.commit()
@@ -118,17 +119,6 @@ def create_analytics_events_table():
     conn.commit()
     conn.close()
 
-def get_user_automation(email: str):
-    conn = get_db_connection()
-    row = conn.execute("""
-        SELECT tone, full_auto, accept_offers, reject_offers, length,
-               first_name, company_name, position, website, phone, reply_to, timezone, logo
-        FROM automation_settings
-        WHERE email = ?
-    """, (email,)).fetchone()
-    conn.close()
-    return row
-
 def create_offers_table():
     conn = get_db_connection()
     conn.execute("""
@@ -159,11 +149,27 @@ def create_proposals_table():
             timeline TEXT,
             message TEXT,
             proposal_text TEXT,
+            custom_slug TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     """)
     conn.commit()
     conn.close()
+
+def generate_public_id(company_name, custom_slug=None):
+    base = slugify(custom_slug if custom_slug else company_name)
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    return f"{base}-{suffix}"
+
+def generate_short_id(length=6):
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choices(characters, k=length))
+
+def generate_random_public_id(length=6):
+    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+def slugify(text):
+    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
 
 def log_event(event_name, user_email=None, metadata=None):
     print(f"[LOG EVENT] {event_name=} {user_email=} {metadata=}")
@@ -175,6 +181,17 @@ def log_event(event_name, user_email=None, metadata=None):
     conn.commit()
     conn.close()
 
+def get_user_automation(email: str):
+    conn = get_db_connection()
+    row = conn.execute("""
+        SELECT tone, full_auto, accept_offers, reject_offers, length,
+               first_name, company_name, position, website, phone, reply_to, timezone, logo, custom_slug
+        FROM automation_settings
+        WHERE email = ?
+    """, (email,)).fetchone()
+    conn.close()
+    return row
+
 def handle_new_proposal(name, email, company, services, budget, timeline, message, client_email):
     try:
         conn = get_db_connection()
@@ -185,20 +202,27 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
             conn.close()
             return "LIMIT_REACHED"
 
-        # ✅ Generate branded public_id like 'zyberfy-4amktm'
-        random_id = generate_random_public_id()
-        public_id = f"zyberfy-{random_id}"
+        # ✅ Get client’s branding info
+        branding = conn.execute(
+            "SELECT company_name, custom_slug FROM automation_settings WHERE email = ?",
+            (client_email,)
+        ).fetchone()
+
+        company_name = branding["company_name"] if branding else "client"
+        custom_slug = branding["custom_slug"] if branding else None
+
+        public_id = generate_public_id(company_name, custom_slug)
 
         print(f"[SQL] Saving proposal with public_id: {public_id} for client: {client_email}")
 
         conn.execute("""
             INSERT INTO proposals (
                 public_id, user_email, lead_name, lead_email, lead_company,
-                services, budget, timeline, message
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                services, budget, timeline, message, custom_slug
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             public_id, client_email, name, email, company,
-            services, budget, timeline, message
+            services, budget, timeline, message, custom_slug
         ))
         conn.commit()
         conn.close()
@@ -208,10 +232,3 @@ def handle_new_proposal(name, email, company, services, budget, timeline, messag
     except Exception as e:
         print(f"[ERROR] Failed to handle proposal: {e}")
         return None
-    
-def generate_short_id(length=6):
-    characters = string.ascii_lowercase + string.digits
-    return ''.join(random.choices(characters, k=length))
-
-def generate_random_public_id(length=6):
-    return ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(length))
