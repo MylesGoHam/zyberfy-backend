@@ -1174,41 +1174,46 @@ def rename_slug():
     public_id = request.form.get("public_id")
 
     if not custom_slug or not public_id:
-        session["slug_error"] = "Missing data for slug change."
+        flash("Missing data for slug change.", "error")
         return redirect(url_for("proposalpage"))
 
+    # Slug format check
     if not re.match(r'^[a-z0-9\-]+$', custom_slug):
-        session["slug_error"] = "Slug can only contain lowercase letters, numbers, and hyphens."
+        flash("Slug can only contain lowercase letters, numbers, and hyphens.", "error")
         return redirect(url_for("proposalpage"))
 
-    conn = sqlite3.connect("data/zyberfy.db")
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
 
-    existing = conn.execute(
+    # Check if slug is already taken
+    exists = conn.execute(
         "SELECT 1 FROM proposals WHERE custom_slug = ? AND public_id != ?",
         (custom_slug, public_id)
     ).fetchone()
 
-    if existing:
+    if exists:
         conn.close()
-        session["slug_error"] = "This slug is already taken. Try a different one."
+        flash("This slug is already taken. Try a different one.", "error")
         return redirect(url_for("proposalpage"))
 
+    # Save slug
     conn.execute(
         "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
         (custom_slug, public_id)
     )
     conn.commit()
 
-    full_url = f"https://zyberfy.com/proposal/{custom_slug}"
+    # Create QR code for new slug
+    full_url = f"{request.host_url.rstrip('/')}/proposal/{custom_slug}"
     qr_path = f"static/qr/proposal_{public_id}.png"
     os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-    qr_img = qrcode.make(full_url)
-    qr_img.save(qr_path)
+    img = qrcode.make(full_url)
+    img.save(qr_path)
 
     conn.close()
-    session["slug_success"] = custom_slug
-    return redirect(url_for("proposalpage")) 
+
+    # Show success message and reload
+    flash(f"✅ Link updated successfully!", "success")
+    return redirect(url_for("proposalpage"))
 
 
 
