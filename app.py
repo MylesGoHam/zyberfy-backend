@@ -931,33 +931,30 @@ def proposalpage():
         return redirect(url_for("login", next="/proposalpage"))
 
     email = session["email"]
-    slug_success = request.args.get("slug_success")
-    conn = get_db_connection()
+    conn = sqlite3.connect("data/zyberfy.db")
+    conn.row_factory = sqlite3.Row
 
-    # ✅ Check for existing default proposal
     proposal = conn.execute(
         "SELECT * FROM proposals WHERE user_email = ? AND is_default = 1 LIMIT 1",
         (email,)
     ).fetchone()
 
-    # ✅ If not found, auto-create one
+    # Auto-create default proposal if missing
     if not proposal:
-        settings = conn.execute("""
-            SELECT first_name, last_name, company_name, position, website, phone, reply_to, timezone, logo
-            FROM settings WHERE email = ?
-        """, (email,)).fetchone()
+        settings = conn.execute(
+            "SELECT first_name, company_name, position, website, phone, reply_to FROM settings WHERE email = ?",
+            (email,)
+        ).fetchone()
 
         if not settings:
             conn.close()
             return render_template("client_proposal.html", public_id=None, public_link=None)
 
-        # Create branded public_id like "quintessentially-a1c2xk"
         company = settings["company_name"] or "zyberfy"
         brand = re.sub(r'[^a-z0-9]+', '-', company.lower()).strip("-")
         short = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
         public_id = f"{brand}-{short}"
 
-        # Insert default proposal
         conn.execute("""
             INSERT INTO proposals (public_id, user_email, lead_name, lead_email, lead_company, services,
                                    budget, timeline, message, is_default)
@@ -975,26 +972,23 @@ def proposalpage():
             "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
         ).fetchone()
 
-    # ✅ Use custom slug if it exists
-    custom_slug = proposal["custom_slug"]
     public_id = proposal["public_id"]
-    link_slug = custom_slug if custom_slug else public_id
-    full_link = f"https://zyberfy.com/proposal/{link_slug}"
+    custom_slug = proposal["custom_slug"]
+    final_slug = custom_slug if custom_slug else public_id
+    public_link = f"https://zyberfy.com/proposal/{final_slug}"
 
-    # ✅ Generate QR code with custom slug
-    qr_path = f"static/qr/proposal_{link_slug}.png"
+    qr_path = f"static/qr/proposal_{public_id}.png"
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-        img = qrcode.make(full_link)
-        img.save(qr_path)
+        qr_img = qrcode.make(public_link)
+        qr_img.save(qr_path)
 
     conn.close()
-    return render_template(
-        "client_proposal.html",
-        public_id=link_slug,
-        public_link=full_link,
-        slug_success=slug_success
-    )
+
+    slug_success = session.pop("slug_success", None)
+    slug_error = session.pop("slug_error", None)
+
+    return render_template("client_proposal.html", public_id=public_id, public_link=public_link, slug_success=slug_success, slug_error=slug_error)
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
