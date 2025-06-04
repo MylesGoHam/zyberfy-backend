@@ -942,10 +942,10 @@ def proposalpage():
     # ✅ If not found, auto-create one
     if not proposal:
         settings = conn.execute("""
-            SELECT first_name, last_name, company_name, position,website, phone, reply_to, timezone, logo""", 
-            (session["email"],)
-         ).fetchone()
-       
+            SELECT first_name, last_name, company_name, position, website, phone, reply_to, timezone, logo
+            FROM settings WHERE email = ?
+        """, (email,)).fetchone()
+
         if not settings:
             conn.close()
             return render_template("client_proposal.html", public_id=None, public_link=None)
@@ -974,8 +974,6 @@ def proposalpage():
             "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
         ).fetchone()
 
-    conn.close()
-
     public_id = proposal["public_id"]
     full_link = f"https://zyberfy.com/proposal/{public_id}"
 
@@ -986,7 +984,18 @@ def proposalpage():
         img = qrcode.make(full_link)
         img.save(qr_path)
 
-    return render_template("client_proposal.html", public_id=public_id, public_link=full_link)
+    # ✅ Read success or error message from query params
+    slug_success = request.args.get("slug_success")
+    slug_error = request.args.get("slug_error")
+
+    conn.close()
+    return render_template(
+        "client_proposal.html",
+        public_id=public_id,
+        public_link=full_link,
+        slug_success=slug_success,
+        slug_error=slug_error
+    )
 
 
 @app.route("/proposal/<public_id>", methods=["GET", "POST"])
