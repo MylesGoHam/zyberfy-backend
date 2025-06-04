@@ -931,6 +931,7 @@ def proposalpage():
         return redirect(url_for("login", next="/proposalpage"))
 
     email = session["email"]
+    slug_success = request.args.get("slug_success")
     conn = get_db_connection()
 
     # ✅ Check for existing default proposal
@@ -974,27 +975,25 @@ def proposalpage():
             "SELECT * FROM proposals WHERE public_id = ?", (public_id,)
         ).fetchone()
 
+    # ✅ Use custom slug if it exists
+    custom_slug = proposal["custom_slug"]
     public_id = proposal["public_id"]
-    full_link = f"https://zyberfy.com/proposal/{public_id}"
+    link_slug = custom_slug if custom_slug else public_id
+    full_link = f"https://zyberfy.com/proposal/{link_slug}"
 
-    # ✅ Generate QR code if missing
-    qr_path = f"static/qr/proposal_{public_id}.png"
+    # ✅ Generate QR code with custom slug
+    qr_path = f"static/qr/proposal_{link_slug}.png"
     if not os.path.exists(qr_path):
         os.makedirs(os.path.dirname(qr_path), exist_ok=True)
         img = qrcode.make(full_link)
         img.save(qr_path)
 
-    # ✅ Read success or error message from query params
-    slug_success = request.args.get("slug_success")
-    slug_error = request.args.get("slug_error")
-
     conn.close()
     return render_template(
         "client_proposal.html",
-        public_id=public_id,
+        public_id=link_slug,
         public_link=full_link,
-        slug_success=slug_success,
-        slug_error=slug_error
+        slug_success=slug_success
     )
 
 
