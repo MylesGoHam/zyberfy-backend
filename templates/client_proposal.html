@@ -7,6 +7,21 @@
 
   <h1 class="text-2xl font-bold text-blue-600">Your Live Proposal Page</h1>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2">
+        {% for category, message in messages %}
+          <div class="text-sm px-4 py-3 rounded shadow 
+                      {% if category == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
+                      {% elif category == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
+                      {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   {% if public_id and public_link %}
   <div class="text-center space-y-4">
     <h3 class="text-lg font-semibold">Share This Link</h3>
@@ -43,29 +58,29 @@
   </div>
 
   <div class="mt-6 border-t pt-6">
-  <h3 class="text-lg font-semibold mb-2">Customize Your Link</h3>
-  <form method="POST" action="{{ url_for('rename_slug') }}" class="flex gap-3 items-center">
-    <input type="hidden" name="public_id" value="{{ public_id }}">
-    <input
-      type="text"
-      name="custom_slug"
-      placeholder="e.g., elite-yachting"
-      class="border px-3 py-2 rounded w-2/3 text-sm"
-      required
-    />
-    <button
-      type="submit"
-      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm transition"
-    >
-      Save
-    </button>
-  </form>
-  {% if slug_success %}
-    <p class="text-green-600 text-sm mt-2">✅ Link updated! Share: <strong>{{ request.url_root }}proposal/{{ slug_success }}</strong></p>
-  {% elif slug_error %}
-    <p class="text-red-600 text-sm mt-2">{{ slug_error }}</p>
-  {% endif %}
-</div>
+    <h3 class="text-lg font-semibold mb-2">Customize Your Link</h3>
+    <form method="POST" action="{{ url_for('rename_slug') }}" class="flex gap-3 items-center">
+      <input type="hidden" name="public_id" value="{{ public_id }}">
+      <input
+        type="text"
+        name="custom_slug"
+        placeholder="e.g., elite-yachting"
+        class="border px-3 py-2 rounded w-2/3 text-sm"
+        required
+      />
+      <button
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm transition"
+      >
+        Save
+      </button>
+    </form>
+    {% if slug_success %}
+      <p class="text-green-600 text-sm mt-2">✅ Link updated! Share: <strong>{{ request.url_root }}proposal/{{ slug_success }}</strong></p>
+    {% elif slug_error %}
+      <p class="text-red-600 text-sm mt-2">{{ slug_error }}</p>
+    {% endif %}
+  </div>
 
   <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800 shadow mt-4">
     This is your public proposal link. When a lead submits the form, the AI will automatically respond and send the proposal.
