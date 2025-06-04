@@ -1161,47 +1161,54 @@ def public_proposal_by_slug(slug):
         print("[ERROR] Failed to render /proposal/<slug>:", traceback.format_exc())
         return "Internal Server Error", 500
     
-    
+
     
 @app.route("/rename_slug", methods=["POST"])
 def rename_slug():
     if "email" not in session:
         return redirect(url_for("login"))
 
+    custom_slug = request.form.get("custom_slug", "").strip().lower()
     public_id = request.form.get("public_id")
-    custom_slug = request.form.get("custom_slug")
 
-    if not public_id or not custom_slug:
-        flash("Missing public_id or slug.", "error")
+    if not custom_slug or not public_id:
+        flash("Missing data for slug change.", "error")
+        return redirect(url_for("proposalpage"))
+
+    # Slug format check
+    if not re.match(r'^[a-z0-9\-]+$', custom_slug):
+        flash("Slug can only contain lowercase letters, numbers, and hyphens.", "error")
         return redirect(url_for("proposalpage"))
 
     conn = get_db_connection()
 
-    # Check if slug already exists
-    existing = conn.execute(
-        "SELECT 1 FROM proposals WHERE custom_slug = ?",
-        (custom_slug,)
+    # Check if slug already exists for another proposal
+    exists = conn.execute(
+        "SELECT 1 FROM proposals WHERE custom_slug = ? AND public_id != ?",
+        (custom_slug, public_id)
     ).fetchone()
-    if existing:
+
+    if exists:
         conn.close()
-        flash("Slug is already taken. Please choose another.", "error")
+        flash("This slug is already taken. Try a different one.", "error")
         return redirect(url_for("proposalpage"))
 
-    # Update slug
+    # Update custom_slug
     conn.execute(
-        "UPDATE proposals SET custom_slug = ? WHERE public_id = ? AND user_email = ?",
-        (custom_slug, public_id, session["email"])
+        "UPDATE proposals SET custom_slug = ? WHERE public_id = ?",
+        (custom_slug, public_id)
     )
     conn.commit()
 
-    # Update QR
+    # Generate new QR code
+    full_url = f"{request.host_url.rstrip('/')}/proposal/{custom_slug}"
     qr_path = f"static/qr/proposal_{public_id}.png"
-    full_link = f"https://zyberfy.com/proposal/{custom_slug}"
-    img = qrcode.make(full_link)
-    img.save(qr_path)
-
+    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    qr_img = qrcode.make(full_url)
+    qr_img.save(qr_path)
     conn.close()
-    flash("Custom link updated!", "success")
+
+    flash("✅ Link updated successfully!", "success")
     return redirect(url_for("proposalpage"))
 
 
