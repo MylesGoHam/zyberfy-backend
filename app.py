@@ -1211,14 +1211,14 @@ def rename_slug():
 
     # Generate new QR code
     full_url = f"{request.host_url.rstrip('/')}/proposal/{custom_slug}"
-    qr_path = f"static/qr/proposal_{public_id}.png"
+    qr_path = f"static/qr/proposal_{custom_slug}.png"  # 🔁 match new slug!
     os.makedirs(os.path.dirname(qr_path), exist_ok=True)
     qr_img = qrcode.make(full_url)
     qr_img.save(qr_path)
     conn.close()
 
     flash("✅ Link updated successfully!", "success")
-    return redirect(url_for("proposalpage"))
+    return redirect(url_for("proposalpage", slug_success=custom_slug))  
 
 
 
